@@ -385,17 +385,33 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
   ]);
 
   const captureSlides = useCallback(async () => {
-    const nodes = exportRefs.current.filter(Boolean);
+    const nodes = exportRefs.current
+      .map((node, index) => (node ? { node, index } : null))
+      .filter(Boolean) as { node: HTMLDivElement; index: number }[];
     if (!nodes.length) {
       throw new Error("No slides available for export.");
     }
     const canvases: HTMLCanvasElement[] = [];
-    for (const node of nodes) {
-      const canvas = await html2canvas(node as HTMLDivElement, {
-        scale: 2,
-        backgroundColor: null,
-      });
-      canvases.push(canvas);
+    for (const { node, index } of nodes) {
+      const exportId = `export-slide-${index}`;
+      node.setAttribute("data-export-id", exportId);
+      try {
+        const canvas = await html2canvas(node, {
+          scale: 2,
+          backgroundColor: null,
+          onclone: (doc) => {
+            const target = doc.querySelector(`[data-export-id="${exportId}"]`);
+            if (target) {
+              doc.body.innerHTML = "";
+              doc.body.style.margin = "0";
+              doc.body.appendChild(target);
+            }
+          },
+        });
+        canvases.push(canvas);
+      } finally {
+        node.removeAttribute("data-export-id");
+      }
     }
     return canvases;
   }, []);
@@ -737,19 +753,24 @@ function SlideThumbnail({
   teamMembers,
   onSelect,
 }: SlideThumbnailProps) {
+  const palette = buildPalette(theme);
+  const activeBorder = withAlpha(palette.contrast, 0.4);
+  const inactiveBorder = withAlpha(palette.contrast, 0.15);
+
   return (
     <button
       type="button"
       onClick={onSelect}
-      className="group flex w-full flex-col gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="group flex w-full flex-col gap-2 text-left focus-visible:outline-none"
     >
       <div
-        className={cn(
-          "relative overflow-hidden rounded-xl border transition",
-          isActive
-            ? "border-primary/80 ring-2 ring-primary/40"
-            : "border-white/20 hover:border-primary/40",
-        )}
+        className="relative overflow-hidden rounded-xl border transition-shadow"
+        style={{
+          borderColor: isActive ? activeBorder : inactiveBorder,
+          boxShadow: isActive
+            ? `0 0 0 3px ${withAlpha(palette.contrast, 0.25)}`
+            : "none",
+        }}
       >
         <SlideCanvas
           slide={slide}
@@ -817,7 +838,7 @@ const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
       0.25,
     )}, transparent 60%)`;
 
-    const content = (() => {
+  const content = (() => {
       switch (variant) {
         case "team":
           return renderTeamLayout(teamMembers, palette, slide);
@@ -833,16 +854,26 @@ const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
       }
     })();
 
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "relative overflow-hidden rounded-[28px] border border-white/20 shadow-[0_35px_80px_rgba(2,6,23,0.45)] transition",
-          size === "thumbnail" && "rounded-xl border-white/15 shadow-none",
-          isActive && size === "display" ? "ring-4 ring-primary/40" : "ring-0",
-        )}
-        style={containerStyle}
-      >
+  const borderColor = withAlpha(palette.contrast, size === "thumbnail" ? 0.12 : 0.2);
+  const boxShadow =
+    size === "display" && isActive
+      ? `0 0 0 4px ${withAlpha(palette.contrast, 0.25)}, 0 35px 80px rgba(2,6,23,0.45)`
+      : "0 35px 80px rgba(2,6,23,0.45)";
+  const borderRadius = size === "thumbnail" ? "16px" : "28px";
+
+  return (
+    <div
+      ref={ref}
+      className="relative overflow-hidden transition-all"
+      style={{
+        ...containerStyle,
+        borderRadius,
+        borderStyle: "solid",
+        borderWidth: "1px",
+        borderColor,
+        boxShadow: size === "thumbnail" ? "0 10px 30px rgba(15,23,42,0.18)" : boxShadow,
+      }}
+    >
         <div
           className="pointer-events-none absolute inset-0 opacity-80"
           style={{ background: overlayA }}
