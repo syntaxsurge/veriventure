@@ -13,14 +13,13 @@ type PitchDeckDoc = {
   deckId: string;
   ownerAddress: string;
   startupName: string;
-  industry: string;
-  features: string;
-  problems: string;
-  solutions: string;
-  competitions: string;
+  missionStatement: string;
+  focusRegion: string;
+  customerProfile: string;
+  tractionSummary: string;
+  goToMarket: string;
   teamJson: string;
-  scope: string;
-  moreInfo: string;
+  fundingPlan: string;
   brandColor: string;
   businessModel: string;
   slideTemplateIds: string[];
@@ -47,14 +46,13 @@ function mapDoc(doc: PitchDeckDoc): PitchDeckRecord {
     deckId: doc.deckId,
     ownerAddress: doc.ownerAddress,
     startupName: doc.startupName,
-    industry: doc.industry,
-    features: doc.features,
-    problems: doc.problems,
-    solutions: doc.solutions,
-    competitions: doc.competitions,
+    missionStatement: doc.missionStatement,
+    focusRegion: doc.focusRegion,
+    customerProfile: doc.customerProfile,
+    tractionSummary: doc.tractionSummary,
+    goToMarket: doc.goToMarket,
     team: safeParse<PitchTeamMember[]>(doc.teamJson, []),
-    scope: doc.scope,
-    moreInfo: doc.moreInfo,
+    fundingPlan: doc.fundingPlan,
     brandColor: doc.brandColor,
     businessModel: doc.businessModel,
     selectedSlideIds: doc.slideTemplateIds,
@@ -93,14 +91,13 @@ export async function getPitchDeck(deckId: string) {
 
 type CreateDeckInput = {
   startupName: string;
-  industry: string;
-  features: string;
-  problems: string;
-  solutions: string;
-  competitions: string;
+  missionStatement: string;
+  focusRegion: string;
+  customerProfile: string;
+  tractionSummary: string;
+  goToMarket: string;
   team: PitchTeamMember[];
-  scope: string;
-  moreInfo: string;
+  fundingPlan: string;
   brandColor: string;
   businessModel: string;
   slideTemplateIds: string[];
@@ -121,14 +118,13 @@ export async function createPitchDeckRecord(
     deckId,
     ownerAddress,
     startupName: input.startupName,
-    industry: input.industry,
-    features: input.features,
-    problems: input.problems,
-    solutions: input.solutions,
-    competitions: input.competitions,
+    missionStatement: input.missionStatement,
+    focusRegion: input.focusRegion,
+    customerProfile: input.customerProfile,
+    tractionSummary: input.tractionSummary,
+    goToMarket: input.goToMarket,
     teamJson: JSON.stringify(input.team),
-    scope: input.scope,
-    moreInfo: input.moreInfo,
+    fundingPlan: input.fundingPlan,
     brandColor: input.brandColor,
     businessModel: input.businessModel,
     slideTemplateIds: input.slideTemplateIds,

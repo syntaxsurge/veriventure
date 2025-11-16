@@ -4,21 +4,32 @@ import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { generatePitchFieldSuggestion } from "@/lib/server/openai";
 import type { PitchWizardDraft } from "@/types/pitch";
 
+const ASSIST_FIELDS = [
+  "missionStatement",
+  "focusRegion",
+  "customerProfile",
+  "tractionSummary",
+  "goToMarket",
+  "businessModel",
+  "fundingPlan",
+] as const;
+
+type AssistField = (typeof ASSIST_FIELDS)[number];
+
+const draftSchema = z.object({
+  startupName: z.string().optional(),
+  missionStatement: z.string().optional(),
+  focusRegion: z.string().optional(),
+  customerProfile: z.string().optional(),
+  tractionSummary: z.string().optional(),
+  goToMarket: z.string().optional(),
+  businessModel: z.string().optional(),
+  fundingPlan: z.string().optional(),
+});
+
 const bodySchema = z.object({
-  field: z.string().min(2),
-  draft: z.object({
-    startupName: z.string().optional(),
-    missionStatement: z.string().optional(),
-    industry: z.string().optional(),
-    customerProfile: z.string().optional(),
-    features: z.string().optional(),
-    problems: z.string().optional(),
-    solutions: z.string().optional(),
-    competitions: z.string().optional(),
-    tractionSummary: z.string().optional(),
-    scope: z.string().optional(),
-    fundingPlan: z.string().optional(),
-  }),
+  field: z.enum(ASSIST_FIELDS),
+  draft: draftSchema.partial(),
 });
 
 export const runtime = "nodejs";
@@ -39,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { field, draft } = parsed.data as {
-    field: string;
+    field: AssistField;
     draft: Partial<PitchWizardDraft>;
   };
 

@@ -7,16 +7,11 @@ const STORAGE_KEY = "veriventure:pitch-draft";
 
 const emptyDraft: PitchWizardDraft = {
   startupName: "",
-  industry: "",
   missionStatement: "",
+  focusRegion: "",
   customerProfile: "",
-  features: "",
-  problems: "",
-  solutions: "",
-  competitions: "",
   tractionSummary: "",
-  scope: "",
-  moreInfo: "",
+  goToMarket: "",
   fundingPlan: "",
   brandColor: "#111827",
   businessModel: "",

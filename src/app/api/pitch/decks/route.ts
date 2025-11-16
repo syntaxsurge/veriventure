@@ -15,21 +15,16 @@ const teamMemberSchema = z.object({
 
 const createDeckSchema = z.object({
   startupName: z.string().min(2).max(120),
-  industry: z.string().min(2),
   missionStatement: z.string().min(10).max(400),
-  customerProfile: z.string().min(10).max(600),
-  features: z.string().min(10).max(600),
-  problems: z.string().min(10).max(600),
-  solutions: z.string().min(10).max(600),
-  competitions: z.string().min(3).max(400),
+  focusRegion: z.string().min(3).max(200),
+  customerProfile: z.string().min(10).max(400),
   tractionSummary: z.string().min(3).max(400),
-  scope: z.string().min(3).max(400),
-  moreInfo: z.string().max(800).optional().default(""),
-  fundingPlan: z.string().max(800).optional().default(""),
-  brandColor: z.string().min(2).max(32),
+  goToMarket: z.string().min(3).max(400),
   businessModel: z.string().min(3).max(200),
+  fundingPlan: z.string().min(3).max(400),
+  brandColor: z.string().min(2).max(32),
   imageStrategy: z.enum(["manual", "ai"]).default("manual"),
-  slides: z.array(z.string().min(1)).min(4),
+  slides: z.array(z.string().min(1)).min(3),
   team: z.array(teamMemberSchema).min(1),
 });
 

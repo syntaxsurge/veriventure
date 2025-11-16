@@ -20,7 +20,16 @@ import { Textarea } from "@/components/ui/textarea";
 import type { PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 
-type PitchField = keyof PitchWizardDraft;
+type PitchField = keyof Pick<
+  PitchWizardDraft,
+  | "missionStatement"
+  | "focusRegion"
+  | "customerProfile"
+  | "tractionSummary"
+  | "goToMarket"
+  | "businessModel"
+  | "fundingPlan"
+>;
 
 const steps = [
   { id: "vision", label: "Vision & audience" },
@@ -28,6 +37,72 @@ const steps = [
   { id: "execution", label: "Execution & capital" },
   { id: "review", label: "Review" },
 ];
+
+const FIELD_LIMITS: Partial<Record<PitchField, number>> = {
+  missionStatement: 400,
+  focusRegion: 200,
+  customerProfile: 400,
+  tractionSummary: 400,
+  goToMarket: 400,
+  businessModel: 200,
+  fundingPlan: 400,
+};
+
+function extractSuggestion(field: PitchField, payload: string) {
+  const trimmed = payload.trim();
+  if (!trimmed) return "";
+
+  const fromValue = (value: unknown): string | null => {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        const nested = fromValue(entry);
+        if (nested) return nested;
+      }
+      return null;
+    }
+    if (!value || typeof value !== "object") {
+      return null;
+    }
+    const record = value as Record<string, unknown>;
+    if (typeof record[field] === "string") {
+      return record[field] as string;
+    }
+    if (typeof record.suggestion === "string") {
+      return record.suggestion as string;
+    }
+    if (typeof record.value === "string") {
+      return record.value as string;
+    }
+    if (record.draft) {
+      const nested = fromValue(record.draft);
+      if (nested) return nested;
+    }
+    if (record.data) {
+      const nested = fromValue(record.data);
+      if (nested) return nested;
+    }
+    const firstString = Object.values(record).find(
+      (entry) => typeof entry === "string",
+    );
+    return typeof firstString === "string" ? firstString : null;
+  };
+
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const suggestion = fromValue(parsed);
+      if (suggestion) {
+        return suggestion.trim();
+      }
+    } catch {
+      // ignore JSON parse errors and fall back to raw text
+    }
+  }
+  return trimmed;
+}
 
 function FieldLabel({
   label,
@@ -64,6 +139,27 @@ function FieldLabel({
   );
 }
 
+function CharacterInfo({
+  value,
+  max,
+}: {
+  value: string;
+  max?: number;
+}) {
+  if (!max) return null;
+  const over = value.length > max;
+  return (
+    <p
+      className={cn(
+        "text-xs text-muted-foreground",
+        over && "text-destructive",
+      )}
+    >
+      {value.length}/{max} characters
+    </p>
+  );
+}
+
 type StepProps = {
   draft: PitchWizardDraft;
   updateDraft: (updates: Partial<PitchWizardDraft>) => void;
@@ -81,9 +177,19 @@ type StepProps = {
   isBusy: (field: PitchField) => boolean;
 };
 
-function validateFields(fields: Array<[string, string]>) {
-  const missing = fields.filter(([, value]) => !value.trim());
-  return missing.map(([label]) => `${label} is required`);
+function validateFields(
+  fields: Array<[string, string, number | undefined]>,
+) {
+  const errors: string[] = [];
+  for (const [label, value, max] of fields) {
+    if (!value.trim()) {
+      errors.push(`${label} is required`);
+    }
+    if (typeof max === "number" && value.length > max) {
+      errors.push(`${label} exceeds ${max} characters`);
+    }
+  }
+  return errors;
 }
 
 function VisionStep({
@@ -98,10 +204,10 @@ function VisionStep({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const issues = validateFields([
-      ["Startup name", draft.startupName],
-      ["Mission headline", draft.missionStatement],
-      ["Operating focus", draft.industry],
-      ["Customer profile", draft.customerProfile],
+      ["Startup name", draft.startupName, 120],
+      ["Mission headline", draft.missionStatement, FIELD_LIMITS.missionStatement],
+      ["Operating focus", draft.focusRegion, FIELD_LIMITS.focusRegion],
+      ["Customer profile", draft.customerProfile, FIELD_LIMITS.customerProfile],
     ]);
     if (issues.length) {
       setErrors(issues);
@@ -136,30 +242,49 @@ function VisionStep({
           onChange={(event) =>
             updateDraft({
               missionStatement: event.target.value,
-              features: event.target.value,
             })
           }
           rows={3}
+          aria-invalid={
+            (FIELD_LIMITS.missionStatement ?? Infinity) <
+            draft.missionStatement.length
+          }
           placeholder="e.g. Give every climate operator a verifiable trust stack in 48 hours."
           required
+          className={cn(
+            (FIELD_LIMITS.missionStatement ?? Infinity) <
+              draft.missionStatement.length && "border-destructive",
+          )}
         />
-        <p className="text-xs text-muted-foreground">
-          We&apos;ll reuse this line for the intro slide and to set the tone for
-          the rest of the deck.
-        </p>
+        <CharacterInfo
+          value={draft.missionStatement}
+          max={FIELD_LIMITS.missionStatement}
+        />
       </div>
       <div>
         <FieldLabel
           label="Operating focus or region"
           required
-          onGenerate={() => generateField("industry")}
-          loading={isBusy("industry")}
+          onGenerate={() => generateField("focusRegion")}
+          loading={isBusy("focusRegion")}
         />
         <Input
-          value={draft.industry}
-          onChange={(event) => updateDraft({ industry: event.target.value })}
+          value={draft.focusRegion}
+          onChange={(event) => updateDraft({ focusRegion: event.target.value })}
           placeholder="e.g. AI ESG audits for LatAm logistics"
+          aria-invalid={
+            (FIELD_LIMITS.focusRegion ?? Infinity) <
+            draft.focusRegion.length
+          }
           required
+          className={cn(
+            (FIELD_LIMITS.focusRegion ?? Infinity) <
+              draft.focusRegion.length && "border-destructive",
+          )}
+        />
+        <CharacterInfo
+          value={draft.focusRegion}
+          max={FIELD_LIMITS.focusRegion}
         />
       </div>
       <div>
@@ -175,8 +300,20 @@ function VisionStep({
             updateDraft({ customerProfile: event.target.value })
           }
           rows={4}
+          aria-invalid={
+            (FIELD_LIMITS.customerProfile ?? Infinity) <
+            draft.customerProfile.length
+          }
           placeholder="Share the segments, contract size, or user archetype. This becomes context for AI slides."
           required
+          className={cn(
+            (FIELD_LIMITS.customerProfile ?? Infinity) <
+              draft.customerProfile.length && "border-destructive",
+          )}
+        />
+        <CharacterInfo
+          value={draft.customerProfile}
+          max={FIELD_LIMITS.customerProfile}
         />
       </div>
       {errors.length > 0 && (
@@ -202,10 +339,10 @@ function MarketStep({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const issues = validateFields([
-      ["Pain points", draft.problems],
-      ["Solution angle", draft.solutions],
-      ["Traction snapshot", draft.tractionSummary],
-      ["Competitive stance", draft.competitions],
+      ["Traction snapshot", draft.tractionSummary, FIELD_LIMITS.tractionSummary],
+      ["Go-to-market plan", draft.goToMarket, FIELD_LIMITS.goToMarket],
+      ["Business model", draft.businessModel, FIELD_LIMITS.businessModel],
+      ["Funding plan", draft.fundingPlan, FIELD_LIMITS.fundingPlan],
     ]);
     if (issues.length) {
       setErrors(issues);
@@ -219,34 +356,6 @@ function MarketStep({
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <FieldLabel
-          label="Pain points"
-          required
-          onGenerate={() => generateField("problems")}
-          loading={isBusy("problems")}
-        />
-        <Textarea
-          value={draft.problems}
-          onChange={(event) => updateDraft({ problems: event.target.value })}
-          rows={4}
-          placeholder="Quantify the top pain points and who feels them."
-        />
-      </div>
-      <div>
-        <FieldLabel
-          label="Solution angle"
-          required
-          onGenerate={() => generateField("solutions")}
-          loading={isBusy("solutions")}
-        />
-        <Textarea
-          value={draft.solutions}
-          onChange={(event) => updateDraft({ solutions: event.target.value })}
-          rows={4}
-          placeholder="Explain what you build and the differentiator in plain language."
-        />
-      </div>
-      <div>
-        <FieldLabel
           label="Traction snapshot"
           required
           onGenerate={() => generateField("tractionSummary")}
@@ -258,23 +367,106 @@ function MarketStep({
             updateDraft({ tractionSummary: event.target.value })
           }
           rows={3}
-          placeholder="Mention ARR, pilots, waitlists, carbon credits, or verifiable KPIs."
+          aria-invalid={
+            (FIELD_LIMITS.tractionSummary ?? Infinity) <
+            draft.tractionSummary.length
+          }
+          placeholder="Mention ARR, pilots, waitlists, carbon savings, etc."
+          required
+          className={cn(
+            (FIELD_LIMITS.tractionSummary ?? Infinity) <
+              draft.tractionSummary.length && "border-destructive",
+          )}
+        />
+        <CharacterInfo
+          value={draft.tractionSummary}
+          max={FIELD_LIMITS.tractionSummary}
         />
       </div>
       <div>
         <FieldLabel
-          label="Competitive stance"
+          label="Go-to-market plan"
           required
-          onGenerate={() => generateField("competitions")}
-          loading={isBusy("competitions")}
+          onGenerate={() => generateField("goToMarket")}
+          loading={isBusy("goToMarket")}
         />
         <Textarea
-          value={draft.competitions}
+          value={draft.goToMarket}
           onChange={(event) =>
-            updateDraft({ competitions: event.target.value })
+            updateDraft({ goToMarket: event.target.value })
           }
           rows={3}
-          placeholder="List the alternatives and the unfair advantage you have."
+          aria-invalid={
+            (FIELD_LIMITS.goToMarket ?? Infinity) < draft.goToMarket.length
+          }
+          placeholder="Explain launch channels, partnerships, and next milestones."
+          required
+          className={cn(
+            (FIELD_LIMITS.goToMarket ?? Infinity) < draft.goToMarket.length &&
+              "border-destructive",
+          )}
+        />
+        <CharacterInfo
+          value={draft.goToMarket}
+          max={FIELD_LIMITS.goToMarket}
+        />
+      </div>
+      <div>
+        <FieldLabel
+          label="Business model"
+          required
+          onGenerate={() => generateField("businessModel")}
+          loading={isBusy("businessModel")}
+        />
+        <Textarea
+          value={draft.businessModel}
+          onChange={(event) =>
+            updateDraft({ businessModel: event.target.value })
+          }
+          rows={3}
+          aria-invalid={
+            (FIELD_LIMITS.businessModel ?? Infinity) <
+            draft.businessModel.length
+          }
+          placeholder="Describe pricing, ACV, monetization levers."
+          required
+          className={cn(
+            (FIELD_LIMITS.businessModel ?? Infinity) <
+              draft.businessModel.length && "border-destructive",
+          )}
+        />
+        <CharacterInfo
+          value={draft.businessModel}
+          max={FIELD_LIMITS.businessModel}
+        />
+      </div>
+      <div>
+        <FieldLabel
+          label="Funding plan"
+          required
+          onGenerate={() => generateField("fundingPlan")}
+          loading={isBusy("fundingPlan")}
+        />
+        <Textarea
+          value={draft.fundingPlan}
+          onChange={(event) =>
+            updateDraft({ fundingPlan: event.target.value })
+          }
+          rows={3}
+          aria-invalid={
+            (FIELD_LIMITS.fundingPlan ?? Infinity) <
+            draft.fundingPlan.length
+          }
+          placeholder="Detail raise target, allocation, and 12-month outcomes."
+          required
+          className={cn(
+            (FIELD_LIMITS.fundingPlan ?? Infinity) <
+              draft.fundingPlan.length && "border-destructive",
+          )}
+        />
+        <CharacterInfo
+          value={draft.fundingPlan}
+          max={FIELD_LIMITS.fundingPlan}
         />
       </div>
       {errors.length > 0 && (
@@ -309,8 +501,6 @@ function ExecutionStep({
   addTeamMember,
   removeTeamMember,
   updateTeamMember,
-  generateField,
-  isBusy,
 }: StepProps) {
   function toggleSlide(id: string) {
     if (draft.slides.includes(id)) {
@@ -324,23 +514,17 @@ function ExecutionStep({
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const issues = validateFields([
-      ["Go-to-market plan", draft.scope],
-      ["Revenue model", draft.businessModel],
-      ["Capital plan", draft.fundingPlan],
-      ["Brand color", draft.brandColor],
-    ]);
+    const issues = validateFields([["Brand color", draft.brandColor, 32]]);
     if (!draft.slides.length) {
       issues.push("Select at least one slide template");
     }
     draft.team.forEach((member, index) => {
       const missing = validateFields([
-        ["Name", member.name],
-        ["Role", member.role],
+        [`Team member ${index + 1} name`, member.name, 120],
+        [`Team member ${index + 1} role`, member.role, 120],
+        [`Team member ${index + 1} expertise`, member.expertise, 160],
       ]);
-      if (missing.length) {
-        issues.push(`Team member ${index + 1} needs a name and role.`);
-      }
+      issues.push(...missing);
     });
     if (issues.length) {
       setErrors(issues);
@@ -365,7 +549,12 @@ function ExecutionStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
-        <p className="text-sm font-medium">Team</p>
+        <div>
+          <p className="text-sm font-medium">Team</p>
+          <p className="text-xs text-muted-foreground">
+            Share names, roles, and each teammate&apos;s superpower.
+          </p>
+        </div>
         {draft.team.map((member, index) => (
           <Card key={member.id} className="border-dashed">
             <CardContent className="grid gap-3 pt-6 md:grid-cols-3">
@@ -375,6 +564,7 @@ function ExecutionStep({
                   updateTeamMember(index, { name: event.target.value })
                 }
                 placeholder="Full name"
+                required
               />
               <Input
                 value={member.role}
@@ -382,6 +572,7 @@ function ExecutionStep({
                   updateTeamMember(index, { role: event.target.value })
                 }
                 placeholder="Role (e.g. COO)"
+                required
               />
               <Input
                 value={member.expertise}
@@ -389,6 +580,7 @@ function ExecutionStep({
                   updateTeamMember(index, { expertise: event.target.value })
                 }
                 placeholder="Superpower or expertise"
+                required
               />
               {draft.team.length > 1 && (
                 <Button
@@ -410,68 +602,22 @@ function ExecutionStep({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-        <FieldLabel
-          label="Go-to-market focus"
-          required
-          onGenerate={() => generateField("scope")}
-          loading={isBusy("scope")}
-        />
-          <Textarea
-            value={draft.scope}
-            onChange={(event) => updateDraft({ scope: event.target.value })}
-            rows={3}
-            placeholder="How you deploy capital, channels, partnerships, milestones."
-          />
-        </div>
-        <div>
-        <FieldLabel
-          label="Revenue model"
-          required
-          onGenerate={() => generateField("businessModel")}
-          loading={isBusy("businessModel")}
-        />
-          <Textarea
-            value={draft.businessModel}
-            onChange={(event) =>
-              updateDraft({ businessModel: event.target.value })
-            }
-            rows={3}
-            placeholder="Describe pricing, ACV, monetization levers."
-          />
-        </div>
-      </div>
-
-      <div>
-        <FieldLabel
-          label="Capital + milestone plan"
-          required
-          onGenerate={() => generateField("fundingPlan")}
-          loading={isBusy("fundingPlan")}
-        />
-        <Textarea
-          value={draft.fundingPlan}
-          onChange={(event) =>
-            updateDraft({
-              fundingPlan: event.target.value,
-              moreInfo: event.target.value,
-            })
-          }
-          rows={4}
-          placeholder="Describe how much you want to raise, allocation, and what success looks like in 12 months."
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
           <FieldLabel label="Brand color" required />
           <Input
             value={draft.brandColor}
             onChange={(event) => updateDraft({ brandColor: event.target.value })}
             placeholder="#111827 or 'Deep indigo gradient'"
+            maxLength={32}
+            required
+            aria-invalid={draft.brandColor.trim().length === 0}
+            className={cn(
+              draft.brandColor.length > 32 && "border-destructive",
+            )}
           />
+          <CharacterInfo value={draft.brandColor} max={32} />
         </div>
         <div>
-          <label className="text-sm font-medium">Image strategy</label>
+          <FieldLabel label="Image strategy" required />
           <div className="mt-2 flex gap-3">
             {["manual", "ai"].map((option) => (
               <label
@@ -581,18 +727,27 @@ function ReviewStep({
 }: ReviewProps) {
   function validateBeforeSubmit() {
     const issues = validateFields([
-      ["Startup name", draft.startupName],
-      ["Operating focus", draft.industry],
-      ["Mission headline", draft.missionStatement],
-      ["Pain points", draft.problems],
-      ["Solution angle", draft.solutions],
-      ["Traction snapshot", draft.tractionSummary],
-      ["Go-to-market plan", draft.scope],
-      ["Capital plan", draft.fundingPlan],
+      ["Startup name", draft.startupName, 120],
+      ["Mission headline", draft.missionStatement, FIELD_LIMITS.missionStatement],
+      ["Operating focus", draft.focusRegion, FIELD_LIMITS.focusRegion],
+      ["Customer profile", draft.customerProfile, FIELD_LIMITS.customerProfile],
+      ["Traction snapshot", draft.tractionSummary, FIELD_LIMITS.tractionSummary],
+      ["Go-to-market plan", draft.goToMarket, FIELD_LIMITS.goToMarket],
+      ["Business model", draft.businessModel, FIELD_LIMITS.businessModel],
+      ["Capital plan", draft.fundingPlan, FIELD_LIMITS.fundingPlan],
+      ["Brand color", draft.brandColor, 32],
     ]);
     if (!draft.slides.length) {
       issues.push("Select at least one slide template.");
     }
+    draft.team.forEach((member, index) => {
+      const missing = validateFields([
+        [`Team member ${index + 1} name`, member.name, 120],
+        [`Team member ${index + 1} role`, member.role, 120],
+        [`Team member ${index + 1} expertise`, member.expertise, 160],
+      ]);
+      issues.push(...missing);
+    });
     if (issues.length) {
       setErrors(issues);
       return false;
@@ -611,7 +766,7 @@ function ReviewStep({
           </div>
           <div>
             <dt className="text-muted-foreground">Operating focus</dt>
-            <dd className="font-semibold">{draft.industry || "—"}</dd>
+            <dd className="font-semibold">{draft.focusRegion || "—"}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Mission headline</dt>
@@ -620,9 +775,27 @@ function ReviewStep({
             </dd>
           </div>
           <div>
+            <dt className="text-muted-foreground">Customer profile</dt>
+            <dd className="font-semibold">
+              {draft.customerProfile || "Add audience notes"}
+            </dd>
+          </div>
+          <div>
             <dt className="text-muted-foreground">Traction snapshot</dt>
             <dd className="font-semibold">
               {draft.tractionSummary || "Add KPIs before submitting"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Go-to-market plan</dt>
+            <dd className="font-semibold">
+              {draft.goToMarket || "Explain launch priorities"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Business model</dt>
+            <dd className="font-semibold">
+              {draft.businessModel || "Describe monetization"}
             </dd>
           </div>
           <div>
@@ -634,6 +807,10 @@ function ReviewStep({
           <div>
             <dt className="text-muted-foreground">Slides selected</dt>
             <dd className="font-semibold">{draft.slides.length}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Team members</dt>
+            <dd className="font-semibold">{draft.team.length}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Image strategy</dt>
@@ -706,20 +883,17 @@ export function PitchDeckStudio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ field, draft }),
       });
-      const suggestion = await response.text();
-      if (!response.ok || !suggestion.trim()) {
-        throw new Error(suggestion || "Unable to generate suggestion.");
+      const payload = await response.text();
+      if (!response.ok) {
+        throw new Error(payload || "Unable to generate suggestion.");
       }
-      const updates: Partial<PitchWizardDraft> = {
-        [field]: suggestion.trim(),
-      } as Partial<PitchWizardDraft>;
-      if (field === "missionStatement") {
-        updates.features = suggestion.trim();
+      const suggestion = extractSuggestion(field, payload);
+      if (!suggestion) {
+        throw new Error("AI suggestion was empty.");
       }
-      if (field === "fundingPlan") {
-        updates.moreInfo = suggestion.trim();
-      }
-      updateDraft(updates);
+      updateDraft({
+        [field]: suggestion,
+      } as Partial<PitchWizardDraft>);
     } catch (error) {
       setAiError(
         error instanceof Error
@@ -735,17 +909,10 @@ export function PitchDeckStudio() {
     setSubmitting(true);
     setGlobalError(null);
     try {
-      const submission = {
-        ...draft,
-        features: [draft.missionStatement, draft.customerProfile]
-          .filter(Boolean)
-          .join("\n\n"),
-        moreInfo: draft.fundingPlan || draft.moreInfo,
-      };
       const response = await fetch("/api/pitch/decks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submission),
+        body: JSON.stringify(draft),
       });
       if (!response.ok) {
         const payload = await response.json();

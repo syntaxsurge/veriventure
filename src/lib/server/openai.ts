@@ -13,6 +13,7 @@ import type {
   PitchBrandKit,
   PitchSlideRecord,
   PitchTeamMember,
+  PitchWizardDraft,
 } from "@/types/pitch";
 import type { SlideTemplate } from "@/data/pitch-industries";
 
@@ -147,17 +148,12 @@ export async function generatePitchDeckSlides(input: PitchDeckInput) {
 
 type AdvancedPitchDeckInput = {
   startupName: string;
-  industry: string;
   missionStatement: string;
+  focusRegion: string;
   customerProfile: string;
-  features: string;
-  problems: string;
-  solutions: string;
-  competitions: string;
   tractionSummary: string;
-  scope: string;
-  moreInfo: string;
-  fundingPlan?: string;
+  goToMarket: string;
+  fundingPlan: string;
   brandColor: string;
   businessModel: string;
   imageStrategy: "manual" | "ai";
@@ -201,8 +197,11 @@ export async function generateAdvancedPitchDeck(input: AdvancedPitchDeckInput) {
           context: {
             mission: input.missionStatement,
             customerProfile: input.customerProfile,
+            focusRegion: input.focusRegion,
             traction: input.tractionSummary,
-            capitalPlan: input.fundingPlan ?? input.moreInfo,
+            goToMarket: input.goToMarket,
+            businessModel: input.businessModel,
+            capitalPlan: input.fundingPlan,
           },
         }),
       },
@@ -278,11 +277,13 @@ type SlideCorrectionInput = {
   slide: PitchSlideRecord;
   brief: {
     startupName: string;
-    industry: string;
-    problems: string;
-    solutions: string;
-    competitions: string;
+    missionStatement: string;
+    focusRegion: string;
+    customerProfile: string;
+    tractionSummary: string;
+    goToMarket: string;
     businessModel: string;
+    fundingPlan: string;
   };
 };
 
@@ -536,21 +537,37 @@ export async function generateSocialPosts(input: SocialPostInput) {
     posts,
   };
 }
+type PitchAssistField = keyof Pick<
+  PitchWizardDraft,
+  | "missionStatement"
+  | "focusRegion"
+  | "customerProfile"
+  | "tractionSummary"
+  | "goToMarket"
+  | "businessModel"
+  | "fundingPlan"
+>;
+
+const ASSIST_HINTS: Record<PitchAssistField, string> = {
+  missionStatement:
+    "Craft a bold mission headline highlighting outcomes and who benefits.",
+  focusRegion:
+    "Summarize the operating focus, region, or category in 12 words or fewer.",
+  customerProfile:
+    "Describe the buyer persona, segments, or stakeholders with relevant qualifiers.",
+  tractionSummary:
+    "List concise metrics or proof points (ARR, pilots, carbon saved, etc.).",
+  goToMarket:
+    "Highlight launch channels, partnerships, and upcoming milestones in order.",
+  businessModel:
+    "Explain how money is made, including pricing model and ACV if known.",
+  fundingPlan:
+    "Explain the raise target, allocation, and 12-month outcomes.",
+};
+
 export async function generatePitchFieldSuggestion(
-  field: string,
-  draft: Partial<{
-    startupName: string;
-    missionStatement: string;
-    industry: string;
-    customerProfile: string;
-    features: string;
-    problems: string;
-    solutions: string;
-    competitions: string;
-    tractionSummary: string;
-    scope: string;
-    fundingPlan: string;
-  }>,
+  field: PitchAssistField,
+  draft: Partial<PitchWizardDraft>,
 ) {
   const client = getClient();
   const completion = await client.chat.completions.create({
@@ -559,8 +576,13 @@ export async function generatePitchFieldSuggestion(
     messages: [
       {
         role: "system",
-        content:
-          "You help founders fill a pitch deck questionnaire. Respond with plain text (max 3 sentences) tailored to the requested field.",
+        content: [
+          "You help founders fill a pitch deck questionnaire.",
+          "Respond with at most two sentences of plain text.",
+          ASSIST_HINTS[field],
+        ]
+          .filter(Boolean)
+          .join(" "),
       },
       {
         role: "user",

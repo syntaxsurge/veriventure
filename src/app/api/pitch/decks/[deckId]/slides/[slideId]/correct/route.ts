@@ -52,11 +52,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       slide,
       brief: {
         startupName: deck.startupName,
-        industry: deck.industry,
-        problems: deck.problems,
-        solutions: deck.solutions,
-        competitions: deck.competitions,
+        missionStatement: deck.missionStatement,
+        focusRegion: deck.focusRegion,
+        customerProfile: deck.customerProfile,
+        tractionSummary: deck.tractionSummary,
+        goToMarket: deck.goToMarket,
         businessModel: deck.businessModel,
+        fundingPlan: deck.fundingPlan,
       },
     });
 
