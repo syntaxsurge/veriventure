@@ -1,3 +1,5 @@
+export type ImageStrategy = "manual" | "ai" | "scrape";
+
 export type PitchTeamMember = {
   id: string;
   name: string;
@@ -42,7 +44,7 @@ export type PitchDeckRecord = {
   brandColor: string;
   businessModel: string;
   selectedSlideIds: string[];
-  imageStrategy: "manual" | "ai";
+  imageStrategy: ImageStrategy;
   status: "processing" | "completed";
   progress: number;
   summary: string;
@@ -63,6 +65,6 @@ export type PitchWizardDraft = {
   brandColor: string;
   businessModel: string;
   slides: string[];
-  imageStrategy: "manual" | "ai";
+  imageStrategy: ImageStrategy;
   team: PitchTeamMember[];
 };

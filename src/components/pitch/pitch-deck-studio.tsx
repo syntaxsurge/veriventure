@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { PitchWizardDraft } from "@/types/pitch";
+import type { ImageStrategy, PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 
 type PitchField = keyof Pick<
@@ -37,6 +37,25 @@ const steps = [
   { id: "execution", label: "Execution & capital" },
   { id: "review", label: "Review" },
 ];
+
+const imageOptions: { value: ImageStrategy; label: string; helper: string }[] =
+  [
+    {
+      value: "manual",
+      label: "Upload assets later",
+      helper: "Keep placeholders and drop your own images after generation.",
+    },
+    {
+      value: "ai",
+      label: "AI placeholders",
+      helper: "Let OpenAI render cinematic hero shots for each slide.",
+    },
+    {
+      value: "scrape",
+      label: "Web sourced",
+      helper: "Pull editorial photography from the web for each template.",
+    },
+  ];
 
 const FIELD_LIMITS: Partial<Record<PitchField, number>> = {
   missionStatement: 400,
@@ -572,6 +591,29 @@ function ExecutionStep({
     );
   }, [filteredSlides]);
 
+  const visibleSlideIds = useMemo(
+    () => filteredSlides.map((slide) => slide.id),
+    [filteredSlides],
+  );
+
+  const anyVisibleSelected = useMemo(
+    () => visibleSlideIds.some((id) => draft.slides.includes(id)),
+    [visibleSlideIds, draft.slides],
+  );
+
+  const handleSelectVisible = () => {
+    if (!visibleSlideIds.length) return;
+    const merged = Array.from(new Set([...draft.slides, ...visibleSlideIds]));
+    updateDraft({ slides: merged });
+  };
+
+  const handleClearVisible = () => {
+    if (!visibleSlideIds.length) return;
+    updateDraft({
+      slides: draft.slides.filter((id) => !visibleSlideIds.includes(id)),
+    });
+  };
+
   const safeBrandColor = /^#[0-9a-fA-F]{6}$/.test(draft.brandColor.trim())
     ? draft.brandColor.trim()
     : "#111827";
@@ -662,13 +704,13 @@ function ExecutionStep({
         </div>
         <div>
           <FieldLabel label="Image strategy" required />
-          <div className="mt-2 flex gap-3">
-            {["manual", "ai"].map((option) => (
+          <div className="mt-2 flex flex-col gap-3 md:flex-row md:flex-wrap">
+            {imageOptions.map((option) => (
               <label
-                key={option}
+                key={option.value}
                 className={cn(
-                  "flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm",
-                  draft.imageStrategy === option
+                  "flex cursor-pointer gap-3 rounded-xl border px-3 py-2 text-sm md:w-[calc(50%-0.5rem)]",
+                  draft.imageStrategy === option.value
                     ? "border-primary bg-primary/5"
                     : "border-dashed",
                 )}
@@ -676,13 +718,18 @@ function ExecutionStep({
                 <input
                   type="radio"
                   className="hidden"
-                  checked={draft.imageStrategy === option}
+                  checked={draft.imageStrategy === option.value}
                   onChange={() =>
-                    updateDraft({ imageStrategy: option as "manual" | "ai" })
+                    updateDraft({ imageStrategy: option.value })
                   }
                 />
                 <Radio className="h-4 w-4" />
-                {option === "manual" ? "Upload assets later" : "AI placeholders"}
+                <span>
+                  <span className="block font-medium">{option.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {option.helper}
+                  </span>
+                </span>
               </label>
             ))}
           </div>
@@ -728,6 +775,26 @@ function ExecutionStep({
                   {category}
                 </Button>
               ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleSelectVisible}
+                disabled={!visibleSlideIds.length}
+              >
+                Select shown templates
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={handleClearVisible}
+                disabled={!anyVisibleSelected}
+              >
+                Clear shown templates
+              </Button>
             </div>
           </div>
           {Object.entries(slidesByCategory).map(([category, slides]) => (

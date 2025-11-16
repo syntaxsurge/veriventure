@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { PitchTeamMember, PitchWizardDraft } from "@/types/pitch";
+import type {
+  ImageStrategy,
+  PitchTeamMember,
+  PitchWizardDraft,
+} from "@/types/pitch";
 
 const STORAGE_KEY = "veriventure:pitch-draft";
 
@@ -16,7 +20,7 @@ const emptyDraft: PitchWizardDraft = {
   brandColor: "#111827",
   businessModel: "",
   slides: [],
-  imageStrategy: "manual",
+  imageStrategy: "manual" as ImageStrategy,
   team: [
     {
       id: "founder-1",

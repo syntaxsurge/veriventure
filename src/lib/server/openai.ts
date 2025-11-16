@@ -1,5 +1,6 @@
 "use server";
 
+import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 import OpenAI from "openai";
 import { clampText } from "@/lib/alignment/text";
@@ -10,6 +11,7 @@ import type {
   SocialPostVariant,
 } from "@/types/document";
 import type {
+  ImageStrategy,
   PitchBrandKit,
   PitchSlideRecord,
   PitchTeamMember,
@@ -146,6 +148,198 @@ export async function generatePitchDeckSlides(input: PitchDeckInput) {
   };
 }
 
+const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL?.trim() || "gpt-image-1";
+
+type OpenAIImageSize =
+  | "256x256"
+  | "512x512"
+  | "1024x1024"
+  | "1024x1536"
+  | "1536x1024"
+  | "1024x1792"
+  | "1792x1024";
+
+const IMAGE_SIZE = ((): OpenAIImageSize => {
+  const allowed: OpenAIImageSize[] = [
+    "256x256",
+    "512x512",
+    "1024x1024",
+    "1024x1536",
+    "1536x1024",
+    "1024x1792",
+    "1792x1024",
+  ];
+  const candidate = process.env.PITCH_DECK_IMAGE_SIZE?.trim() as
+    | OpenAIImageSize
+    | undefined;
+  return candidate && allowed.includes(candidate)
+    ? candidate
+    : ("1792x1024" as OpenAIImageSize);
+})();
+const SCRAPE_DIMENSIONS =
+  process.env.PITCH_DECK_SCRAPE_SIZE?.trim() || "1200x675";
+const IMAGE_CONTEXT_LIMIT = 360;
+
+export type SlideImageContext = {
+  startupName: string;
+  missionStatement: string;
+  focusRegion: string;
+  customerProfile: string;
+  brandColor: string;
+};
+
+function buildSlideImagePrompt({
+  slide,
+  context,
+}: {
+  slide: PitchSlideRecord;
+  context: SlideImageContext;
+}) {
+  const bulletSummary = clampText(slide.bullets.join("; "), IMAGE_CONTEXT_LIMIT);
+  const noteSummary = clampText(slide.notes, 200);
+  const segments = [
+    `Design a cinematic hero image for a modern Google Slides / PowerPoint deck titled "${slide.title}".`,
+    `Startup: ${context.startupName}. Mission: ${context.missionStatement}. Audience focus: ${context.customerProfile} in ${context.focusRegion}.`,
+    `Visual language: organized grid, clean typography, glassmorphism shadows, ${context.brandColor} as accent with deep contrast.`,
+  ];
+  if (bulletSummary) {
+    segments.push(`Narrative focus: ${bulletSummary}.`);
+  }
+  if (noteSummary) {
+    segments.push(`Tone guide: ${noteSummary}.`);
+  }
+  segments.push(
+    "Render as a 16:9 presentation background, no logos or text, just conceptual imagery.",
+  );
+  return segments.join(" ");
+}
+
+async function generateSlideIllustration({
+  slide,
+  context,
+}: {
+  slide: PitchSlideRecord;
+  context: SlideImageContext;
+}) {
+  const client = getClient();
+  const response = await client.images.generate({
+    model: IMAGE_MODEL,
+    prompt: buildSlideImagePrompt({ slide, context }),
+    size: IMAGE_SIZE,
+    quality: "high",
+    response_format: "b64_json",
+  });
+  const imagePayload = Array.isArray(response.data)
+    ? response.data[0]
+    : undefined;
+  const base64 = imagePayload?.b64_json;
+  if (!base64) {
+    throw new Error("OpenAI image generation returned no image data.");
+  }
+  return `data:image/png;base64,${base64}`;
+}
+
+async function fetchRemoteImageAsDataUrl(url: string) {
+  const response = await fetch(url, {
+    headers: { Accept: "image/avif,image/webp,image/png,image/jpeg" },
+  });
+  if (!response.ok) {
+    throw new Error(`Unable to fetch image from ${url}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const mime =
+    response.headers.get("content-type")?.split(";")[0] || "image/jpeg";
+  return `data:${mime};base64,${buffer.toString("base64")}`;
+}
+
+async function scrapeSlideImage({
+  slide,
+  context,
+}: {
+  slide: PitchSlideRecord;
+  context: SlideImageContext;
+}) {
+  const query = encodeURIComponent(
+    `${context.startupName} ${slide.title} ${context.focusRegion} ${slide.bullets
+      .slice(0, 2)
+      .join(" ")}`.trim(),
+  );
+  const url = `https://source.unsplash.com/${SCRAPE_DIMENSIONS}/?${query}`;
+  return fetchRemoteImageAsDataUrl(url);
+}
+
+async function resolveSlideImage(
+  strategy: ImageStrategy,
+  params: { slide: PitchSlideRecord; context: SlideImageContext },
+) {
+  if (strategy === "ai") {
+    return generateSlideIllustration(params);
+  }
+  return scrapeSlideImage(params);
+}
+
+export async function buildSlideImageAsset({
+  slide,
+  strategy,
+  context,
+}: {
+  slide: PitchSlideRecord;
+  strategy: ImageStrategy;
+  context: SlideImageContext;
+}) {
+  if (strategy === "manual") {
+    throw new Error("Manual strategy does not support automatic images.");
+  }
+  const imageUrl = await resolveSlideImage(strategy, { slide, context });
+  return {
+    ...slide,
+    images: [
+      {
+        url: imageUrl,
+        caption: slide.images[0]?.caption || slide.title,
+      },
+    ],
+  };
+}
+
+async function applyImageStrategyToSlides({
+  slides,
+  strategy,
+  context,
+}: {
+  slides: PitchSlideRecord[];
+  strategy: ImageStrategy;
+  context: SlideImageContext;
+}) {
+  if (strategy === "manual") {
+    return slides;
+  }
+  const enriched = await Promise.all(
+    slides.map(async (slide) => {
+      try {
+        const imageUrl = await resolveSlideImage(strategy, { slide, context });
+        return {
+          ...slide,
+          images: [
+            {
+              url: imageUrl,
+              caption: slide.images[0]?.caption || slide.title,
+            },
+          ],
+        };
+      } catch (error) {
+        console.error(
+          `Failed to build image for slide "${slide.title}":`,
+          error,
+        );
+        return slide;
+      }
+    }),
+  );
+  return enriched;
+}
+
 type AdvancedPitchDeckInput = {
   startupName: string;
   missionStatement: string;
@@ -156,7 +350,7 @@ type AdvancedPitchDeckInput = {
   fundingPlan: string;
   brandColor: string;
   businessModel: string;
-  imageStrategy: "manual" | "ai";
+  imageStrategy: ImageStrategy;
   slides: SlideTemplate[];
   team: PitchTeamMember[];
 };
@@ -262,13 +456,25 @@ export async function generateAdvancedPitchDeck(input: AdvancedPitchDeckInput) {
     throw new Error("Advanced pitch deck returned no slides.");
   }
 
+  const slidesWithImages = await applyImageStrategyToSlides({
+    slides,
+    strategy: input.imageStrategy,
+    context: {
+      startupName: input.startupName,
+      missionStatement: input.missionStatement,
+      focusRegion: input.focusRegion,
+      customerProfile: input.customerProfile,
+      brandColor: brandKit.background,
+    },
+  });
+
   return {
     summary:
       parsed?.summary ??
-      slides[0]?.bullets?.[0] ??
+      slidesWithImages[0]?.bullets?.[0] ??
       `${input.startupName} deck ready`,
     brandKit,
-    slides,
+    slides: slidesWithImages,
   };
 }
 

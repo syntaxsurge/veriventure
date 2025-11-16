@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { api, getConvexClient } from "@/lib/server/convex-client";
 import type {
+  ImageStrategy,
   PitchBrandKit,
   PitchDeckRecord,
   PitchSlideRecord,
@@ -23,7 +24,7 @@ type PitchDeckDoc = {
   brandColor: string;
   businessModel: string;
   slideTemplateIds: string[];
-  imageStrategy: "manual" | "ai";
+  imageStrategy: ImageStrategy;
   status: "processing" | "completed";
   progress: number;
   summary: string;
@@ -101,7 +102,7 @@ type CreateDeckInput = {
   brandColor: string;
   businessModel: string;
   slideTemplateIds: string[];
-  imageStrategy: "manual" | "ai";
+  imageStrategy: ImageStrategy;
   summary: string;
   brandKit: PitchBrandKit;
   slides: PitchSlideRecord[];
