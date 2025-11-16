@@ -502,6 +502,9 @@ function ExecutionStep({
   removeTeamMember,
   updateTeamMember,
 }: StepProps) {
+  const [slideQuery, setSlideQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+
   function toggleSlide(id: string) {
     if (draft.slides.includes(id)) {
       updateDraft({
@@ -534,8 +537,31 @@ function ExecutionStep({
     next();
   }
 
+  const categories = useMemo(() => {
+    return Array.from(
+      new Set(
+        pitchSlideLibrary.map((slide) => slide.category ?? "General"),
+      ),
+    );
+  }, []);
+
+  const filteredSlides = useMemo(() => {
+    const query = slideQuery.trim().toLowerCase();
+    return pitchSlideLibrary.filter((slide) => {
+      const category = slide.category ?? "General";
+      const matchesCategory =
+        !categoryFilter || categoryFilter === category;
+      const matchesQuery = query
+        ? `${slide.title} ${slide.description}`
+            .toLowerCase()
+            .includes(query)
+        : true;
+      return matchesCategory && matchesQuery;
+    });
+  }, [slideQuery, categoryFilter]);
+
   const slidesByCategory = useMemo(() => {
-    return pitchSlideLibrary.reduce<Record<string, SlideTemplate[]>>(
+    return filteredSlides.reduce<Record<string, SlideTemplate[]>>(
       (acc, slide) => {
         const key = slide.category ?? "General";
         acc[key] = acc[key] || [];
@@ -544,7 +570,11 @@ function ExecutionStep({
       },
       {},
     );
-  }, []);
+  }, [filteredSlides]);
+
+  const safeBrandColor = /^#[0-9a-fA-F]{6}$/.test(draft.brandColor.trim())
+    ? draft.brandColor.trim()
+    : "#111827";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -603,17 +633,31 @@ function ExecutionStep({
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <FieldLabel label="Brand color" required />
-          <Input
-            value={draft.brandColor}
-            onChange={(event) => updateDraft({ brandColor: event.target.value })}
-            placeholder="#111827 or 'Deep indigo gradient'"
-            maxLength={32}
-            required
-            aria-invalid={draft.brandColor.trim().length === 0}
-            className={cn(
-              draft.brandColor.length > 32 && "border-destructive",
-            )}
-          />
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <Input
+              value={draft.brandColor}
+              onChange={(event) =>
+                updateDraft({ brandColor: event.target.value })
+              }
+              placeholder="#111827"
+              maxLength={32}
+              required
+              aria-invalid={draft.brandColor.trim().length === 0}
+              className={cn(
+                draft.brandColor.length > 32 && "border-destructive",
+                "md:flex-1",
+              )}
+            />
+            <input
+              type="color"
+              aria-label="Pick a brand color"
+              className="h-11 w-full cursor-pointer rounded-xl border border-input bg-transparent p-1 md:w-20"
+              value={safeBrandColor}
+              onChange={(event) =>
+                updateDraft({ brandColor: event.target.value.toUpperCase() })
+              }
+            />
+          </div>
           <CharacterInfo value={draft.brandColor} max={32} />
         </div>
         <div>
@@ -648,14 +692,52 @@ function ExecutionStep({
       <div className="space-y-3">
         <label className="text-sm font-medium">Slide templates</label>
         <p className="text-xs text-muted-foreground">
-          Mix and match across categories to tailor the narrative.
+          Mix and match across categories, search by keyword, or filter by category to tailor the narrative.
         </p>
         <div className="space-y-4">
+          <div className="space-y-3 rounded-2xl border p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+              <Input
+                placeholder="Search slide titles or keywords"
+                value={slideQuery}
+                onChange={(event) => setSlideQuery(event.target.value)}
+                aria-label="Search slides"
+                className="md:flex-1"
+              />
+              <Badge variant="secondary" className="w-fit">
+                {draft.slides.length} slide{draft.slides.length === 1 ? "" : "s"} selected
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={categoryFilter ? "outline" : "default"}
+                onClick={() => setCategoryFilter(null)}
+              >
+                All
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  type="button"
+                  size="sm"
+                  variant={categoryFilter === category ? "default" : "outline"}
+                  onClick={() => setCategoryFilter(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
           {Object.entries(slidesByCategory).map(([category, slides]) => (
             <div key={category} className="space-y-2">
-              <p className="text-xs font-semibold uppercase text-muted-foreground">
-                {category}
-              </p>
+              <div className="flex items-center justify-between text-xs font-semibold uppercase text-muted-foreground">
+                <span>{category}</span>
+                <span>
+                  {slides.length} option{slides.length === 1 ? "" : "s"}
+                </span>
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {slides.map((slide) => {
                   const selected = draft.slides.includes(slide.id);
@@ -671,21 +753,28 @@ function ExecutionStep({
                           : "border-muted",
                       )}
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">{slide.title}</p>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold">{slide.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {slide.description}
+                          </p>
+                        </div>
                         {selected && (
                           <CheckCircle2 className="h-4 w-4 text-primary" />
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {slide.description}
-                      </p>
                     </button>
                   );
                 })}
               </div>
             </div>
           ))}
+          {Object.keys(slidesByCategory).length === 0 && (
+            <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+              No slide templates match your filters. Clear the search or choose a different category.
+            </p>
+          )}
         </div>
       </div>
 
