@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import {
-  SESSION_COOKIE_NAME,
-  getSession,
-} from "@/lib/server/session-store";
+import { SESSION_COOKIE_NAME } from "@/lib/server/session-store";
 
 const gatedPrefixes = [
   "/dashboard",
@@ -24,10 +21,6 @@ export function middleware(request: NextRequest) {
   }
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-  const session = getSession(sessionCookie.value);
-  if (!session?.address) {
     return NextResponse.redirect(new URL("/", request.url));
   }
   return NextResponse.next();
