@@ -29,25 +29,42 @@ const emptyDraft: PitchWizardDraft = {
 };
 
 export function usePitchDeckDraft() {
-  const [draft, setDraft] = useState<PitchWizardDraft>(() => {
-    if (typeof window === "undefined") {
-      return emptyDraft;
-    }
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return emptyDraft;
-    try {
-      const parsed = JSON.parse(stored) as PitchWizardDraft;
-      return { ...emptyDraft, ...parsed };
-    } catch {
-      return emptyDraft;
-    }
-  });
-  const ready = typeof window !== "undefined";
+  const [draft, setDraft] = useState<PitchWizardDraft>(emptyDraft);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    let cancelled = false;
+    const loadDraft = async () => {
+      if (cancelled) return;
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored) as PitchWizardDraft;
+          if (!cancelled) {
+            setDraft({ ...emptyDraft, ...parsed });
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setDraft(emptyDraft);
+        }
+      } finally {
+        if (!cancelled) {
+          setReady(true);
+        }
+      }
+    };
+    void loadDraft();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ready || typeof window === "undefined") return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-  }, [draft]);
+  }, [draft, ready]);
 
   const updateDraft = useCallback(
     (updates: Partial<PitchWizardDraft>) => {
