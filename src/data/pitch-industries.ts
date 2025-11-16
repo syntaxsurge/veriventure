@@ -4,23 +4,27 @@ export type SlideTemplate = {
   description: string;
   prompt: string;
   slideType?: "standard" | "team";
+  category?: string;
 };
 
-export type PitchIndustry = {
-  slug: string;
-  label: string;
-  summary: string;
-  slides: SlideTemplate[];
-};
-
-const sharedSlides: SlideTemplate[] = [
+export const pitchSlideLibrary: SlideTemplate[] = [
+  {
+    id: "vision",
+    title: "Vision snapshot",
+    description:
+      "Condense the mission statement and end-game outcome into a single page.",
+    prompt:
+      "Write three bullets: (1) Mission statement, (2) Why now, (3) Long-term change you unlock. Keep each bullet under 18 words.",
+    category: "Vision",
+  },
   {
     id: "intro",
     title: "Opening narrative",
     description:
       "Mission statement plus the single strongest proof point you have today.",
     prompt:
-      "Summarize the mission in one sentence, add a sub-bullet with traction (revenue, users, pilots) and another bullet with the vision.",
+      "Summarize the mission in one sentence, add a traction bullet (revenue, users, pilots) and another bullet with the product promise.",
+    category: "Vision",
   },
   {
     id: "problem",
@@ -28,6 +32,7 @@ const sharedSlides: SlideTemplate[] = [
     description: "Outline the pain points, the current workaround, and urgency.",
     prompt:
       "List up to three quantifiable pain points. Cite a trusted data source per bullet when possible.",
+    category: "Market",
   },
   {
     id: "solution",
@@ -35,6 +40,7 @@ const sharedSlides: SlideTemplate[] = [
     description: "Describe how your product uniquely fixes the pain.",
     prompt:
       "Explain the product in plain language. Include differentiators vs. legacy players.",
+    category: "Product",
   },
   {
     id: "market",
@@ -42,6 +48,16 @@ const sharedSlides: SlideTemplate[] = [
     description: "Share TAM/SAM/SOM or a practical wedge.",
     prompt:
       "Provide TAM/SAM/SOM or an attainable wedge. Use USD and cite a report in the notes.",
+    category: "Market",
+  },
+  {
+    id: "regulation",
+    title: "Regulatory & trust moat",
+    description:
+      "Great for fintech, gov-tech, or climate. Highlight compliance, certifications, or data provenance advantages.",
+    prompt:
+      "List approvals, audits, or infrastructure that are hard to replicate. Mention how they accelerate adoption.",
+    category: "Trust",
   },
   {
     id: "business_model",
@@ -49,6 +65,7 @@ const sharedSlides: SlideTemplate[] = [
     description: "How money flows and why it scales.",
     prompt:
       "Highlight primary revenue streams, average contract value, and gross margin targets.",
+    category: "Business",
   },
   {
     id: "go_to_market",
@@ -56,6 +73,7 @@ const sharedSlides: SlideTemplate[] = [
     description: "How you win distribution.",
     prompt:
       "Explain launch channels, partnerships, and the next critical milestone.",
+    category: "Execution",
   },
   {
     id: "traction",
@@ -63,6 +81,16 @@ const sharedSlides: SlideTemplate[] = [
     description: "Showcase metrics that de-risk the bet.",
     prompt:
       "List KPIs such as ARR, retention, waitlist, or pilots. Reference verified achievements from badges.",
+    category: "Evidence",
+  },
+  {
+    id: "climate_impact",
+    title: "Impact metrics",
+    description:
+      "Optional slide for climate, social, or governance ventures that need measurable proof.",
+    prompt:
+      "Quantify CO₂ saved, jobs created, or other verifiable impact. Cite data sources and connect to business outcomes.",
+    category: "Impact",
   },
   {
     id: "team",
@@ -71,6 +99,7 @@ const sharedSlides: SlideTemplate[] = [
     prompt:
       "Summarize why the team is uniquely capable. Mention category expertise per member.",
     slideType: "team",
+    category: "Team",
   },
   {
     id: "financials",
@@ -78,6 +107,7 @@ const sharedSlides: SlideTemplate[] = [
     description: "Forecast or key unit economics.",
     prompt:
       "Share a one-year forecast, burn, and runway. Mention the raise target if applicable.",
+    category: "Business",
   },
   {
     id: "impact",
@@ -85,57 +115,19 @@ const sharedSlides: SlideTemplate[] = [
     description: "State the broader impact and capital ask.",
     prompt:
       "Connect to sustainability/impact goals and share the precise ask or next partnership needed.",
+    category: "Impact",
+  },
+  {
+    id: "product_deep_dive",
+    title: "Product walkthrough",
+    description:
+      "Use for screen-heavy products to highlight core features and proof of usability.",
+    prompt:
+      "Describe the user journey in three steps. Mention supporting AI, blockchain, or automation pieces.",
+    category: "Product",
   },
 ];
 
-export const pitchIndustries: PitchIndustry[] = [
-  {
-    slug: "climate",
-    label: "Climate & sustainability",
-    summary:
-      "Designed for founders working on climate resilience, carbon accounting, regenerative agriculture, or sustainability marketplaces.",
-    slides: sharedSlides.map((slide) => ({ ...slide })),
-  },
-  {
-    slug: "fintech",
-    label: "Fintech & payments",
-    summary:
-      "Great for embedded finance, cross-border payments, or credit infrastructure products.",
-    slides: sharedSlides.map((slide) =>
-      slide.id === "impact"
-        ? {
-            ...slide,
-            description: "Address regulatory readiness and the exact raise ask.",
-            prompt:
-              "Explain compliance posture, licenses or partners, and the fundraising ask (amount + allocation).",
-          }
-        : { ...slide },
-    ),
-  },
-  {
-    slug: "health",
-    label: "Health & biotech",
-    summary:
-      "Use this for digital health, biotech tooling, or AI diagnostics. Adds emphasis on safety and outcomes.",
-    slides: sharedSlides.map((slide) =>
-      slide.id === "traction"
-        ? {
-            ...slide,
-            description: "Emphasize pilots, clinical outcomes, and regulatory milestones.",
-            prompt:
-              "Highlight clinical outcomes, partnerships with hospitals, and regulatory progress (e.g., IRB, FDA).",
-          }
-        : { ...slide },
-    ),
-  },
-];
-
-export function getIndustry(slug: string) {
-  return pitchIndustries.find((industry) => industry.slug === slug);
-}
-
-export function getSlideTemplates(slug: string, ids: string[]) {
-  const industry = getIndustry(slug);
-  if (!industry) return [];
-  return industry.slides.filter((slide) => ids.includes(slide.id));
+export function getSlideTemplates(ids: string[]) {
+  return pitchSlideLibrary.filter((slide) => ids.includes(slide.id));
 }

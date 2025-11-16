@@ -9,7 +9,8 @@ import {
   Radio,
   StepForward,
 } from "lucide-react";
-import { pitchIndustries } from "@/data/pitch-industries";
+import { pitchSlideLibrary } from "@/data/pitch-industries";
+import type { SlideTemplate } from "@/data/pitch-industries";
 import { usePitchDeckDraft } from "@/components/pitch/use-pitch-draft";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,9 @@ import type { PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 
 const steps = [
-  { id: "brief", label: "Brief" },
-  { id: "insights", label: "Insights" },
-  { id: "team", label: "Team & scope" },
-  { id: "brand", label: "Branding & slides" },
+  { id: "vision", label: "Vision & audience" },
+  { id: "market", label: "Market & proof" },
+  { id: "execution", label: "Execution & capital" },
   { id: "review", label: "Review" },
 ];
 
@@ -47,7 +47,7 @@ function validateFields(fields: Array<[string, string]>) {
   return missing.map(([label]) => `${label} is required`);
 }
 
-function BriefStep({
+function VisionStep({
   draft,
   updateDraft,
   next,
@@ -58,8 +58,9 @@ function BriefStep({
     event.preventDefault();
     const issues = validateFields([
       ["Startup name", draft.startupName],
-      ["Industry", draft.industry],
-      ["Product overview", draft.features],
+      ["Mission headline", draft.missionStatement],
+      ["Operating focus", draft.industry],
+      ["Customer profile", draft.customerProfile],
     ]);
     if (issues.length) {
       setErrors(issues);
@@ -83,28 +84,44 @@ function BriefStep({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Industry</label>
-        <select
-          value={draft.industry}
-          onChange={(event) => updateDraft({ industry: event.target.value })}
-          className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+        <label className="text-sm font-medium">Mission headline</label>
+        <Textarea
+          value={draft.missionStatement}
+          onChange={(event) =>
+            updateDraft({
+              missionStatement: event.target.value,
+              features: event.target.value,
+            })
+          }
+          rows={3}
+          placeholder="e.g. Give every climate operator a verifiable trust stack in 48 hours."
           required
-        >
-          <option value="">Select an industry</option>
-          {pitchIndustries.map((industry) => (
-            <option key={industry.slug} value={industry.slug}>
-              {industry.label}
-            </option>
-          ))}
-        </select>
+        />
+        <p className="text-xs text-muted-foreground">
+          We&apos;ll reuse this line for the intro slide and to set the tone for
+          the rest of the deck.
+        </p>
       </div>
       <div>
-        <label className="text-sm font-medium">Product overview</label>
+        <label className="text-sm font-medium">
+          Operating focus or region
+        </label>
+        <Input
+          value={draft.industry}
+          onChange={(event) => updateDraft({ industry: event.target.value })}
+          placeholder="e.g. AI ESG audits for LatAm logistics"
+          required
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium">Who do you serve?</label>
         <Textarea
-          value={draft.features}
-          onChange={(event) => updateDraft({ features: event.target.value })}
+          value={draft.customerProfile}
+          onChange={(event) =>
+            updateDraft({ customerProfile: event.target.value })
+          }
           rows={4}
-          placeholder="Explain what you solve and why it matters."
+          placeholder="Share the segments, contract size, or user archetype. This becomes context for AI slides."
           required
         />
       </div>
@@ -118,7 +135,7 @@ function BriefStep({
   );
 }
 
-function InsightStep({
+function MarketStep({
   draft,
   updateDraft,
   next,
@@ -129,9 +146,10 @@ function InsightStep({
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const issues = validateFields([
-      ["Problem", draft.problems],
-      ["Solution", draft.solutions],
-      ["Competitors", draft.competitions],
+      ["Pain points", draft.problems],
+      ["Solution angle", draft.solutions],
+      ["Traction snapshot", draft.tractionSummary],
+      ["Competitive stance", draft.competitions],
     ]);
     if (issues.length) {
       setErrors(issues);
@@ -144,31 +162,43 @@ function InsightStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="text-sm font-medium">Problem</label>
+        <label className="text-sm font-medium">Pain points</label>
         <Textarea
           value={draft.problems}
           onChange={(event) => updateDraft({ problems: event.target.value })}
           rows={4}
-          placeholder="Describe the pain points with data."
+          placeholder="Quantify the top pain points and who feels them."
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Solution</label>
+        <label className="text-sm font-medium">Solution angle</label>
         <Textarea
           value={draft.solutions}
           onChange={(event) => updateDraft({ solutions: event.target.value })}
           rows={4}
-          placeholder="Explain how your product fixes the pain."
+          placeholder="Explain what you build and the differentiator in plain language."
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Key competitors</label>
-        <Input
+        <label className="text-sm font-medium">Traction snapshot</label>
+        <Textarea
+          value={draft.tractionSummary}
+          onChange={(event) =>
+            updateDraft({ tractionSummary: event.target.value })
+          }
+          rows={3}
+          placeholder="Mention ARR, pilots, waitlists, carbon credits, or verifiable KPIs."
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium">Competitive stance</label>
+        <Textarea
           value={draft.competitions}
           onChange={(event) =>
             updateDraft({ competitions: event.target.value })
           }
-          placeholder="e.g., Paystack, Flutterwave, local banks"
+          rows={3}
+          placeholder="List the alternatives and the unfair advantage you have."
         />
       </div>
       {errors.length > 0 && (
@@ -193,7 +223,7 @@ function InsightStep({
   );
 }
 
-function TeamStep({
+function ExecutionStep({
   draft,
   updateDraft,
   next,
@@ -204,26 +234,36 @@ function TeamStep({
   removeTeamMember,
   updateTeamMember,
 }: StepProps) {
+  function toggleSlide(id: string) {
+    if (draft.slides.includes(id)) {
+      updateDraft({
+        slides: draft.slides.filter((slideId) => slideId !== id),
+      });
+    } else {
+      updateDraft({ slides: [...draft.slides, id] });
+    }
+  }
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const issues = [
-      ...validateFields([
-        ["Scope", draft.scope],
-        ["Go-to-market plan", draft.moreInfo || "placeholder"],
-      ]),
-      ...draft.team
-        .map((member, index) => {
-          const missing = validateFields([
-            ["Name", member.name],
-            ["Role", member.role],
-            ["Expertise", member.expertise],
-          ]);
-          return missing.length
-            ? `Complete team member ${index + 1}`
-            : null;
-        })
-        .filter(Boolean) as string[],
-    ];
+    const issues = validateFields([
+      ["Go-to-market plan", draft.scope],
+      ["Revenue model", draft.businessModel],
+      ["Capital plan", draft.fundingPlan],
+      ["Brand color", draft.brandColor],
+    ]);
+    if (!draft.slides.length) {
+      issues.push("Select at least one slide template");
+    }
+    draft.team.forEach((member, index) => {
+      const missing = validateFields([
+        ["Name", member.name],
+        ["Role", member.role],
+      ]);
+      if (missing.length) {
+        issues.push(`Team member ${index + 1} needs a name and role.`);
+      }
+    });
     if (issues.length) {
       setErrors(issues);
       return;
@@ -232,9 +272,22 @@ function TeamStep({
     next();
   }
 
+  const slidesByCategory = useMemo(() => {
+    return pitchSlideLibrary.reduce<Record<string, SlideTemplate[]>>(
+      (acc, slide) => {
+        const key = slide.category ?? "General";
+        acc[key] = acc[key] || [];
+        acc[key].push(slide);
+        return acc;
+      },
+      {},
+    );
+  }, []);
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
+        <p className="text-sm font-medium">Team</p>
         {draft.team.map((member, index) => (
           <Card key={member.id} className="border-dashed">
             <CardContent className="grid gap-3 pt-6 md:grid-cols-3">
@@ -250,14 +303,14 @@ function TeamStep({
                 onChange={(event) =>
                   updateTeamMember(index, { role: event.target.value })
                 }
-                placeholder="Role"
+                placeholder="Role (e.g. COO)"
               />
               <Input
                 value={member.expertise}
                 onChange={(event) =>
                   updateTeamMember(index, { expertise: event.target.value })
                 }
-                placeholder="Expertise"
+                placeholder="Superpower or expertise"
               />
               {draft.team.length > 1 && (
                 <Button
@@ -276,168 +329,127 @@ function TeamStep({
           Add teammate
         </Button>
       </div>
-      <div>
-        <label className="text-sm font-medium">Scope</label>
-        <Input
-          value={draft.scope}
-          onChange={(event) => updateDraft({ scope: event.target.value })}
-          placeholder="e.g., expand to 5 markets over the next 12 months"
-        />
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label className="text-sm font-medium">Go-to-market focus</label>
+          <Textarea
+            value={draft.scope}
+            onChange={(event) => updateDraft({ scope: event.target.value })}
+            rows={3}
+            placeholder="How you deploy capital, channels, partnerships, milestones."
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Revenue model</label>
+          <Textarea
+            value={draft.businessModel}
+            onChange={(event) =>
+              updateDraft({ businessModel: event.target.value })
+            }
+            rows={3}
+            placeholder="Describe pricing, ACV, monetization levers."
+          />
+        </div>
       </div>
+
       <div>
-        <label className="text-sm font-medium">More info</label>
+        <label className="text-sm font-medium">Capital + milestone plan</label>
         <Textarea
-          value={draft.moreInfo}
-          onChange={(event) => updateDraft({ moreInfo: event.target.value })}
-          rows={3}
-          placeholder="Raise target, partnerships, or climate impact proof."
+          value={draft.fundingPlan}
+          onChange={(event) =>
+            updateDraft({
+              fundingPlan: event.target.value,
+              moreInfo: event.target.value,
+            })
+          }
+          rows={4}
+          placeholder="Describe how much you want to raise, allocation, and what success looks like in 12 months."
         />
       </div>
-      {errors.length > 0 && (
-        <p className="text-sm text-destructive">{errors.join(". ")}</p>
-      )}
-      <div className="flex items-center justify-between">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={back}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-        <Button type="submit">Continue</Button>
-      </div>
-    </form>
-  );
-}
 
-function BrandStep({
-  draft,
-  updateDraft,
-  next,
-  back,
-  errors,
-  setErrors,
-}: StepProps) {
-  const industry = pitchIndustries.find(
-    (entry) => entry.slug === draft.industry,
-  );
-
-  function toggleSlide(id: string) {
-    if (draft.slides.includes(id)) {
-      updateDraft({
-        slides: draft.slides.filter((slideId) => slideId !== id),
-      });
-    } else {
-      updateDraft({ slides: [...draft.slides, id] });
-    }
-  }
-
-  function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    const issues = validateFields([
-      ["Brand color", draft.brandColor],
-      ["Business model", draft.businessModel],
-    ]);
-    if (!draft.slides.length) {
-      issues.push("Select at least one slide template");
-    }
-    if (issues.length) {
-      setErrors(issues);
-      return;
-    }
-    setErrors([]);
-    next();
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label className="text-sm font-medium">Brand color</label>
           <Input
             value={draft.brandColor}
             onChange={(event) => updateDraft({ brandColor: event.target.value })}
-            placeholder="#111827"
+            placeholder="#111827 or 'Deep indigo gradient'"
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Business model</label>
-          <Input
-            value={draft.businessModel}
-            onChange={(event) =>
-              updateDraft({ businessModel: event.target.value })
-            }
-            placeholder="Subscription, usage fees, etc."
-          />
+          <label className="text-sm font-medium">Image strategy</label>
+          <div className="mt-2 flex gap-3">
+            {["manual", "ai"].map((option) => (
+              <label
+                key={option}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm",
+                  draft.imageStrategy === option
+                    ? "border-primary bg-primary/5"
+                    : "border-dashed",
+                )}
+              >
+                <input
+                  type="radio"
+                  className="hidden"
+                  checked={draft.imageStrategy === option}
+                  onChange={() =>
+                    updateDraft({ imageStrategy: option as "manual" | "ai" })
+                  }
+                />
+                <Radio className="h-4 w-4" />
+                {option === "manual" ? "Upload assets later" : "AI placeholders"}
+              </label>
+            ))}
+          </div>
         </div>
       </div>
-      <div>
-        <label className="text-sm font-medium">Image strategy</label>
-        <div className="mt-2 flex gap-3">
-          {["manual", "ai"].map((option) => (
-            <label
-              key={option}
-              className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm",
-                draft.imageStrategy === option
-                  ? "border-primary bg-primary/5"
-                  : "border-dashed",
-              )}
-            >
-              <input
-                type="radio"
-                className="hidden"
-                checked={draft.imageStrategy === option}
-                onChange={() =>
-                  updateDraft({ imageStrategy: option as "manual" | "ai" })
-                }
-              />
-              <Radio className="h-4 w-4" />
-              {option === "manual" ? "Upload my own" : "AI placeholders"}
-            </label>
+
+      <div className="space-y-3">
+        <label className="text-sm font-medium">Slide templates</label>
+        <p className="text-xs text-muted-foreground">
+          Mix and match across categories to tailor the narrative.
+        </p>
+        <div className="space-y-4">
+          {Object.entries(slidesByCategory).map(([category, slides]) => (
+            <div key={category} className="space-y-2">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                {category}
+              </p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {slides.map((slide) => {
+                  const selected = draft.slides.includes(slide.id);
+                  return (
+                    <button
+                      key={slide.id}
+                      type="button"
+                      onClick={() => toggleSlide(slide.id)}
+                      className={cn(
+                        "rounded-2xl border p-4 text-left transition",
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-muted",
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">{slide.title}</p>
+                        {selected && (
+                          <CheckCircle2 className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {slide.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ))}
         </div>
       </div>
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Slide templates</label>
-        {!industry && (
-          <p className="text-sm text-muted-foreground">
-            Choose an industry first to see curated slides.
-          </p>
-        )}
-        {industry && (
-          <div className="grid gap-3 md:grid-cols-2">
-            {industry.slides.map((slide) => {
-              const selected = draft.slides.includes(slide.id);
-              return (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={() => toggleSlide(slide.id)}
-                  className={cn(
-                    "rounded-2xl border p-4 text-left transition",
-                    selected
-                      ? "border-primary bg-primary/5"
-                      : "border-muted",
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">{slide.title}</p>
-                    {selected && (
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    )}
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {slide.description}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+
       {errors.length > 0 && (
         <p className="text-sm text-destructive">{errors.join(". ")}</p>
       )}
@@ -457,9 +469,13 @@ function BrandStep({
   );
 }
 
-type ReviewProps = StepProps & {
+type ReviewProps = {
+  draft: PitchWizardDraft;
+  back: () => void;
   submitting: boolean;
   onSubmit: () => void;
+  errors: string[];
+  setErrors: (messages: string[]) => void;
 };
 
 function ReviewStep({
@@ -473,10 +489,13 @@ function ReviewStep({
   function validateBeforeSubmit() {
     const issues = validateFields([
       ["Startup name", draft.startupName],
-      ["Industry", draft.industry],
-      ["Problem", draft.problems],
-      ["Solution", draft.solutions],
-      ["Scope", draft.scope],
+      ["Operating focus", draft.industry],
+      ["Mission headline", draft.missionStatement],
+      ["Pain points", draft.problems],
+      ["Solution angle", draft.solutions],
+      ["Traction snapshot", draft.tractionSummary],
+      ["Go-to-market plan", draft.scope],
+      ["Capital plan", draft.fundingPlan],
     ]);
     if (!draft.slides.length) {
       issues.push("Select at least one slide template.");
@@ -498,8 +517,26 @@ function ReviewStep({
             <dd className="font-semibold">{draft.startupName}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">Industry</dt>
+            <dt className="text-muted-foreground">Operating focus</dt>
             <dd className="font-semibold">{draft.industry || "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Mission headline</dt>
+            <dd className="font-semibold">
+              {draft.missionStatement || "Add a mission summary"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Traction snapshot</dt>
+            <dd className="font-semibold">
+              {draft.tractionSummary || "Add KPIs before submitting"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Capital plan</dt>
+            <dd className="font-semibold">
+              {draft.fundingPlan || "Describe how you will deploy capital"}
+            </dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Slides selected</dt>
@@ -564,19 +601,22 @@ export function PitchDeckStudio() {
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   const activeStep = steps[stepIndex];
-  const industry = useMemo(
-    () => pitchIndustries.find((entry) => entry.slug === draft.industry),
-    [draft.industry],
-  );
 
   async function handleSubmit() {
     setSubmitting(true);
     setGlobalError(null);
     try {
+      const submission = {
+        ...draft,
+        features: [draft.missionStatement, draft.customerProfile]
+          .filter(Boolean)
+          .join("\n\n"),
+        moreInfo: draft.fundingPlan || draft.moreInfo,
+      };
       const response = await fetch("/api/pitch/decks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify(submission),
       });
       if (!response.ok) {
         const payload = await response.json();
@@ -625,17 +665,14 @@ export function PitchDeckStudio() {
     );
   } else {
     switch (activeStep.id) {
-      case "brief":
-        content = <BriefStep {...stepProps} />;
+      case "vision":
+        content = <VisionStep {...stepProps} />;
         break;
-      case "insights":
-        content = <InsightStep {...stepProps} />;
+      case "market":
+        content = <MarketStep {...stepProps} />;
         break;
-      case "team":
-        content = <TeamStep {...stepProps} />;
-        break;
-      case "brand":
-        content = <BrandStep {...stepProps} />;
+      case "execution":
+        content = <ExecutionStep {...stepProps} />;
         break;
       case "review":
         content = (
@@ -659,11 +696,6 @@ export function PitchDeckStudio() {
         <h2 className="mt-2 text-2xl font-semibold">
           {activeStep.label}
         </h2>
-        {industry && (
-          <p className="text-xs text-muted-foreground">
-            {industry.summary}
-          </p>
-        )}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         {steps.map((step, index) => (

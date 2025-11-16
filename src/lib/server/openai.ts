@@ -148,12 +148,16 @@ export async function generatePitchDeckSlides(input: PitchDeckInput) {
 type AdvancedPitchDeckInput = {
   startupName: string;
   industry: string;
+  missionStatement: string;
+  customerProfile: string;
   features: string;
   problems: string;
   solutions: string;
   competitions: string;
+  tractionSummary: string;
   scope: string;
   moreInfo: string;
+  fundingPlan?: string;
   brandColor: string;
   businessModel: string;
   imageStrategy: "manual" | "ai";
@@ -194,6 +198,12 @@ export async function generateAdvancedPitchDeck(input: AdvancedPitchDeckInput) {
             title: slide.title,
             prompt: slide.prompt,
           })),
+          context: {
+            mission: input.missionStatement,
+            customerProfile: input.customerProfile,
+            traction: input.tractionSummary,
+            capitalPlan: input.fundingPlan ?? input.moreInfo,
+          },
         }),
       },
     ],

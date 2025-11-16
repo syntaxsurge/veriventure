@@ -3,10 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { generateAdvancedPitchDeck } from "@/lib/server/openai";
-import {
-  getSlideTemplates,
-  pitchIndustries,
-} from "@/data/pitch-industries";
+import { getSlideTemplates } from "@/data/pitch-industries";
 import { createPitchDeckRecord } from "@/lib/server/pitch-deck-store";
 
 const teamMemberSchema = z.object({
@@ -19,12 +16,16 @@ const teamMemberSchema = z.object({
 const createDeckSchema = z.object({
   startupName: z.string().min(2).max(120),
   industry: z.string().min(2),
+  missionStatement: z.string().min(10).max(400),
+  customerProfile: z.string().min(10).max(600),
   features: z.string().min(10).max(600),
   problems: z.string().min(10).max(600),
   solutions: z.string().min(10).max(600),
   competitions: z.string().min(3).max(400),
+  tractionSummary: z.string().min(3).max(400),
   scope: z.string().min(3).max(400),
   moreInfo: z.string().max(800).optional().default(""),
+  fundingPlan: z.string().max(800).optional().default(""),
   brandColor: z.string().min(2).max(32),
   businessModel: z.string().min(3).max(200),
   imageStrategy: z.enum(["manual", "ai"]).default("manual"),
@@ -49,20 +50,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const industryExists = pitchIndustries.some(
-    (industry) => industry.slug === parsed.data.industry,
-  );
-  if (!industryExists) {
-    return NextResponse.json(
-      { error: "Unsupported industry." },
-      { status: 400 },
-    );
-  }
-
-  const templates = getSlideTemplates(
-    parsed.data.industry,
-    parsed.data.slides,
-  );
+  const templates = getSlideTemplates(parsed.data.slides);
   if (!templates.length) {
     return NextResponse.json(
       { error: "Select at least one slide template." },

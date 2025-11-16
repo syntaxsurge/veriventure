@@ -33,13 +33,17 @@ export type PitchDeckRecord = {
   ownerAddress: string;
   startupName: string;
   industry: string;
+  missionStatement?: string;
+  customerProfile?: string;
   features: string;
   problems: string;
   solutions: string;
   competitions: string;
+  tractionSummary?: string;
   team: PitchTeamMember[];
   scope: string;
   moreInfo: string;
+  fundingPlan?: string;
   brandColor: string;
   businessModel: string;
   selectedSlideIds: string[];
@@ -56,12 +60,16 @@ export type PitchDeckRecord = {
 export type PitchWizardDraft = {
   startupName: string;
   industry: string;
+  missionStatement: string;
+  customerProfile: string;
   features: string;
   problems: string;
   solutions: string;
   competitions: string;
+  tractionSummary: string;
   scope: string;
   moreInfo: string;
+  fundingPlan: string;
   brandColor: string;
   businessModel: string;
   slides: string[];
