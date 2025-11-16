@@ -568,6 +568,7 @@ const ASSIST_HINTS: Record<PitchAssistField, string> = {
 export async function generatePitchFieldSuggestion(
   field: PitchAssistField,
   draft: Partial<PitchWizardDraft>,
+  maxLength?: number,
 ) {
   const client = getClient();
   const completion = await client.chat.completions.create({
@@ -580,6 +581,7 @@ export async function generatePitchFieldSuggestion(
           "You help founders fill a pitch deck questionnaire.",
           "Respond with at most two sentences of plain text.",
           ASSIST_HINTS[field],
+          maxLength ? `Hard limit: ${maxLength} characters.` : "",
         ]
           .filter(Boolean)
           .join(" "),
@@ -621,5 +623,8 @@ export async function generatePitchFieldSuggestion(
   } catch {
     // fall back to raw text
   }
-  return suggestion.trim();
+  const trimmed = suggestion.trim();
+  return typeof maxLength === "number" && maxLength > 0
+    ? clampText(trimmed, maxLength)
+    : trimmed;
 }

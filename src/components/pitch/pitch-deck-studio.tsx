@@ -881,7 +881,11 @@ export function PitchDeckStudio() {
       const response = await fetch("/api/pitch/assist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ field, draft }),
+        body: JSON.stringify({
+          field,
+          draft,
+          limit: FIELD_LIMITS[field],
+        }),
       });
       const payload = await response.text();
       if (!response.ok) {

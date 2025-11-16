@@ -30,6 +30,7 @@ const draftSchema = z.object({
 const bodySchema = z.object({
   field: z.enum(ASSIST_FIELDS),
   draft: draftSchema.partial(),
+  limit: z.number().int().positive().max(1000).optional(),
 });
 
 export const runtime = "nodejs";
@@ -49,13 +50,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { field, draft } = parsed.data as {
+  const { field, draft, limit } = parsed.data as {
     field: AssistField;
     draft: Partial<PitchWizardDraft>;
+    limit?: number;
   };
 
   try {
-    const suggestion = await generatePitchFieldSuggestion(field, draft);
+    const suggestion = await generatePitchFieldSuggestion(field, draft, limit);
     return new NextResponse(suggestion, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
