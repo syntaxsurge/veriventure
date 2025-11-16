@@ -1,0 +1,61 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  achievements: defineTable({
+    achievementId: v.string(),
+    ownerAddress: v.string(),
+    title: v.string(),
+    summary: v.string(),
+    metrics: v.string(),
+    evidenceUrl: v.string(),
+    impactArea: v.string(),
+    hash: v.string(),
+    hashAlgorithm: v.string(),
+    createdAt: v.string(),
+    txHash: v.optional(v.string()),
+    network: v.optional(v.string()),
+    contractAddress: v.optional(v.string()),
+  })
+    .index("by_owner", ["ownerAddress"])
+    .index("by_hash", ["hash"]),
+
+  documents: defineTable({
+    documentId: v.string(),
+    ownerAddress: v.string(),
+    type: v.string(),
+    title: v.string(),
+    summary: v.string(),
+    checksum: v.string(),
+    dataJson: v.string(),
+    createdAt: v.string(),
+  })
+    .index("by_owner", ["ownerAddress"])
+    .index("by_documentId", ["documentId"]),
+
+  notes: defineTable({
+    noteId: v.string(),
+    ownerAddress: v.string(),
+    title: v.string(),
+    body: v.string(),
+    tags: v.array(v.string()),
+    pinned: v.boolean(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_owner", ["ownerAddress"])
+    .index("by_noteId", ["noteId"]),
+
+  communityNotes: defineTable({
+    communityNoteId: v.string(),
+    ownerAddress: v.string(),
+    topic: v.string(),
+    summary: v.string(),
+    references: v.array(v.string()),
+    ual: v.string(),
+    dkgResponseJson: v.optional(v.string()),
+    createdAt: v.string(),
+  })
+    .index("by_owner", ["ownerAddress"])
+    .index("by_ual", ["ual"]),
+});

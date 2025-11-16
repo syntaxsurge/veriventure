@@ -1,0 +1,24 @@
+[package]
+name = "achievement_badge"
+version = "0.1.0"
+authors = ["VeriVenture <founders@veriventure.ai>"]
+edition = "2021"
+
+[dependencies]
+ink = { workspace = true, default-features = false }
+scale = { workspace = true, default-features = false, features = ["derive"] }
+scale-info = { workspace = true, default-features = false, features = ["derive"] }
+primitive-types = { version = "0.13", default-features = false, features = ["codec"] }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "scale/std",
+    "scale-info/std",
+    "primitive-types/std",
+]
+ink-as-dependency = []

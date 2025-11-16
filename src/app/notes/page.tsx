@@ -1,0 +1,33 @@
+import { NoteWorkspace } from "@/components/notes/note-workspace";
+import { Badge } from "@/components/ui/badge";
+import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
+import { listNotes } from "@/lib/server/note-store";
+
+export default async function NotesPage() {
+  const address = await getAuthenticatedAddress();
+  const notes = address ? await listNotes(address) : [];
+
+  return (
+    <div className="space-y-10">
+      <section className="space-y-3">
+        <Badge variant="outline">Research vault</Badge>
+        <h1 className="text-3xl font-semibold">Notes</h1>
+        <p className="text-muted-foreground">
+          Keep diligence calls, investor commitments, climate research, and any
+          other field notes tied directly to your wallet session. Notes stay
+          off-chain but inherit the same trust posture as your badges.
+        </p>
+      </section>
+
+      {!address && (
+        <div className="rounded-2xl border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
+          Connect your Substrate wallet to unlock the note workspace. Every note
+          is encrypted in transit, saved locally on the server, and only
+          accessible while authenticated.
+        </div>
+      )}
+
+      <NoteWorkspace initialNotes={notes} address={address} />
+    </div>
+  );
+}
