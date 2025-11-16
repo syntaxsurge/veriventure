@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-const SESSION_COOKIE_NAME = "veriventure_session";
+import {
+  SESSION_COOKIE_NAME,
+  getSession,
+} from "@/lib/server/session-store";
 
 const gatedPrefixes = [
   "/dashboard",
@@ -8,7 +11,6 @@ const gatedPrefixes = [
   "/ai-assistant",
   "/documents",
   "/notes",
-  "/verify",
 ];
 
 export function middleware(request: NextRequest) {
@@ -20,7 +22,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
-  if (!sessionCookie) {
+  if (!sessionCookie || !getSession(sessionCookie.value)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
   return NextResponse.next();
@@ -33,6 +35,5 @@ export const config = {
     "/ai-assistant/:path*",
     "/documents/:path*",
     "/notes/:path*",
-    "/verify/:path*",
   ],
 };

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DocumentList } from "@/components/documents/document-list";
 import { Badge } from "@/components/ui/badge";
-import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
+import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listDocuments } from "@/lib/server/document-store";
 
 const capabilities = [
@@ -23,8 +23,8 @@ const capabilities = [
 ];
 
 export default async function DocumentsPage() {
-  const address = await getAuthenticatedAddress();
-  const documents = address ? await listDocuments(address) : [];
+  const address = await requireAuthenticatedAddress();
+  const documents = await listDocuments(address);
 
   return (
     <div className="space-y-10">
@@ -51,26 +51,15 @@ export default async function DocumentsPage() {
         ))}
       </section>
 
-      {!address && (
-        <div className="rounded-2xl border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-          Connect your Polkadot wallet to unlock the vault. Any pitch deck or
-          business plan you generate from the AI Assistant will land here with a
-          verifiable checksum.
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-2xl font-semibold">Vault entries</h2>
+          <p className="text-sm text-muted-foreground">
+            Files saved under wallet <span className="font-mono">{address}</span>
+          </p>
         </div>
-      )}
-
-      {address && (
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-2xl font-semibold">Vault entries</h2>
-            <p className="text-sm text-muted-foreground">
-              Files saved under wallet{" "}
-              <span className="font-mono">{address}</span>
-            </p>
-          </div>
-          <DocumentList documents={documents} />
-        </section>
-      )}
+        <DocumentList documents={documents} />
+      </section>
     </div>
   );
 }

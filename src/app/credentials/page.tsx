@@ -1,6 +1,6 @@
 import { CredentialsManager } from "@/components/credentials/credentials-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
+import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listAchievements } from "@/lib/server/achievement-store";
 
 const credentialSteps = [
@@ -22,8 +22,8 @@ const credentialSteps = [
 ];
 
 export default async function CredentialsPage() {
-  const address = await getAuthenticatedAddress();
-  const achievements = address ? await listAchievements(address) : [];
+  const address = await requireAuthenticatedAddress();
+  const achievements = await listAchievements(address);
 
   return (
     <div className="space-y-12">

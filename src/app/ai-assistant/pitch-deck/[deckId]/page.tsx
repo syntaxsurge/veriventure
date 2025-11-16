@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { PitchDeckViewer } from "@/components/pitch/deck-viewer";
-import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
+import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { getPitchDeck } from "@/lib/server/pitch-deck-store";
 
 type RouteParams = {
@@ -12,10 +12,7 @@ type RouteParams = {
 };
 
 export default async function PitchDeckDetailPage({ params }: RouteParams) {
-  const address = await getAuthenticatedAddress();
-  if (!address) {
-    notFound();
-  }
+  const address = await requireAuthenticatedAddress();
   const deck = await getPitchDeck(params.deckId);
   if (!deck || deck.ownerAddress !== address) {
     notFound();

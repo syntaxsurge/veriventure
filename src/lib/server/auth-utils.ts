@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { SESSION_COOKIE_NAME, getSession } from "@/lib/server/session-store";
 
 export async function getAuthenticatedAddress() {
@@ -16,7 +17,7 @@ export async function getAuthenticatedAddress() {
 export async function requireAuthenticatedAddress() {
   const address = await getAuthenticatedAddress();
   if (!address) {
-    throw new Error("UNAUTHENTICATED");
+    redirect("/");
   }
   return address;
 }

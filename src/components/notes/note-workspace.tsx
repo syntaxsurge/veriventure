@@ -11,10 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 type NoteWorkspaceProps = {
   initialNotes: NoteRecord[];
-  address: string | null;
 };
 
-export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
+export function NoteWorkspace({ initialNotes }: NoteWorkspaceProps) {
   const [notes, setNotes] = useState<NoteRecord[]>(initialNotes);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(
     initialNotes[0]?.id ?? null,
@@ -32,7 +31,6 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
   const [status, setStatus] = useState<string | null>(null);
 
   const isEditing = Boolean(activeNoteId);
-  const canEdit = Boolean(address);
 
   const sortedNotes = useMemo(
     () =>
@@ -66,10 +64,6 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
-    if (!canEdit) {
-      setError("Connect your wallet to save notes.");
-      return;
-    }
     if (!title.trim() || !body.trim()) {
       setError("Title and note body are required.");
       return;
@@ -118,10 +112,6 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
   }
 
   async function handleDelete(noteId: string) {
-    if (!canEdit) {
-      setError("Connect your wallet to delete notes.");
-      return;
-    }
     setSaving(true);
     setError(null);
     setStatus(null);
@@ -210,7 +200,6 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Investor briefing call"
-                disabled={!canEdit}
                 required
               />
             </div>
@@ -221,7 +210,6 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
                 value={tags}
                 onChange={(event) => setTags(event.target.value)}
                 placeholder="financing, due diligence"
-                disabled={!canEdit}
               />
               <p className="text-xs text-muted-foreground">
                 Separate tags with commas. Example: pipeline, regulation,
@@ -236,7 +224,6 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
                 placeholder="Capture commitments, blockers, and next steps."
-                disabled={!canEdit}
                 required
               />
             </div>
@@ -246,31 +233,25 @@ export function NoteWorkspace({ initialNotes, address }: NoteWorkspaceProps) {
                 checked={pinned}
                 onChange={(event) => setPinned(event.target.checked)}
                 className="h-4 w-4"
-                disabled={!canEdit}
               />
               Pin this note to the top of the list
             </label>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" disabled={saving || !canEdit}>
+              <Button type="submit" disabled={saving}>
                 {saving ? "Saving…" : isEditing ? "Save changes" : "Save note"}
               </Button>
               {isEditing && (
                 <Button
                   type="button"
                   variant="destructive"
-                  disabled={saving || !canEdit}
+                  disabled={saving}
                   onClick={() => handleDelete(activeNoteId!)}
                 >
                   Delete
                 </Button>
               )}
             </div>
-            {!canEdit && (
-              <p className="text-xs text-muted-foreground">
-                Connect your wallet to edit or add notes.
-              </p>
-            )}
           </form>
           {error && (
             <p className="mt-3 text-sm text-destructive" role="alert">

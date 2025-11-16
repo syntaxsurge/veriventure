@@ -547,11 +547,7 @@ function ReviewStep({
   );
 }
 
-type StudioProps = {
-  disabled: boolean;
-};
-
-export function PitchDeckStudio({ disabled }: StudioProps) {
+export function PitchDeckStudio() {
   const router = useRouter();
   const {
     ready,
@@ -625,13 +621,6 @@ export function PitchDeckStudio({ disabled }: StudioProps) {
     content = (
       <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
         Loading draft…
-      </div>
-    );
-  } else if (disabled) {
-    content = (
-      <div className="rounded-2xl border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-        Connect your wallet to launch Pitch Deck Studio. All drafts are tied to
-        your session so they inherit badge hashes automatically.
       </div>
     );
   } else {

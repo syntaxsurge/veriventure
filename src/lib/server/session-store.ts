@@ -1,5 +1,3 @@
-import crypto from "node:crypto";
-
 const NONCE_TTL_MS = 5 * 60 * 1000;
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -34,9 +32,27 @@ function pruneSessions() {
   }
 }
 
+function randomHex(bytes: number) {
+  if (
+    typeof globalThis.crypto !== "undefined" &&
+    typeof globalThis.crypto.getRandomValues === "function"
+  ) {
+    const buffer = new Uint8Array(bytes);
+    globalThis.crypto.getRandomValues(buffer);
+    return Array.from(buffer, (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("");
+  }
+  return Array.from({ length: bytes }, () =>
+    Math.floor(Math.random() * 256)
+      .toString(16)
+      .padStart(2, "0"),
+  ).join("");
+}
+
 export function createChallenge(address: string) {
   pruneNonce(address);
-  const nonce = crypto.randomBytes(16).toString("hex");
+  const nonce = randomHex(16);
   const expiresAt = Date.now() + NONCE_TTL_MS;
   nonceStore.set(address, { nonce, expiresAt });
 
@@ -70,7 +86,7 @@ export function consumeNonce(address: string) {
 
 export function createSession(address: string) {
   pruneSessions();
-  const sessionId = crypto.randomBytes(24).toString("hex");
+  const sessionId = randomHex(24);
   sessionStore.set(sessionId, { address, createdAt: Date.now() });
   return sessionId;
 }

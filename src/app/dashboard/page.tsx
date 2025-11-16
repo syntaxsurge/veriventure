@@ -2,12 +2,12 @@ import { Crosshair2Icon, RocketIcon } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AchievementList } from "@/components/credentials/achievement-list";
-import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
+import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listAchievements } from "@/lib/server/achievement-store";
 
 export default async function DashboardPage() {
-  const address = await getAuthenticatedAddress();
-  const achievements = address ? await listAchievements(address) : [];
+  const address = await requireAuthenticatedAddress();
+  const achievements = await listAchievements(address);
   const latest = achievements[0];
 
   return (

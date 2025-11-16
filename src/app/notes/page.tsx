@@ -1,11 +1,11 @@
 import { NoteWorkspace } from "@/components/notes/note-workspace";
 import { Badge } from "@/components/ui/badge";
-import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
+import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listNotes } from "@/lib/server/note-store";
 
 export default async function NotesPage() {
-  const address = await getAuthenticatedAddress();
-  const notes = address ? await listNotes(address) : [];
+  const address = await requireAuthenticatedAddress();
+  const notes = await listNotes(address);
 
   return (
     <div className="space-y-10">
@@ -19,15 +19,7 @@ export default async function NotesPage() {
         </p>
       </section>
 
-      {!address && (
-        <div className="rounded-2xl border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-          Connect your Substrate wallet to unlock the note workspace. Every note
-          is encrypted in transit, saved locally on the server, and only
-          accessible while authenticated.
-        </div>
-      )}
-
-      <NoteWorkspace initialNotes={notes} address={address} />
+      <NoteWorkspace initialNotes={notes} />
     </div>
   );
 }
