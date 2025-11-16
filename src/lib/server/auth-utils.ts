@@ -12,3 +12,11 @@ export async function getAuthenticatedAddress() {
   const record = getSession(sessionCookie.value);
   return record?.address ?? null;
 }
+
+export async function requireAuthenticatedAddress() {
+  const address = await getAuthenticatedAddress();
+  if (!address) {
+    throw new Error("UNAUTHENTICATED");
+  }
+  return address;
+}
