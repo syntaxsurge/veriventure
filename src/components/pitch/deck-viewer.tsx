@@ -48,6 +48,7 @@ const IMAGE_MODES: { value: ImageStrategy; label: string }[] = [
 export function PitchDeckViewer({ deck }: ViewerProps) {
   const router = useRouter();
   const [slides, setSlides] = useState<PitchSlideRecord[]>(deck.slides);
+  const teamMembers = deck.team ?? [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [instruction, setInstruction] = useState("");
   const [imagePrompt, setImagePrompt] = useState(slides[0]?.notes ?? "");
@@ -333,7 +334,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
                   index={index}
                   isActive={index === activeIndex}
                   theme={theme}
-                  teamMembers={deck.team}
+                  teamMembers={teamMembers}
                   onSelect={() => setActiveIndex(index)}
                 />
               ))}
@@ -346,7 +347,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
             <SlideCanvas
               slide={activeSlide}
               theme={theme}
-              teamMembers={deck.team}
+              teamMembers={teamMembers}
               slideIndex={activeIndex}
               size="display"
               isActive

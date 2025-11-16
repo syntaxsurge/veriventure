@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import PptxGenJS from "pptxgenjs";
 import type {
   PitchDeckRecord,
@@ -13,12 +13,6 @@ import {
   SLIDE_BASE_WIDTH,
   type ThemeTokens,
 } from "@/lib/pitch-theme";
-
-type SlideExportContext = {
-  deck: PitchDeckRecord;
-  slides: PitchSlideRecord[];
-  theme: ThemeTokens;
-};
 
 function buildDeckTheme(deck: PitchDeckRecord): ThemeTokens {
   return {
@@ -109,7 +103,7 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
     }
 
     if (slide.slideType === "team") {
-      renderPdfTeamMembers(doc, deck.team, palette);
+      renderPdfTeamMembers(doc, deck.team ?? [], palette);
     } else {
       const imageData = await resolveImageData(slide.images[0]?.url);
       if (imageData) {
@@ -195,7 +189,7 @@ export async function exportDeckAsPptx(
     }
 
     if (slide.slideType === "team") {
-      renderPptTeamMembers(pptSlide, deck.team, palette);
+      renderPptTeamMembers(pptSlide, deck.team ?? [], palette);
     } else {
       if (slide.bullets.length) {
         pptSlide.addText(slide.bullets.join("\n"), {
