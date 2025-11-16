@@ -20,12 +20,49 @@ import { Textarea } from "@/components/ui/textarea";
 import type { PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 
+type PitchField = keyof PitchWizardDraft;
+
 const steps = [
   { id: "vision", label: "Vision & audience" },
   { id: "market", label: "Market & proof" },
   { id: "execution", label: "Execution & capital" },
   { id: "review", label: "Review" },
 ];
+
+function FieldLabel({
+  label,
+  required,
+  onGenerate,
+  loading,
+}: {
+  label: string;
+  required?: boolean;
+  onGenerate?: () => void;
+  loading?: boolean;
+}) {
+  return (
+    <div className="mb-1 flex items-center justify-between gap-3">
+      <span className="text-sm font-medium">
+        {label}{" "}
+        <span className="text-xs text-muted-foreground">
+          {required ? "(required)" : "(optional)"}
+        </span>
+      </span>
+      {onGenerate && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-xs"
+          onClick={onGenerate}
+          disabled={loading}
+        >
+          {loading ? "Generating…" : "Use AI"}
+        </Button>
+      )}
+    </div>
+  );
+}
 
 type StepProps = {
   draft: PitchWizardDraft;
@@ -40,6 +77,8 @@ type StepProps = {
     index: number,
     updates: Partial<PitchWizardDraft["team"][number]>,
   ) => void;
+  generateField: (field: PitchField) => void;
+  isBusy: (field: PitchField) => boolean;
 };
 
 function validateFields(fields: Array<[string, string]>) {
@@ -53,6 +92,8 @@ function VisionStep({
   next,
   errors,
   setErrors,
+  generateField,
+  isBusy,
 }: StepProps) {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -73,7 +114,7 @@ function VisionStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="text-sm font-medium">Startup name</label>
+        <FieldLabel label="Startup name" required />
         <Input
           value={draft.startupName}
           onChange={(event) =>
@@ -84,7 +125,12 @@ function VisionStep({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Mission headline</label>
+        <FieldLabel
+          label="Mission headline"
+          required
+          onGenerate={() => generateField("missionStatement")}
+          loading={isBusy("missionStatement")}
+        />
         <Textarea
           value={draft.missionStatement}
           onChange={(event) =>
@@ -103,9 +149,12 @@ function VisionStep({
         </p>
       </div>
       <div>
-        <label className="text-sm font-medium">
-          Operating focus or region
-        </label>
+        <FieldLabel
+          label="Operating focus or region"
+          required
+          onGenerate={() => generateField("industry")}
+          loading={isBusy("industry")}
+        />
         <Input
           value={draft.industry}
           onChange={(event) => updateDraft({ industry: event.target.value })}
@@ -114,7 +163,12 @@ function VisionStep({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Who do you serve?</label>
+        <FieldLabel
+          label="Who do you serve?"
+          required
+          onGenerate={() => generateField("customerProfile")}
+          loading={isBusy("customerProfile")}
+        />
         <Textarea
           value={draft.customerProfile}
           onChange={(event) =>
@@ -142,6 +196,8 @@ function MarketStep({
   back,
   errors,
   setErrors,
+  generateField,
+  isBusy,
 }: StepProps) {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -162,7 +218,12 @@ function MarketStep({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="text-sm font-medium">Pain points</label>
+        <FieldLabel
+          label="Pain points"
+          required
+          onGenerate={() => generateField("problems")}
+          loading={isBusy("problems")}
+        />
         <Textarea
           value={draft.problems}
           onChange={(event) => updateDraft({ problems: event.target.value })}
@@ -171,7 +232,12 @@ function MarketStep({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Solution angle</label>
+        <FieldLabel
+          label="Solution angle"
+          required
+          onGenerate={() => generateField("solutions")}
+          loading={isBusy("solutions")}
+        />
         <Textarea
           value={draft.solutions}
           onChange={(event) => updateDraft({ solutions: event.target.value })}
@@ -180,7 +246,12 @@ function MarketStep({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Traction snapshot</label>
+        <FieldLabel
+          label="Traction snapshot"
+          required
+          onGenerate={() => generateField("tractionSummary")}
+          loading={isBusy("tractionSummary")}
+        />
         <Textarea
           value={draft.tractionSummary}
           onChange={(event) =>
@@ -191,7 +262,12 @@ function MarketStep({
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Competitive stance</label>
+        <FieldLabel
+          label="Competitive stance"
+          required
+          onGenerate={() => generateField("competitions")}
+          loading={isBusy("competitions")}
+        />
         <Textarea
           value={draft.competitions}
           onChange={(event) =>
@@ -233,6 +309,8 @@ function ExecutionStep({
   addTeamMember,
   removeTeamMember,
   updateTeamMember,
+  generateField,
+  isBusy,
 }: StepProps) {
   function toggleSlide(id: string) {
     if (draft.slides.includes(id)) {
@@ -332,7 +410,12 @@ function ExecutionStep({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="text-sm font-medium">Go-to-market focus</label>
+        <FieldLabel
+          label="Go-to-market focus"
+          required
+          onGenerate={() => generateField("scope")}
+          loading={isBusy("scope")}
+        />
           <Textarea
             value={draft.scope}
             onChange={(event) => updateDraft({ scope: event.target.value })}
@@ -341,7 +424,12 @@ function ExecutionStep({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Revenue model</label>
+        <FieldLabel
+          label="Revenue model"
+          required
+          onGenerate={() => generateField("businessModel")}
+          loading={isBusy("businessModel")}
+        />
           <Textarea
             value={draft.businessModel}
             onChange={(event) =>
@@ -354,7 +442,12 @@ function ExecutionStep({
       </div>
 
       <div>
-        <label className="text-sm font-medium">Capital + milestone plan</label>
+        <FieldLabel
+          label="Capital + milestone plan"
+          required
+          onGenerate={() => generateField("fundingPlan")}
+          loading={isBusy("fundingPlan")}
+        />
         <Textarea
           value={draft.fundingPlan}
           onChange={(event) =>
@@ -370,7 +463,7 @@ function ExecutionStep({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="text-sm font-medium">Brand color</label>
+          <FieldLabel label="Brand color" required />
           <Input
             value={draft.brandColor}
             onChange={(event) => updateDraft({ brandColor: event.target.value })}
@@ -599,8 +692,45 @@ export function PitchDeckStudio() {
   const [errors, setErrors] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState<Record<string, boolean>>({});
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const activeStep = steps[stepIndex];
+
+  const handleGenerateField = async (field: PitchField) => {
+    setAiError(null);
+    setAiBusy((prev) => ({ ...prev, [field]: true }));
+    try {
+      const response = await fetch("/api/pitch/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ field, draft }),
+      });
+      const payload = (await response.json()) as { suggestion?: string; error?: string };
+      if (!response.ok || !payload.suggestion) {
+        throw new Error(payload.error ?? "Unable to generate suggestion.");
+      }
+      const suggestion = payload.suggestion.trim();
+      const updates: Partial<PitchWizardDraft> = {
+        [field]: suggestion,
+      } as Partial<PitchWizardDraft>;
+      if (field === "missionStatement") {
+        updates.features = suggestion;
+      }
+      if (field === "fundingPlan") {
+        updates.moreInfo = suggestion;
+      }
+      updateDraft(updates);
+    } catch (error) {
+      setAiError(
+        error instanceof Error
+          ? error.message
+          : "Unable to generate suggestion.",
+      );
+    } finally {
+      setAiBusy((prev) => ({ ...prev, [field]: false }));
+    }
+  };
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -654,6 +784,8 @@ export function PitchDeckStudio() {
     addTeamMember,
     removeTeamMember,
     updateTeamMember,
+    generateField: handleGenerateField,
+    isBusy: (field: PitchField) => Boolean(aiBusy[field]),
   };
 
   let content: React.ReactNode;
@@ -712,6 +844,11 @@ export function PitchDeckStudio() {
       <div className="mt-8">{content}</div>
       {globalError && (
         <p className="mt-4 text-sm text-destructive">{globalError}</p>
+      )}
+      {aiError && (
+        <p className="mt-2 text-sm text-amber-600" role="status">
+          {aiError}
+        </p>
       )}
     </div>
   );

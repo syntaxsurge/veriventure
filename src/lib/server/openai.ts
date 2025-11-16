@@ -536,3 +536,45 @@ export async function generateSocialPosts(input: SocialPostInput) {
     posts,
   };
 }
+export async function generatePitchFieldSuggestion(
+  field: string,
+  draft: Partial<{
+    startupName: string;
+    missionStatement: string;
+    industry: string;
+    customerProfile: string;
+    features: string;
+    problems: string;
+    solutions: string;
+    competitions: string;
+    tractionSummary: string;
+    scope: string;
+    fundingPlan: string;
+  }>,
+) {
+  const client = getClient();
+  const completion = await client.chat.completions.create({
+    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    temperature: 0.4,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You help founders fill a pitch deck questionnaire. Respond with plain text (max 3 sentences) tailored to the requested field.",
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          field,
+          draft,
+        }),
+      },
+    ],
+  });
+
+  const text = completion.choices[0]?.message?.content?.trim();
+  if (!text) {
+    throw new Error("AI suggestion response was empty.");
+  }
+  return text;
+}
