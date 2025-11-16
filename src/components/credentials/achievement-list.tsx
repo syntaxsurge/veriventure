@@ -190,7 +190,7 @@ export function AchievementList({
                 >
                   {verifyingId === achievement.id
                     ? "Verifying…"
-                    : "Verify hash"}
+                    : "Recompute hash"}
                 </Button>
                 {verificationStatus[achievement.id] && (
                   <p

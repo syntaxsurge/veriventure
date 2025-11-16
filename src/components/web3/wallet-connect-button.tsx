@@ -6,6 +6,7 @@ import { cryptoWaitReady } from "@polkadot/util-crypto";
 import { Button } from "@/components/ui/button";
 import { SESSION_EVENT_NAME } from "@/hooks/use-session-address";
 import { loadExtensionDapp } from "@/lib/web3/extension-dapp";
+import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 
 const DAPP_NAME = "VeriVenture";
 
@@ -26,6 +27,7 @@ export function WalletConnectButton() {
   const [address, setAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { mark } = useOnboardingProgress();
 
   const fetchSession = useCallback(async () => {
     try {
@@ -43,6 +45,12 @@ export function WalletConnectButton() {
   useEffect(() => {
     void fetchSession();
   }, [fetchSession]);
+
+  useEffect(() => {
+    if (address) {
+      mark("walletConnected");
+    }
+  }, [address, mark]);
 
   const truncatedAddress = useMemo(() => {
     if (!address) return null;

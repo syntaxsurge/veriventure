@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AchievementList } from "@/components/credentials/achievement-list";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listAchievements } from "@/lib/server/achievement-store";
+import { DashboardMission } from "@/features/mission-control/dashboard-mission";
 
 export default async function DashboardPage() {
   const address = await requireAuthenticatedAddress();
@@ -12,6 +13,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-10">
+      <DashboardMission address={address} />
       <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card className="bg-gradient-to-r from-primary/10 to-transparent">
           <CardHeader className="flex flex-row items-start justify-between">

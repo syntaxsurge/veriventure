@@ -4,15 +4,16 @@ import type {
   PitchDeckRecord,
   PitchSlideRecord,
   PitchTeamMember,
+  SlideTextStyles,
 } from "@/types/pitch";
 import {
   buildSlidePalette,
-  determineVariant,
   hexToRgbTuple,
   SLIDE_BASE_HEIGHT,
   SLIDE_BASE_WIDTH,
   type ThemeTokens,
 } from "@/lib/pitch-theme";
+import { DECK_PLACEHOLDER_IMAGE } from "@/lib/pitch-constants";
 
 function buildDeckTheme(deck: PitchDeckRecord): ThemeTokens {
   return {
@@ -21,6 +22,54 @@ function buildDeckTheme(deck: PitchDeckRecord): ThemeTokens {
     bullets: deck.brandKit.bullets || "#E5E7EB",
     note: deck.brandKit.note || "#9CA3AF",
   };
+}
+
+const SLIDE_FONT_KEYS = {
+  title: "titleSize",
+  subtitle: "subtitleSize",
+  bullet: "bulletSize",
+  note: "noteSize",
+  caption: "captionSize",
+} as const satisfies Record<string, keyof SlideTextStyles>;
+
+const PDF_FONT_DEFAULTS = {
+  title: 42,
+  subtitle: 22,
+  bullet: 20,
+  note: 16,
+  caption: 14,
+} as const;
+
+const PPT_FONT_DEFAULTS = {
+  title: 36,
+  subtitle: 18,
+  bullet: 20,
+  note: 14,
+  caption: 12,
+} as const;
+
+function resolveHeroSource(slide: PitchSlideRecord) {
+  const url = slide.images[0]?.url?.trim();
+  return url ? url : DECK_PLACEHOLDER_IMAGE;
+}
+
+function resolveSlideTheme(theme: ThemeTokens, slide: PitchSlideRecord): ThemeTokens {
+  return {
+    background: slide.background || theme.background,
+    title: slide.textStyles?.titleColor || theme.title,
+    bullets: slide.textStyles?.bulletColor || theme.bullets,
+    note: slide.textStyles?.noteColor || theme.note,
+  };
+}
+
+function resolveFontSize(
+  styles: SlideTextStyles | undefined,
+  key: keyof typeof SLIDE_FONT_KEYS,
+  fallback: number,
+) {
+  const styleKey = SLIDE_FONT_KEYS[key];
+  const value = styles?.[styleKey];
+  return typeof value === "number" ? value : fallback;
 }
 
 const imageCache = new Map<string, string>();
@@ -57,46 +106,58 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
     format: [SLIDE_BASE_WIDTH, SLIDE_BASE_HEIGHT],
     compress: true,
   });
-  const theme = buildDeckTheme(deck);
+  const baseTheme = buildDeckTheme(deck);
 
   for (let index = 0; index < slides.length; index += 1) {
     const slide = slides[index]!;
     if (index > 0) {
       doc.addPage([SLIDE_BASE_WIDTH, SLIDE_BASE_HEIGHT], "landscape");
     }
-    const palette = buildSlidePalette(theme);
+    const slideTheme = resolveSlideTheme(baseTheme, slide);
+    const palette = buildSlidePalette(slideTheme);
+    const subtitleColor = slide.textStyles?.subtitleColor || palette.muted;
+    const bulletColor = slide.textStyles?.bulletColor || palette.contrast;
+    const noteColor = slide.textStyles?.noteColor || palette.muted;
+    const titleSize = resolveFontSize(slide.textStyles, "title", PDF_FONT_DEFAULTS.title);
+    const subtitleSize = resolveFontSize(
+      slide.textStyles,
+      "subtitle",
+      PDF_FONT_DEFAULTS.subtitle,
+    );
+    const bulletSize = resolveFontSize(slide.textStyles, "bullet", PDF_FONT_DEFAULTS.bullet);
+    const noteSize = resolveFontSize(slide.textStyles, "note", PDF_FONT_DEFAULTS.note);
     const [r, g, b] = hexToRgbTuple(palette.base);
     doc.setFillColor(r, g, b);
     doc.rect(0, 0, SLIDE_BASE_WIDTH, SLIDE_BASE_HEIGHT, "F");
     doc.setTextColor(...hexToRgbTuple(palette.contrast));
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(42);
+    doc.setFontSize(titleSize);
     doc.text(slide.title, 80, 120, { maxWidth: SLIDE_BASE_WIDTH - 420 });
 
     if (slide.subtitle) {
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(22);
-      doc.setTextColor(...hexToRgbTuple(palette.muted));
+      doc.setFontSize(subtitleSize);
+      doc.setTextColor(...hexToRgbTuple(subtitleColor));
       doc.text(slide.subtitle, 80, 170, {
         maxWidth: SLIDE_BASE_WIDTH - 420,
       });
     }
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(20);
+    doc.setFontSize(bulletSize);
     const bullets = slide.bullets.slice(0, 6);
     let currentY = 230;
     bullets.forEach((bullet) => {
-      doc.setTextColor(...hexToRgbTuple(palette.contrast));
+      doc.setTextColor(...hexToRgbTuple(bulletColor));
       doc.text(`• ${bullet}`, 90, currentY, {
         maxWidth: SLIDE_BASE_WIDTH - 420,
       });
-      currentY += 36;
+      currentY += bulletSize + 16;
     });
 
     if (slide.notes) {
-      doc.setFontSize(16);
-      doc.setTextColor(...hexToRgbTuple(palette.muted));
+      doc.setFontSize(noteSize);
+      doc.setTextColor(...hexToRgbTuple(noteColor));
       doc.text(slide.notes, 80, SLIDE_BASE_HEIGHT - 80, {
         maxWidth: SLIDE_BASE_WIDTH - 420,
       });
@@ -105,7 +166,7 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
     if (slide.slideType === "team") {
       renderPdfTeamMembers(doc, deck.team ?? [], palette);
     } else {
-      const imageData = await resolveImageData(slide.images[0]?.url);
+      const imageData = await resolveImageData(resolveHeroSource(slide));
       if (imageData) {
         const imageWidth = 380;
         const imageHeight = 380;
@@ -159,19 +220,31 @@ export async function exportDeckAsPptx(
   slides: PitchSlideRecord[],
 ) {
   const pptx = new PptxGenJS();
-  const theme = buildDeckTheme(deck);
+  const baseTheme = buildDeckTheme(deck);
 
   for (let index = 0; index < slides.length; index += 1) {
     const slide = slides[index]!;
     const pptSlide = pptx.addSlide();
-    const palette = buildSlidePalette(theme);
-    pptSlide.background = { color: palette.base };
+    const slideTheme = resolveSlideTheme(baseTheme, slide);
+    const palette = buildSlidePalette(slideTheme);
+    const subtitleColor = slide.textStyles?.subtitleColor || palette.muted;
+    const bulletColor = slide.textStyles?.bulletColor || palette.contrast;
+    const noteColor = slide.textStyles?.noteColor || palette.muted;
+    const titleSize = resolveFontSize(slide.textStyles, "title", PPT_FONT_DEFAULTS.title);
+    const subtitleSize = resolveFontSize(
+      slide.textStyles,
+      "subtitle",
+      PPT_FONT_DEFAULTS.subtitle,
+    );
+    const bulletSize = resolveFontSize(slide.textStyles, "bullet", PPT_FONT_DEFAULTS.bullet);
+    const noteSize = resolveFontSize(slide.textStyles, "note", PPT_FONT_DEFAULTS.note);
+    pptSlide.background = { color: slideTheme.background };
 
     pptSlide.addText(slide.title, {
       x: 0.5,
       y: 0.4,
       w: 6.5,
-      fontSize: 36,
+      fontSize: titleSize,
       bold: true,
       color: palette.contrast,
       fontFace: "Helvetica",
@@ -182,8 +255,8 @@ export async function exportDeckAsPptx(
         x: 0.5,
         y: 1.2,
         w: 6.5,
-        fontSize: 18,
-        color: palette.muted,
+        fontSize: subtitleSize,
+        color: subtitleColor,
         fontFace: "Helvetica",
       });
     }
@@ -192,14 +265,18 @@ export async function exportDeckAsPptx(
       renderPptTeamMembers(pptSlide, deck.team ?? [], palette);
     } else {
       if (slide.bullets.length) {
-        pptSlide.addText(slide.bullets.join("\n"), {
-          x: 0.6,
-          y: 1.8,
-          w: 6.2,
-          fontSize: 20,
-          color: palette.contrast,
-          bullet: true,
-          lineSpacingMultiple: 1.2,
+        const bulletLines = slide.bullets.slice(0, 8);
+        let bulletY = 1.8;
+        bulletLines.forEach((bullet) => {
+          pptSlide.addText(`• ${bullet}`, {
+            x: 0.6,
+            y: bulletY,
+            w: 6.2,
+            fontSize: bulletSize,
+            color: bulletColor,
+            lineSpacingMultiple: 1.1,
+          });
+          bulletY += bulletSize / 72 + 0.35;
         });
       }
       if (slide.notes) {
@@ -207,12 +284,12 @@ export async function exportDeckAsPptx(
           x: 0.6,
           y: 5.2,
           w: 6.2,
-          fontSize: 14,
-          color: palette.muted,
+          fontSize: noteSize,
+          color: noteColor,
           italic: true,
         });
       }
-      const imageData = await resolveImageData(slide.images[0]?.url);
+      const imageData = await resolveImageData(resolveHeroSource(slide));
       if (imageData) {
         pptSlide.addImage({
           data: imageData,

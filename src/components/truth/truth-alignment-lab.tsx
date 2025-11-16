@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { AlignmentReport } from "@/types/alignment";
+import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
+import { Coachmark } from "@/components/onboarding/coachmark";
 
 type ApiResponse = {
   report?: AlignmentReport;
@@ -29,6 +31,7 @@ export function TruthAlignmentLab() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const { mark, progress } = useOnboardingProgress();
 
   const cosinePercent = useMemo(() => {
     if (!analysis) return null;
@@ -86,6 +89,7 @@ export function TruthAlignmentLab() {
         );
       }
       setUal(payload.note?.UAL ?? "UAL missing in response.");
+      mark("firstNotePublished");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to reach the DKG node.";
@@ -273,12 +277,22 @@ export function TruthAlignmentLab() {
               )}
             </div>
             <Button
+              id="publish-community-note-button"
               type="submit"
               disabled={!noteDraft || publishing}
               className="w-full md:w-auto"
             >
               {publishing ? "Publishing…" : "Publish Community Note"}
             </Button>
+            <Coachmark
+              id="community-note"
+              targetId="publish-community-note-button"
+              text="Publish a Community Note after minting to anchor provenance."
+              active={
+                progress.firstAchievementMinted &&
+                !progress.firstNotePublished
+              }
+            />
             {noteError && (
               <p className="text-sm text-destructive" role="alert">
                 {noteError}

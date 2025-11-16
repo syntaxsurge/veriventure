@@ -21,6 +21,7 @@ export type PitchSlideRecord = {
   notes: string;
   images: PitchSlideImage[];
   background: string;
+  textStyles?: SlideTextStyles;
 };
 
 export type PitchBrandKit = {
@@ -67,4 +68,16 @@ export type PitchWizardDraft = {
   slides: string[];
   imageStrategy: ImageStrategy;
   team: PitchTeamMember[];
+};
+
+export type SlideTextStyles = {
+  titleSize?: number;
+  subtitleSize?: number;
+  bulletSize?: number;
+  noteSize?: number;
+  titleColor?: string;
+  subtitleColor?: string;
+  bulletColor?: string;
+  noteColor?: string;
+  captionSize?: number;
 };

@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { ImageStrategy, PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
+import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
+import { Coachmark } from "@/components/onboarding/coachmark";
 
 type PitchField = keyof Pick<
   PitchWizardDraft,
@@ -871,6 +873,7 @@ type ReviewProps = {
   onSubmit: () => void;
   errors: string[];
   setErrors: (messages: string[]) => void;
+  showCoachmark?: boolean;
 };
 
 function ReviewStep({
@@ -880,6 +883,7 @@ function ReviewStep({
   onSubmit,
   errors,
   setErrors,
+  showCoachmark,
 }: ReviewProps) {
   function validateBeforeSubmit() {
     const issues = validateFields([
@@ -988,6 +992,7 @@ function ReviewStep({
           Back
         </Button>
         <Button
+          id="create-pitch-deck-button"
           type="button"
           disabled={submitting}
           onClick={() => {
@@ -1005,6 +1010,12 @@ function ReviewStep({
             "Create pitch deck"
           )}
         </Button>
+        <Coachmark
+          id="pitch-deck"
+          targetId="create-pitch-deck-button"
+          text="Generate your first deck to sync every copilot."
+          active={Boolean(showCoachmark)}
+        />
       </div>
     </div>
   );
@@ -1012,6 +1023,7 @@ function ReviewStep({
 
 export function PitchDeckStudio() {
   const router = useRouter();
+  const { mark, progress } = useOnboardingProgress();
   const {
     ready,
     draft,
@@ -1086,6 +1098,7 @@ export function PitchDeckStudio() {
         deck?: { deckId: string };
       };
       resetDraft();
+      mark("firstDeckGenerated");
       if (payload.deck?.deckId) {
         router.push(`/ai-assistant/pitch-deck/${payload.deck.deckId}`);
       } else {
@@ -1138,6 +1151,9 @@ export function PitchDeckStudio() {
             {...stepProps}
             submitting={submitting}
             onSubmit={handleSubmit}
+            showCoachmark={
+              progress.firstNotePublished && !progress.firstDeckGenerated
+            }
           />
         );
         break;

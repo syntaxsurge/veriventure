@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { computeAchievementHash } from "@/lib/achievement-hash";
 import { mintAchievementBadge } from "@/lib/web3/badge-contract";
 import { loadExtensionDapp } from "@/lib/web3/extension-dapp";
+import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
+import { Coachmark } from "@/components/onboarding/coachmark";
 import type {
   AchievementPayload,
   AchievementRecord,
@@ -39,6 +41,7 @@ export function AchievementForm({
   const [success, setSuccess] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [stage, setStage] = useState<"idle" | "minting" | "saving">("idle");
+  const { mark, progress } = useOnboardingProgress();
 
   const previewHash = useMemo(() => computeAchievementHash(form), [form]);
 
@@ -100,6 +103,7 @@ export function AchievementForm({
       setForm(initialState);
       setSuccess("Achievement minted and captured successfully.");
       setStage("idle");
+      mark("firstAchievementMinted");
       onCreated?.(payload.achievement);
     } catch (err) {
       const fallback = err instanceof Error ? err.message : "Unexpected error";
@@ -182,12 +186,22 @@ export function AchievementForm({
       )}
 
       <Button
+        id="mint-achievement-button"
         type="submit"
         className="w-full"
         disabled={disabled || submitting}
       >
         {submitting ? "Submitting…" : "Mint achievement"}
       </Button>
+      <Coachmark
+        id="achievement"
+        targetId="mint-achievement-button"
+        text="Mint at least one badge to unlock every other workflow."
+        active={
+          progress.walletConnected &&
+          !progress.firstAchievementMinted
+        }
+      />
       {error && (
         <p className="text-sm text-destructive" role="alert">
           {error}
