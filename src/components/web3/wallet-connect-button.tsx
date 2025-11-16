@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import { Button } from "@/components/ui/button";
 import { SESSION_EVENT_NAME } from "@/hooks/use-session-address";
@@ -21,6 +22,7 @@ function encodeMessage(message: string) {
 }
 
 export function WalletConnectButton() {
+  const router = useRouter();
   const [address, setAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,13 +118,14 @@ export function WalletConnectButton() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(SESSION_EVENT_NAME));
       }
+      router.refresh();
     } catch (err) {
       const fallback = err instanceof Error ? err.message : "Unknown error";
       setError(fallback);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   const handleDisconnect = useCallback(async () => {
     setLoading(true);
@@ -134,10 +137,11 @@ export function WalletConnectButton() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(SESSION_EVENT_NAME));
       }
+      router.refresh();
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className="flex flex-col items-end gap-1">
