@@ -6,14 +6,15 @@ import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { getPitchDeck } from "@/lib/server/pitch-deck-store";
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     deckId: string;
-  };
+  }>;
 };
 
 export default async function PitchDeckDetailPage({ params }: RouteParams) {
+  const { deckId } = await params;
   const address = await requireAuthenticatedAddress();
-  const deck = await getPitchDeck(params.deckId);
+  const deck = await getPitchDeck(deckId);
   if (!deck || deck.ownerAddress !== address) {
     notFound();
   }
