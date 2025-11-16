@@ -1,11 +1,10 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import {
   createAchievement,
   listAchievements,
 } from "@/lib/server/achievement-store";
-import { SESSION_COOKIE_NAME, getSession } from "@/lib/server/session-store";
+import { getSession } from "@/lib/server/session-cookie";
 
 const achievementPayloadSchema = z.object({
   title: z.string().min(3).max(120),
@@ -52,15 +51,8 @@ export async function POST(request: NextRequest) {
   }
   const { payload, txHash, network, contractAddress } = parsed.data;
 
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(SESSION_COOKIE_NAME);
-  if (!cookie) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const session = getSession(cookie.value);
-  if (!session) {
-    cookieStore.delete(SESSION_COOKIE_NAME);
+  const session = await getSession();
+  if (!session?.address) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,16 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE_NAME, getSession } from "@/lib/server/session-store";
+import { getSession } from "@/lib/server/session-cookie";
 
 export async function getAuthenticatedAddress() {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
-  if (!sessionCookie) {
-    return null;
-  }
-  const record = getSession(sessionCookie.value);
+  const record = await getSession();
   return record?.address ?? null;
 }
 

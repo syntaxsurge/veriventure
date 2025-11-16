@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
   SESSION_COOKIE_NAME,
-  getSession,
-} from "@/lib/server/session-store";
+  SESSION_MAX_AGE_MS,
+} from "@/lib/constants/auth";
+import { signSession, verifySession } from "@/lib/auth/session";
 
 const gatedPrefixes = [
   "/dashboard",
@@ -13,7 +14,7 @@ const gatedPrefixes = [
   "/notes",
 ];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requiresAuth = gatedPrefixes.some((prefix) =>
     pathname.startsWith(prefix),
@@ -21,11 +22,41 @@ export function middleware(request: NextRequest) {
   if (!requiresAuth) {
     return NextResponse.next();
   }
+
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
-  if (!sessionCookie || !getSession(sessionCookie.value)) {
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL("/", request.url));
   }
-  return NextResponse.next();
+
+  let payload;
+  try {
+    payload = await verifySession(sessionCookie.value);
+  } catch {
+    const res = NextResponse.redirect(new URL("/", request.url));
+    res.cookies.delete(SESSION_COOKIE_NAME);
+    return res;
+  }
+
+  const res = NextResponse.next();
+
+  if (request.method === "GET") {
+    const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_MS);
+    const refreshed = await signSession({
+      address: payload.address as string,
+      expires: expiresAt.toISOString(),
+    });
+    res.cookies.set({
+      name: SESSION_COOKIE_NAME,
+      value: refreshed,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      expires: expiresAt,
+    });
+  }
+
+  return res;
 }
 
 export const config = {

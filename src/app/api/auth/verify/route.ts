@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stringToU8a } from "@polkadot/util";
 import { cryptoWaitReady, signatureVerify } from "@polkadot/util-crypto";
-import {
-  SESSION_COOKIE_NAME,
-  consumeNonce,
-  createSession,
-  readNonce,
-} from "@/lib/server/session-store";
+import { consumeNonce, readNonce } from "@/lib/server/session-store";
+import { createSession } from "@/lib/server/session-cookie";
 
 export const runtime = "nodejs";
 
@@ -46,18 +42,6 @@ export async function POST(request: NextRequest) {
   }
 
   consumeNonce(address);
-  const sessionId = createSession(address);
-
-  const response = NextResponse.json({ address });
-  response.cookies.set({
-    name: SESSION_COOKIE_NAME,
-    value: sessionId,
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: true,
-    maxAge: 60 * 60 * 24,
-  });
-
-  return response;
+  await createSession(address);
+  return NextResponse.json({ address });
 }
