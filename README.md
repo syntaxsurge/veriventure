@@ -3,7 +3,7 @@
 VeriVenture is a Next.js workspace plus an ink! smart-contract package that powers the "wallet-only" entrepreneur trust layer described in the build plan. The project is split into:
 
 - `src/app` – the Next.js application (wallet-only auth already wired in day 1).
-- `blockchain/` – ink! v6 contracts and tooling that will be deployed to a Polkadot-compatible environment.
+- `blockchain/` – ink! v5 contracts and tooling that will be deployed to a Polkadot-compatible environment.
 
 ## Quick start
 
@@ -49,18 +49,18 @@ Real-world pain points and the hackathon alignment matrix are documented in `doc
 - **Social autopost studio** – `/api/ai/social-posts` drafts multi-channel campaigns (LinkedIn, Twitter, etc.) and exports CSV schedules while storing the generated posts as documents.
 - **Truth Alignment Lab** – `/api/alignment/analyze` calls Wikipedia and Grokipedia, runs embeddings for cosine similarities, and `/api/dkg/notes` publishes Community Notes onto the OriginTrail DKG.
 - **Documents vault** – `/documents` lists every AI artifact with metadata, checksum copy actions, and JSON downloads regardless of type (`pitch_deck`, `business_plan`, `resume`, `social_post`). All entries live in Convex `documents`.
-- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (`/api/auth/whoami`) so authenticated wallets land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, explorer + OriginTrail links sourced from the env templates, and never 404s when a wallet has zero achievements.
+- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (resolved server-side from the wallet session) so authenticated users land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, explorer + OriginTrail links sourced from the env templates, and never 404s when a wallet has zero achievements.
 
 ## Contracts
 
-The `blockchain` folder is a self-contained Cargo workspace. The first contract (`achievement_badge`) issues non-transferable badge hashes and is built with ink! v6.
+The `blockchain` folder is a self-contained Cargo workspace. The first contract (`achievement_badge`) issues non-transferable badge hashes and is built with ink! v5 (Wasm target).
 
 ```bash
 cd blockchain/contracts/achievement_badge
 cargo contract build --release
 ```
 
-> **Heads up:** the current `cargo-contract` (6.0.0-alpha) build on macOS fails during the final PolkaVM link step with `unsupported relocation in data section '.polkavm_exports'`. Compilation succeeds and the artifact is produced up to that link stage. Re-run the command on an environment with the updated linker once Parity releases the fix, or target a Wasm build using a nightly toolchain in the meantime.
+> **Tooling:** install `cargo-contract` 5.x (`cargo install cargo-contract --version ^5.0.0 --locked`) plus the standard `wasm32-unknown-unknown` Rust target. ink! v5.1 runs on pallet-contracts chains, so no PolkaVM tooling is required.
 
 ### ink! dev loop tips
 
@@ -70,7 +70,7 @@ cargo contract build --release
 
 ### Local deployment
 
-1. Launch an `ink-node` (or any contracts-enabled devnet) locally.
+1. Launch `substrate-contracts-node` (or any contracts-enabled devnet) locally.
 2. Deploy `achievement_badge` via `cargo contract instantiate` or Contracts UI.
 3. Copy the instantiated address into `NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS`.
 4. Restart the Next.js dev server so the new address is picked up.

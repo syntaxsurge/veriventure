@@ -9,7 +9,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -33,11 +32,8 @@ import {
   Image as ImageIcon,
   Loader2,
   Palette,
-  Play,
-  Redo2,
   Sparkles,
   Type,
-  Undo2,
   Wand2,
 } from "lucide-react";
 
@@ -65,6 +61,7 @@ const TEXT_SIZE_DEFAULTS = {
   subtitle: 18,
   bullet: 16,
   note: 14,
+  caption: 14,
 } as const;
 
 export function PitchDeckViewer({ deck }: ViewerProps) {
@@ -317,7 +314,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
   }
 
   return (
-    <div className="relative flex min-h-screen bg-[#0c0b08] text-white">
+    <div className="min-h-screen bg-[#030712] text-white lg:grid lg:grid-cols-[320px_1fr]">
       <SlideRail
         deckName={deck.startupName}
         slides={slides}
@@ -326,7 +323,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
         onSlideSelect={scrollToSlide}
       />
 
-      <div className="flex-1 lg:ml-72">
+      <div className="flex min-h-screen flex-col">
         <SlideToolbar
           deckName={deck.startupName}
           slideCount={slides.length}
@@ -336,7 +333,12 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
           onBack={() => router.push("/ai-assistant/pitch-deck")}
           onExportPdf={handleExportPdf}
           onExportPptx={handleExportPptx}
-          onScrollStart={() => scrollToSlide(0)}
+        />
+
+        <SlideRailMobileNav
+          slides={slides}
+          activeIndex={activeIndex}
+          onSlideSelect={scrollToSlide}
         />
 
         {error && (
@@ -347,8 +349,8 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
           </div>
         )}
 
-        <main className="px-4 pb-24 pt-8">
-          <section className="mx-auto max-w-6xl space-y-12">
+        <main className="flex-1 px-4 pb-20 pt-6 sm:px-6 lg:px-10">
+          <section className="mx-auto max-w-5xl space-y-10">
             <SlideStack
               slides={slides}
               brandColors={brandColors}
@@ -697,7 +699,6 @@ type SlideToolbarProps = {
   onBack: () => void;
   onExportPdf: () => void;
   onExportPptx: () => void;
-  onScrollStart: () => void;
 };
 
 function SlideToolbar({
@@ -709,13 +710,17 @@ function SlideToolbar({
   onBack,
   onExportPdf,
   onExportPptx,
-  onScrollStart,
 }: SlideToolbarProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-linear-to-b from-[#11100c] to-[#0c0b08] px-4 py-4 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#030712]/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 items-center gap-4">
-          <Button type="button" variant="ghost" className="gap-2 text-white" onClick={onBack}>
+        <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-fit gap-2 text-white"
+            onClick={onBack}
+          >
             <ArrowLeft className="h-4 w-4" />
             Back to studio
           </Button>
@@ -736,24 +741,17 @@ function SlideToolbar({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <ToolbarGhostButton icon={<Undo2 className="h-4 w-4" />} label="Undo" />
-          <ToolbarGhostButton icon={<Redo2 className="h-4 w-4" />} label="Redo" />
-          <Button
-            type="button"
-            variant="outline"
-            className="gap-2 border-white/30 text-white hover:bg-white/10"
-            onClick={onScrollStart}
-          >
-            <Play className="h-4 w-4" />
-            Play
-          </Button>
           <Button
             type="button"
             className="gap-2 bg-white text-black hover:bg-white/90"
             onClick={onExportPdf}
             disabled={exporting === "pdf"}
           >
-            {exporting === "pdf" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {exporting === "pdf" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
             Export PDF
           </Button>
           <Button
@@ -765,31 +763,13 @@ function SlideToolbar({
             {exporting === "pptx" ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <ImageIcon className="h-4 w-4" />
+              <Download className="h-4 w-4" />
             )}
             Export PPTX
           </Button>
         </div>
       </div>
     </header>
-  );
-}
-
-type ToolbarGhostButtonProps = {
-  icon: ReactNode;
-  label: string;
-};
-
-function ToolbarGhostButton({ icon, label }: ToolbarGhostButtonProps) {
-  return (
-    <button
-      type="button"
-      className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-widest text-white/70"
-      disabled
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 
@@ -803,11 +783,9 @@ type SlideRailProps = {
 
 function SlideRail({ deckName, slides, activeIndex, brandColors, onSlideSelect }: SlideRailProps) {
   const desktopListRef = useRef<HTMLDivElement | null>(null);
-  const mobileListRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const desktop = desktopListRef.current;
-    const mobile = mobileListRef.current;
     if (desktop) {
       const target = desktop.children[activeIndex] as HTMLElement | undefined;
       if (target) {
@@ -815,6 +793,84 @@ function SlideRail({ deckName, slides, activeIndex, brandColors, onSlideSelect }
         desktop.scrollTo({ top: offset, behavior: "smooth" });
       }
     }
+  }, [activeIndex, slides.length]);
+
+  const accent = withAlpha(brandColors.title, 0.4);
+  const muted = withAlpha(brandColors.note, 0.6);
+
+  return (
+    <aside className="hidden border-r border-white/5 bg-[#050609] lg:flex">
+      <div className="sticky top-0 flex h-screen w-[320px] flex-col">
+        <div className="border-b border-white/5 px-6 py-5">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/50">Deck</p>
+          <p className="text-base font-semibold text-white">{deckName}</p>
+          <p className="text-xs text-white/60">Slide navigator</p>
+        </div>
+        <div
+          ref={desktopListRef}
+          className="flex-1 space-y-4 overflow-y-auto px-4 py-6"
+        >
+          {slides.map((slide, index) => {
+            const isActive = index === activeIndex;
+            const previewImage = slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE;
+            return (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => onSlideSelect(index)}
+                className={`group w-full rounded-2xl border bg-[#080b12] p-3 text-left transition-all ${
+                  isActive ? "border-white/40 shadow-xl" : "border-white/10 hover:border-white/25"
+                }`}
+              >
+                <div className="relative h-32 overflow-hidden rounded-xl bg-[#111827]">
+                  <img
+                    src={previewImage}
+                    alt={slide.title || `Slide ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/80">
+                    Slide {index + 1}
+                  </span>
+                  {isActive && (
+                    <span className="absolute right-2 top-2 rounded-full bg-white p-1 text-[#050609] shadow">
+                      <CheckCircle className="h-4 w-4" />
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3 space-y-1">
+                  <p className="text-sm font-semibold" style={{ color: brandColors.title }}>
+                    {slide.title || `Slide ${index + 1}`}
+                  </p>
+                  {slide.bullets[0] && (
+                    <p className="text-xs leading-normal" style={{ color: muted }}>
+                      {slide.bullets[0]}
+                    </p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+type SlideRailMobileNavProps = {
+  slides: PitchSlideRecord[];
+  activeIndex: number;
+  onSlideSelect: (index: number) => void;
+};
+
+function SlideRailMobileNav({
+  slides,
+  activeIndex,
+  onSlideSelect,
+}: SlideRailMobileNavProps) {
+  const mobileListRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const mobile = mobileListRef.current;
     if (mobile) {
       const target = mobile.children[activeIndex] as HTMLElement | undefined;
       if (target) {
@@ -824,89 +880,30 @@ function SlideRail({ deckName, slides, activeIndex, brandColors, onSlideSelect }
     }
   }, [activeIndex, slides.length]);
 
-  const accent = withAlpha(brandColors.title, 0.4);
-  const muted = withAlpha(brandColors.note, 0.55);
+  if (!slides.length) return null;
 
   return (
-    <>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-white/10 bg-[#070605] lg:flex">
-        <div className="border-b border-white/10 px-5 py-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/50">Deck</p>
-          <p className="text-base font-semibold text-white">{deckName}</p>
-          <p className="text-xs text-white/60">Slide navigator</p>
-        </div>
-        <div ref={desktopListRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-          {slides.map((slide, index) => {
-            const isActive = index === activeIndex;
-            const previewImage = slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE;
-            return (
-              <button
-                key={slide.id}
-                type="button"
-                onClick={() => onSlideSelect(index)}
-                className="group relative w-full overflow-hidden rounded-2xl border text-left transition-all"
-                style={{
-                  borderColor: isActive ? accent : withAlpha(brandColors.title, 0.15),
-                  boxShadow: isActive ? "0 20px 45px rgba(7,5,4,0.75)" : "none",
-                  background: `linear-gradient(130deg, ${withAlpha(brandColors.title, 0.08)}, ${withAlpha(
-                    brandColors.note,
-                    0.05,
-                  )})`,
-                }}
-              >
-                {isActive && (
-                  <span className="absolute right-2 top-2 z-10 rounded-full bg-white p-1 text-[#0c0b08]">
-                    <CheckCircle className="h-4 w-4" />
-                  </span>
-                )}
-                <div className="flex h-32 w-full overflow-hidden">
-                  <div className="w-1/2 overflow-hidden">
-                    <img
-                      src={previewImage}
-                      alt={slide.title || `Slide ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div
-                    className="flex flex-1 flex-col justify-center px-3 py-3"
-                    style={{ backgroundColor: slide.background || brandColors.background }}
-                  >
-                    <p className="text-sm font-semibold" style={{ color: brandColors.title }}>
-                      {slide.title || `Slide ${index + 1}`}
-                    </p>
-                    {slide.bullets[0] && (
-                      <p className="text-xs" style={{ color: muted }}>
-                        {slide.bullets[0]}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </aside>
-
-      <div className="sticky top-[72px] z-20 bg-linear-to-b from-[#0f0e0b] to-transparent px-4 py-3 lg:hidden">
-        <div ref={mobileListRef} className="flex gap-3 overflow-x-auto">
-          {slides.map((slide, index) => (
-            <button
-              key={slide.id}
-              type="button"
-              onClick={() => onSlideSelect(index)}
-              className={`min-w-[140px] rounded-xl border px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide ${
-                index === activeIndex
-                  ? "border-white bg-white/15 text-white"
-                  : "border-white/20 text-white/70"
-              }`}
-            >
-              <span className="block text-[10px] font-normal text-white/60">Slide {index + 1}</span>
-              {slide.title || `Slide ${index + 1}`}
-            </button>
-          ))}
-        </div>
+    <div className="sticky top-[72px] z-30 border-b border-white/10 bg-[#030712]/90 px-4 py-3 backdrop-blur-sm lg:hidden">
+      <div ref={mobileListRef} className="flex gap-3 overflow-x-auto">
+        {slides.map((slide, index) => (
+          <button
+            key={slide.id}
+            type="button"
+            onClick={() => onSlideSelect(index)}
+            className={`min-w-[150px] rounded-2xl border px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide transition ${
+              index === activeIndex
+                ? "border-white text-white"
+                : "border-white/20 text-white/60"
+            }`}
+          >
+            <span className="block text-[10px] font-normal uppercase text-white/60">
+              Slide {index + 1}
+            </span>
+            {slide.title || `Slide ${index + 1}`}
+          </button>
+        ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -995,50 +992,62 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
   const caption = slide.images[0]?.caption || slide.title;
   const isFlipped = index % 2 === 1;
   const bulletCards = slide.bullets.filter((entry) => entry.trim().length > 0);
+  const titleSize = slide.textStyles?.titleSize ?? TEXT_SIZE_DEFAULTS.title;
+  const subtitleSize = slide.textStyles?.subtitleSize ?? TEXT_SIZE_DEFAULTS.subtitle;
+  const bulletSize = slide.textStyles?.bulletSize ?? TEXT_SIZE_DEFAULTS.bullet;
+  const noteSize = slide.textStyles?.noteSize ?? TEXT_SIZE_DEFAULTS.note;
+  const captionSize = slide.textStyles?.captionSize ?? TEXT_SIZE_DEFAULTS.caption;
+  const titleColor = slide.textStyles?.titleColor || brandColors.title;
+  const subtitleColor = slide.textStyles?.subtitleColor || brandColors.note;
+  const bulletColor = slide.textStyles?.bulletColor || brandColors.bullets;
+  const noteColor = slide.textStyles?.noteColor || brandColors.note;
+  const memberNameSize = Math.max(subtitleSize, 20);
+  const memberRoleSize = Math.max(12, Math.round(subtitleSize * 0.6));
 
   return (
-    <div className="grid gap-10 px-6 py-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
-      <div className={`space-y-8 ${isFlipped ? "lg:order-2" : "lg:order-1"}`}>
+    <div className="grid gap-10 px-6 py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <div className={`flex flex-col gap-6 ${isFlipped ? "lg:order-2" : "lg:order-1"}`}>
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.35em]" style={{ color: tokens.textSoft }}>
+          <div
+            className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.35em]"
+            style={{ color: tokens.textSoft }}
+          >
             <span>Slide {index + 1}</span>
             <span className="h-1 w-10 rounded-full" style={{ backgroundColor: tokens.textSoft }} />
             <span>{slide.subtitle ? "Insight" : "Overview"}</span>
           </div>
-          <h2 className="text-4xl font-semibold leading-tight" style={{ color: brandColors.title }}>
+          <h2
+            className="font-semibold leading-tight"
+            style={{ color: titleColor, fontSize: titleSize, lineHeight: 1.1 }}
+          >
             {slide.title}
           </h2>
           {slide.subtitle && (
-            <p className="text-lg leading-relaxed" style={{ color: brandColors.note }}>
+            <p
+              className="leading-relaxed"
+              style={{ color: subtitleColor, fontSize: subtitleSize, maxWidth: "70ch" }}
+            >
               {slide.subtitle}
             </p>
           )}
         </div>
 
         {bulletCards.length > 0 && (
-          <div
-            className={`grid gap-4 ${
-              bulletCards.length > 2 ? "sm:grid-cols-2" : "grid-cols-1"
-            }`}
-          >
+          <div className="space-y-4">
             {bulletCards.slice(0, 4).map((bullet, bulletIndex) => (
-              <div
-                key={`${slide.id}-card-${bulletIndex}`}
-                className="rounded-2xl border px-4 py-4 backdrop-blur"
-                style={{
-                  backgroundColor: tokens.panel,
-                  borderColor: tokens.border,
-                }}
-              >
+              <div key={`${slide.id}-card-${bulletIndex}`} className="flex gap-3">
+                <span
+                  className="mt-2 h-1 w-10 rounded-full"
+                  style={{ backgroundColor: withAlpha(titleColor, 0.55) }}
+                />
                 <p
-                  className="text-[10px] font-semibold uppercase tracking-[0.35em]"
-                  style={{ color: tokens.textSoft }}
-                >
-                  Key insight {bulletIndex + 1}
-                </p>
-                <p
-                  className="mt-2 text-base font-medium leading-relaxed"
-                  style={{ color: brandColors.bullets }}
+                  className="flex-1 font-medium"
+                  style={{
+                    color: bulletColor,
+                    fontSize: bulletSize,
+                    lineHeight: 1.5,
+                    maxWidth: "72ch",
+                  }}
                 >
                   {bullet}
                 </p>
@@ -1048,16 +1057,19 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
         )}
 
         {slide.notes && (
-          <div
-            className="rounded-2xl border px-5 py-4 text-sm italic"
+          <p
+            className="rounded-3xl border px-5 py-4"
             style={{
               borderColor: tokens.border,
               backgroundColor: tokens.panelAccent,
-              color: tokens.textMuted,
+              color: noteColor,
+              fontSize: noteSize,
+              lineHeight: 1.5,
+              maxWidth: "72ch",
             }}
           >
             {slide.notes}
-          </div>
+          </p>
         )}
       </div>
 
@@ -1077,14 +1089,15 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
               src={image}
               alt={caption}
               className="h-full w-full object-cover"
-              style={{ minHeight: 320 }}
+              style={{ minHeight: 320, maxHeight: 420 }}
             />
             {caption && (
               <span
-                className="absolute bottom-4 left-5 rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]"
+                className="absolute bottom-4 left-5 rounded-full px-4 py-1 font-semibold uppercase tracking-[0.35em]"
                 style={{
                   backgroundColor: withAlpha("#000000", 0.45),
                   color: "#fff",
+                  fontSize: captionSize,
                 }}
               >
                 {caption}
@@ -1101,10 +1114,18 @@ function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
   const members = slide.images.length
     ? slide.images
     : [{ url: DECK_PLACEHOLDER_IMAGE, caption: "Team member" }];
+  const titleSize = slide.textStyles?.titleSize ?? TEXT_SIZE_DEFAULTS.title;
+  const subtitleSize = slide.textStyles?.subtitleSize ?? TEXT_SIZE_DEFAULTS.subtitle;
+  const bulletSize = slide.textStyles?.bulletSize ?? TEXT_SIZE_DEFAULTS.bullet;
+  const noteSize = slide.textStyles?.noteSize ?? TEXT_SIZE_DEFAULTS.note;
+  const titleColor = slide.textStyles?.titleColor || brandColors.title;
+  const subtitleColor = slide.textStyles?.subtitleColor || brandColors.note;
+  const bulletColor = slide.textStyles?.bulletColor || brandColors.bullets;
+  const noteColor = slide.textStyles?.noteColor || brandColors.note;
 
   return (
-    <div className="space-y-8 px-6 py-10">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)]">
+    <div className="space-y-10 px-6 py-12">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="space-y-4">
           <p
             className="text-xs uppercase tracking-[0.4em]"
@@ -1112,11 +1133,17 @@ function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
           >
             Leadership collective
           </p>
-          <h2 className="text-4xl font-semibold" style={{ color: brandColors.title }}>
+          <h2
+            className="font-semibold leading-tight"
+            style={{ color: titleColor, fontSize: titleSize }}
+          >
             {slide.title}
           </h2>
           {slide.notes && (
-            <p className="text-lg leading-relaxed" style={{ color: brandColors.note }}>
+            <p
+              className="leading-relaxed"
+              style={{ color: noteColor, fontSize: noteSize, maxWidth: "70ch" }}
+            >
               {slide.notes}
             </p>
           )}
@@ -1127,11 +1154,15 @@ function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
             style={{
               borderColor: tokens.border,
               backgroundColor: tokens.panelAccent,
-              color: tokens.textMuted,
+              color: bulletColor,
             }}
           >
             {slide.bullets.map((bullet, idx) => (
-              <p key={`${slide.id}-note-${idx}`} className="mb-2 last:mb-0">
+              <p
+                key={`${slide.id}-note-${idx}`}
+                className="mb-2 last:mb-0"
+                style={{ fontSize: bulletSize, lineHeight: 1.5 }}
+              >
                 • {bullet}
               </p>
             ))}
@@ -1157,12 +1188,15 @@ function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
                   className="h-full w-full object-cover"
                 />
               </div>
-              <p className="text-xl font-semibold" style={{ color: brandColors.title }}>
+              <p
+                className="text-xl font-semibold"
+                style={{ color: titleColor, fontSize: memberNameSize }}
+              >
                 {member.caption || `Team member ${index + 1}`}
               </p>
               <p
                 className="mt-1 text-sm"
-                style={{ color: tokens.textMuted }}
+                style={{ color: subtitleColor, fontSize: memberRoleSize }}
               >
                 {slide.subtitle || "Core operator"}
               </p>
