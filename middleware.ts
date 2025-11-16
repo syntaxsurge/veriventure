@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE_NAME } from "@/lib/server/session-store";
+const SESSION_COOKIE_NAME = "veriventure_session";
 
 const gatedPrefixes = [
   "/dashboard",
