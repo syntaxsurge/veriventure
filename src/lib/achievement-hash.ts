@@ -1,5 +1,5 @@
-import { blake2b } from "@noble/hashes/blake2b";
-import { bytesToHex } from "@noble/hashes/utils";
+import { blake2b } from "@noble/hashes/blake2b.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import type { AchievementPayload } from "@/types/achievement";
 
 const ORDERED_KEYS: (keyof AchievementPayload)[] = [

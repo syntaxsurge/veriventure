@@ -1,8 +1,8 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { blake2b } from "@noble/hashes/blake2b";
-import { bytesToHex } from "@noble/hashes/utils";
+import { blake2b } from "@noble/hashes/blake2b.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import { api, getConvexClient } from "@/lib/server/convex-client";
 import type { DocumentRecord, DocumentType } from "@/types/document";
 
