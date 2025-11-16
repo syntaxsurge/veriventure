@@ -583,6 +583,8 @@ export async function generatePitchFieldSuggestion(
       suggestion = parsed;
     } else if (typeof parsed?.suggestion === "string") {
       suggestion = parsed.suggestion;
+    } else if (typeof (parsed as Record<string, unknown>)[field] === "string") {
+      suggestion = (parsed as Record<string, string>)[field];
     } else if (
       parsed &&
       typeof parsed === "object" &&
