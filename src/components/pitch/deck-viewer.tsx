@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import PptxGenJS from "pptxgenjs";
+import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,6 +15,16 @@ import type {
 } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 import {
+  buildSlidePalette,
+  determineVariant,
+  SLIDE_BASE_HEIGHT,
+  SLIDE_BASE_WIDTH,
+  type ThemeTokens,
+  type SlidePalette,
+  withAlpha,
+} from "@/lib/pitch-theme";
+import { exportDeckAsPdf, exportDeckAsPptx } from "@/lib/pitch-export";
+import {
   ArrowLeft,
   Download,
   Image as ImageIcon,
@@ -37,13 +37,6 @@ type ViewerProps = {
   deck: PitchDeckRecord;
 };
 
-type ThemeTokens = {
-  background: string;
-  title: string;
-  bullets: string;
-  note: string;
-};
-
 type ExportState = "pdf" | "pptx" | null;
 
 const IMAGE_MODES: { value: ImageStrategy; label: string }[] = [
@@ -51,171 +44,6 @@ const IMAGE_MODES: { value: ImageStrategy; label: string }[] = [
   { value: "ai", label: "AI render" },
   { value: "scrape", label: "Web search" },
 ];
-
-const PPT_WIDTH = 10;
-const PPT_HEIGHT = (PPT_WIDTH * 9) / 16;
-
-type SlideVariant = "hero" | "spotlight" | "columns" | "statement" | "team";
-
-const VARIANT_KEYWORDS: { pattern: RegExp; variant: SlideVariant }[] = [
-  { pattern: /(vision|intro|solution|mission|product)/i, variant: "hero" },
-  { pattern: /(market|traction|metrics|analysis)/i, variant: "columns" },
-  { pattern: /(roadmap|execution|timeline|funding|plan)/i, variant: "spotlight" },
-  { pattern: /(problem|risk|challenge|impact|ask)/i, variant: "statement" },
-];
-
-type SlidePalette = {
-  base: string;
-  contrast: string;
-  muted: string;
-  accent: string;
-  accentSoft: string;
-  glow: string;
-  strong: string;
-};
-
-function determineVariant(slide: PitchSlideRecord, index: number): SlideVariant {
-  if (slide.slideType === "team") return "team";
-  for (const entry of VARIANT_KEYWORDS) {
-    if (
-      entry.pattern.test(slide.title) ||
-      (slide.subtitle && entry.pattern.test(slide.subtitle))
-    ) {
-      return entry.variant;
-    }
-  }
-  const fallback: SlideVariant[] = ["hero", "spotlight", "columns", "statement"];
-  return fallback[index % fallback.length];
-}
-
-function buildPalette(theme: ThemeTokens): SlidePalette {
-  const base = normalizeHex(theme.background, "#111827");
-  const contrast = normalizeHex(theme.title, "#ffffff");
-  const muted = normalizeHex(theme.note, "#d1d5db");
-  const accent = adjustColor(base, 0.15);
-  const strong = adjustColor(base, -0.1);
-  return {
-    base,
-    contrast,
-    muted,
-    accent,
-    accentSoft: withAlpha(accent, 0.18),
-    glow: withAlpha(contrast, 0.08),
-    strong,
-  };
-}
-
-function normalizeHex(color: string | undefined, fallback: string) {
-  if (!color) return fallback;
-  const trimmed = color.trim();
-  const hexMatch = trimmed.match(/^#([0-9a-f]{3,8})$/i);
-  if (!hexMatch) {
-    return fallback;
-  }
-  let hex = hexMatch[1];
-  if (hex.length === 3) {
-    hex = hex
-      .split("")
-      .map((char) => char + char)
-      .join("");
-  } else if (hex.length === 8) {
-    hex = hex.slice(0, 6);
-  }
-  return `#${hex.toLowerCase()}`;
-}
-
-type RGB = { r: number; g: number; b: number };
-
-function hexToRgb(hex: string): RGB | null {
-  const match = hex.replace("#", "");
-  if (match.length !== 6) return null;
-  const num = Number.parseInt(match, 16);
-  if (Number.isNaN(num)) return null;
-  return {
-    r: (num >> 16) & 255,
-    g: (num >> 8) & 255,
-    b: num & 255,
-  };
-}
-
-function rgbToHex(r: number, g: number, b: number) {
-  const toHex = (value: number) =>
-    value.toString(16).padStart(2, "0").toLowerCase();
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-function rgbToHsl({ r, g, b }: RGB) {
-  const rNorm = r / 255;
-  const gNorm = g / 255;
-  const bNorm = b / 255;
-  const max = Math.max(rNorm, gNorm, bNorm);
-  const min = Math.min(rNorm, gNorm, bNorm);
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case rNorm:
-        h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0);
-        break;
-      case gNorm:
-        h = (bNorm - rNorm) / d + 2;
-        break;
-      case bNorm:
-        h = (rNorm - gNorm) / d + 4;
-        break;
-      default:
-        break;
-    }
-    h /= 6;
-  }
-  return { h, s, l };
-}
-
-function hslToRgb(h: number, s: number, l: number): RGB {
-  if (s === 0) {
-    const value = Math.round(l * 255);
-    return { r: value, g: value, b: value };
-  }
-  const hue2rgb = (p: number, q: number, t: number) => {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
-  };
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const r = hue2rgb(p, q, h + 1 / 3);
-  const g = hue2rgb(p, q, h);
-  const b = hue2rgb(p, q, h - 1 / 3);
-  return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255),
-  };
-}
-
-function clamp01(value: number) {
-  return Math.max(0, Math.min(1, value));
-}
-
-function adjustColor(hex: string, delta: number) {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  const hsl = rgbToHsl(rgb);
-  const adjusted = hslToRgb(hsl.h, hsl.s, clamp01(hsl.l + delta));
-  return rgbToHex(adjusted.r, adjusted.g, adjusted.b);
-}
-
-function withAlpha(hex: string, alpha: number) {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
-}
 
 export function PitchDeckViewer({ deck }: ViewerProps) {
   const router = useRouter();
@@ -234,7 +62,6 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState<ExportState>(null);
-  const exportRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const activeSlide = slides[activeIndex];
   const slideCount = slides.length;
@@ -384,57 +211,12 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     router,
   ]);
 
-  const captureSlides = useCallback(async () => {
-    const nodes = exportRefs.current
-      .map((node, index) => (node ? { node, index } : null))
-      .filter(Boolean) as { node: HTMLDivElement; index: number }[];
-    if (!nodes.length) {
-      throw new Error("No slides available for export.");
-    }
-    const canvases: HTMLCanvasElement[] = [];
-    for (const { node, index } of nodes) {
-      const exportId = `export-slide-${index}`;
-      node.setAttribute("data-export-id", exportId);
-      try {
-        const canvas = await html2canvas(node, {
-          scale: 2,
-          backgroundColor: null,
-          onclone: (doc) => {
-            const target = doc.querySelector(`[data-export-id="${exportId}"]`);
-            if (target) {
-              doc.body.innerHTML = "";
-              doc.body.style.margin = "0";
-              doc.body.appendChild(target);
-            }
-          },
-        });
-        canvases.push(canvas);
-      } finally {
-        node.removeAttribute("data-export-id");
-      }
-    }
-    return canvases;
-  }, []);
-
   const handleExportPdf = useCallback(async () => {
     if (exporting) return;
     setExporting("pdf");
     setError(null);
     try {
-      const canvases = await captureSlides();
-      const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [1280, 720],
-      });
-      canvases.forEach((canvas, index) => {
-        const imgData = canvas.toDataURL("image/png");
-        doc.addImage(imgData, "PNG", 0, 0, 1280, 720);
-        if (index < canvases.length - 1) {
-          doc.addPage();
-        }
-      });
-      doc.save(`${deck.startupName}-deck.pdf`);
+      await exportDeckAsPdf(deck, slides);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Unable to export deck as PDF.",
@@ -442,29 +224,14 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     } finally {
       setExporting(null);
     }
-  }, [captureSlides, deck.startupName, exporting]);
+  }, [deck, slides, exporting]);
 
   const handleExportPptx = useCallback(async () => {
     if (exporting) return;
     setExporting("pptx");
     setError(null);
     try {
-      const canvases = await captureSlides();
-      const pptx = new PptxGenJS();
-      canvases.forEach((canvas) => {
-        const slide = pptx.addSlide();
-        const imgData = canvas.toDataURL("image/png");
-        slide.addImage({
-          data: imgData,
-          x: 0,
-          y: 0,
-          w: PPT_WIDTH,
-          h: PPT_HEIGHT,
-        });
-      });
-      await pptx.writeFile({
-        fileName: `${deck.startupName}-deck.pptx`,
-      });
+      await exportDeckAsPptx(deck, slides);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Unable to export deck as PPTX.",
@@ -472,7 +239,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     } finally {
       setExporting(null);
     }
-  }, [captureSlides, deck.startupName, exporting]);
+  }, [deck, slides, exporting]);
 
   if (!activeSlide) {
     return (
@@ -714,24 +481,6 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
         </main>
       </div>
 
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-[9999px] top-0"
-      >
-        {slides.map((slide, index) => (
-          <SlideCanvas
-            key={`export-${slide.id}`}
-            slide={slide}
-            theme={theme}
-            teamMembers={deck.team}
-            slideIndex={index}
-            size="export"
-            ref={(element) => {
-              exportRefs.current[index] = element;
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }
@@ -753,7 +502,7 @@ function SlideThumbnail({
   teamMembers,
   onSelect,
 }: SlideThumbnailProps) {
-  const palette = buildPalette(theme);
+  const palette = buildSlidePalette(theme);
   const activeBorder = withAlpha(palette.contrast, 0.4);
   const inactiveBorder = withAlpha(palette.contrast, 0.15);
 
@@ -814,23 +563,23 @@ type SlideCanvasProps = {
 
 const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
   ({ slide, theme, teamMembers, slideIndex, size = "display", isActive }, ref) => {
-    const palette = useMemo(() => buildPalette(theme), [theme]);
+    const palette = useMemo(() => buildSlidePalette(theme), [theme]);
     const variant = determineVariant(slide, slideIndex);
     const hero = slide.images[0]?.url;
     const caption = slide.images[0]?.caption || slide.title;
 
-    const dimensions =
-      size === "export"
-        ? { width: "1280px", height: "720px" }
-        : { width: "100%", aspectRatio: "16 / 9" };
+    const thumbnailScale = 220 / SLIDE_BASE_HEIGHT;
+    const scale = size === "thumbnail" ? thumbnailScale : 1;
 
-    const containerStyle = {
-      ...dimensions,
-      background:
-        variant === "statement"
-          ? `linear-gradient(140deg, ${palette.strong}, ${palette.base})`
-          : `linear-gradient(135deg, ${palette.base}, ${palette.accent})`,
-    };
+    const wrapperStyle =
+      size === "thumbnail"
+        ? {
+            width: SLIDE_BASE_WIDTH * scale,
+            height: SLIDE_BASE_HEIGHT * scale,
+          }
+        : size === "export"
+        ? { width: SLIDE_BASE_WIDTH, height: SLIDE_BASE_HEIGHT }
+        : { width: "100%", aspectRatio: "16 / 9" };
 
     const overlayA = `radial-gradient(circle at 15% 15%, ${palette.glow}, transparent 55%)`;
     const overlayB = `radial-gradient(circle at 80% 20%, ${withAlpha(
@@ -838,7 +587,7 @@ const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
       0.25,
     )}, transparent 60%)`;
 
-  const content = (() => {
+    const content = (() => {
       switch (variant) {
         case "team":
           return renderTeamLayout(teamMembers, palette, slide);
@@ -854,35 +603,47 @@ const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
       }
     })();
 
-  const borderColor = withAlpha(palette.contrast, size === "thumbnail" ? 0.12 : 0.2);
-  const boxShadow =
-    size === "display" && isActive
-      ? `0 0 0 4px ${withAlpha(palette.contrast, 0.25)}, 0 35px 80px rgba(2,6,23,0.45)`
-      : "0 35px 80px rgba(2,6,23,0.45)";
-  const borderRadius = size === "thumbnail" ? "16px" : "28px";
+    const borderColor = withAlpha(palette.contrast, size === "thumbnail" ? 0.12 : 0.2);
+    const baseShadow = "0 35px 80px rgba(2,6,23,0.45)";
+    const activeShadow =
+      size === "display" && isActive
+        ? `${baseShadow}, 0 0 0 4px ${withAlpha(palette.contrast, 0.25)}`
+        : baseShadow;
 
-  return (
-    <div
-      ref={ref}
-      className="relative overflow-hidden transition-all"
-      style={{
-        ...containerStyle,
-        borderRadius,
-        borderStyle: "solid",
-        borderWidth: "1px",
-        borderColor,
-        boxShadow: size === "thumbnail" ? "0 10px 30px rgba(15,23,42,0.18)" : boxShadow,
-      }}
-    >
+    return (
+      <div
+        ref={ref}
+        className="relative overflow-hidden transition-all"
+        style={{
+          ...wrapperStyle,
+          borderRadius: size === "thumbnail" ? 16 : 28,
+          border: `1px solid ${borderColor}`,
+          boxShadow: size === "thumbnail" ? "0 12px 25px rgba(15,23,42,0.18)" : activeShadow,
+        }}
+      >
         <div
-          className="pointer-events-none absolute inset-0 opacity-80"
-          style={{ background: overlayA }}
-        />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70"
-          style={{ background: overlayB }}
-        />
-        <div className="relative z-10 h-full w-full">{content}</div>
+          className="absolute inset-0"
+          style={{
+            background:
+              variant === "statement"
+                ? `linear-gradient(140deg, ${palette.strong}, ${palette.base})`
+                : `linear-gradient(135deg, ${palette.base}, ${palette.accent})`,
+            transform: size === "thumbnail" ? `scale(${scale})` : undefined,
+            transformOrigin: "top left",
+            width: size === "thumbnail" ? SLIDE_BASE_WIDTH : "100%",
+            height: size === "thumbnail" ? SLIDE_BASE_HEIGHT : "100%",
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0 opacity-80"
+            style={{ background: overlayA }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-70"
+            style={{ background: overlayB }}
+          />
+          <div className="relative z-10 h-full w-full">{content}</div>
+        </div>
       </div>
     );
   },
