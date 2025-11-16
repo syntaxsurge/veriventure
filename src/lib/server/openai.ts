@@ -576,5 +576,26 @@ export async function generatePitchFieldSuggestion(
   if (!text) {
     throw new Error("AI suggestion response was empty.");
   }
-  return text;
+  let suggestion = text;
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed === "string") {
+      suggestion = parsed;
+    } else if (typeof parsed?.suggestion === "string") {
+      suggestion = parsed.suggestion;
+    } else if (
+      parsed &&
+      typeof parsed === "object" &&
+      parsed.draft &&
+      typeof parsed.draft === "object" &&
+      typeof parsed.draft[field] === "string"
+    ) {
+      suggestion = parsed.draft[field];
+    } else if (typeof parsed?.value === "string") {
+      suggestion = parsed.value;
+    }
+  } catch {
+    // fall back to raw text
+  }
+  return suggestion.trim();
 }

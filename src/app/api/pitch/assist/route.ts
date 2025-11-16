@@ -45,7 +45,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const suggestion = await generatePitchFieldSuggestion(field, draft);
-    return NextResponse.json({ suggestion });
+    return new NextResponse(suggestion, {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   } catch (error) {
     const message =
       error instanceof Error
