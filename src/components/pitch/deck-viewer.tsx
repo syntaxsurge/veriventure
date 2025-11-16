@@ -55,6 +55,168 @@ const IMAGE_MODES: { value: ImageStrategy; label: string }[] = [
 const PPT_WIDTH = 10;
 const PPT_HEIGHT = (PPT_WIDTH * 9) / 16;
 
+type SlideVariant = "hero" | "spotlight" | "columns" | "statement" | "team";
+
+const VARIANT_KEYWORDS: { pattern: RegExp; variant: SlideVariant }[] = [
+  { pattern: /(vision|intro|solution|mission|product)/i, variant: "hero" },
+  { pattern: /(market|traction|metrics|analysis)/i, variant: "columns" },
+  { pattern: /(roadmap|execution|timeline|funding|plan)/i, variant: "spotlight" },
+  { pattern: /(problem|risk|challenge|impact|ask)/i, variant: "statement" },
+];
+
+type SlidePalette = {
+  base: string;
+  contrast: string;
+  muted: string;
+  accent: string;
+  accentSoft: string;
+  glow: string;
+  strong: string;
+};
+
+function determineVariant(slide: PitchSlideRecord, index: number): SlideVariant {
+  if (slide.slideType === "team") return "team";
+  for (const entry of VARIANT_KEYWORDS) {
+    if (
+      entry.pattern.test(slide.title) ||
+      (slide.subtitle && entry.pattern.test(slide.subtitle))
+    ) {
+      return entry.variant;
+    }
+  }
+  const fallback: SlideVariant[] = ["hero", "spotlight", "columns", "statement"];
+  return fallback[index % fallback.length];
+}
+
+function buildPalette(theme: ThemeTokens): SlidePalette {
+  const base = normalizeHex(theme.background, "#111827");
+  const contrast = normalizeHex(theme.title, "#ffffff");
+  const muted = normalizeHex(theme.note, "#d1d5db");
+  const accent = adjustColor(base, 0.15);
+  const strong = adjustColor(base, -0.1);
+  return {
+    base,
+    contrast,
+    muted,
+    accent,
+    accentSoft: withAlpha(accent, 0.18),
+    glow: withAlpha(contrast, 0.08),
+    strong,
+  };
+}
+
+function normalizeHex(color: string | undefined, fallback: string) {
+  if (!color) return fallback;
+  const trimmed = color.trim();
+  const hexMatch = trimmed.match(/^#([0-9a-f]{3,8})$/i);
+  if (!hexMatch) {
+    return fallback;
+  }
+  let hex = hexMatch[1];
+  if (hex.length === 3) {
+    hex = hex
+      .split("")
+      .map((char) => char + char)
+      .join("");
+  } else if (hex.length === 8) {
+    hex = hex.slice(0, 6);
+  }
+  return `#${hex.toLowerCase()}`;
+}
+
+type RGB = { r: number; g: number; b: number };
+
+function hexToRgb(hex: string): RGB | null {
+  const match = hex.replace("#", "");
+  if (match.length !== 6) return null;
+  const num = Number.parseInt(match, 16);
+  if (Number.isNaN(num)) return null;
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255,
+  };
+}
+
+function rgbToHex(r: number, g: number, b: number) {
+  const toHex = (value: number) =>
+    value.toString(16).padStart(2, "0").toLowerCase();
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function rgbToHsl({ r, g, b }: RGB) {
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case rNorm:
+        h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0);
+        break;
+      case gNorm:
+        h = (bNorm - rNorm) / d + 2;
+        break;
+      case bNorm:
+        h = (rNorm - gNorm) / d + 4;
+        break;
+      default:
+        break;
+    }
+    h /= 6;
+  }
+  return { h, s, l };
+}
+
+function hslToRgb(h: number, s: number, l: number): RGB {
+  if (s === 0) {
+    const value = Math.round(l * 255);
+    return { r: value, g: value, b: value };
+  }
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const r = hue2rgb(p, q, h + 1 / 3);
+  const g = hue2rgb(p, q, h);
+  const b = hue2rgb(p, q, h - 1 / 3);
+  return {
+    r: Math.round(r * 255),
+    g: Math.round(g * 255),
+    b: Math.round(b * 255),
+  };
+}
+
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function adjustColor(hex: string, delta: number) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const hsl = rgbToHsl(rgb);
+  const adjusted = hslToRgb(hsl.h, hsl.s, clamp01(hsl.l + delta));
+  return rgbToHex(adjusted.r, adjusted.g, adjusted.b);
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+}
+
 export function PitchDeckViewer({ deck }: ViewerProps) {
   const router = useRouter();
   const [slides, setSlides] = useState<PitchSlideRecord[]>(deck.slides);
@@ -387,6 +549,8 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
                   slide={slide}
                   index={index}
                   isActive={index === activeIndex}
+                  theme={theme}
+                  teamMembers={deck.team}
                   onSelect={() => setActiveIndex(index)}
                 />
               ))}
@@ -400,6 +564,8 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
               slide={activeSlide}
               theme={theme}
               teamMembers={deck.team}
+              slideIndex={activeIndex}
+              size="display"
               isActive
             />
           </div>
@@ -542,7 +708,8 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
             slide={slide}
             theme={theme}
             teamMembers={deck.team}
-            size="fixed"
+            slideIndex={index}
+            size="export"
             ref={(element) => {
               exportRefs.current[index] = element;
             }}
@@ -557,30 +724,60 @@ type SlideThumbnailProps = {
   slide: PitchSlideRecord;
   index: number;
   isActive: boolean;
+  theme: ThemeTokens;
+  teamMembers: PitchTeamMember[];
   onSelect: () => void;
 };
 
-function SlideThumbnail({ slide, index, isActive, onSelect }: SlideThumbnailProps) {
+function SlideThumbnail({
+  slide,
+  index,
+  isActive,
+  theme,
+  teamMembers,
+  onSelect,
+}: SlideThumbnailProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={cn(
-        "w-full rounded-2xl border px-3 py-2 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-        isActive
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-slate-200 bg-white/70 hover:border-slate-300",
-      )}
+      className="group flex w-full flex-col gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
-      <p className="text-[11px] uppercase tracking-wide text-slate-400">
-        Slide {index + 1}
-      </p>
-      <p className="text-sm font-semibold text-slate-900">{slide.title}</p>
-      {slide.bullets[0] && (
-        <p className="text-xs text-slate-500 line-clamp-2">
-          {slide.bullets[0]}
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-xl border transition",
+          isActive
+            ? "border-primary/80 ring-2 ring-primary/40"
+            : "border-white/20 hover:border-primary/40",
+        )}
+      >
+        <SlideCanvas
+          slide={slide}
+          theme={theme}
+          teamMembers={teamMembers}
+          slideIndex={index}
+          size="thumbnail"
+        />
+        <span
+          className="pointer-events-none absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.5)",
+            color: "#fff",
+          }}
+        >
+          {index + 1}
+        </span>
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-slate-700 line-clamp-1">
+          {slide.title}
         </p>
-      )}
+        {slide.bullets[0] && (
+          <p className="text-[11px] text-slate-500 line-clamp-1">
+            {slide.bullets[0]}
+          </p>
+        )}
+      </div>
     </button>
   );
 }
@@ -589,110 +786,379 @@ type SlideCanvasProps = {
   slide: PitchSlideRecord;
   theme: ThemeTokens;
   teamMembers: PitchTeamMember[];
+  slideIndex: number;
+  size?: "display" | "thumbnail" | "export";
   isActive?: boolean;
-  size?: "fluid" | "fixed";
 };
 
 const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
-  ({ slide, theme, teamMembers, isActive, size = "fluid" }, ref) => {
+  ({ slide, theme, teamMembers, slideIndex, size = "display", isActive }, ref) => {
+    const palette = useMemo(() => buildPalette(theme), [theme]);
+    const variant = determineVariant(slide, slideIndex);
     const hero = slide.images[0]?.url;
     const caption = slide.images[0]?.caption || slide.title;
-    const baseClasses =
-      "relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-white/5 via-white/0 to-black/10 shadow-2xl";
+
+    const dimensions =
+      size === "export"
+        ? { width: "1280px", height: "720px" }
+        : { width: "100%", aspectRatio: "16 / 9" };
+
+    const containerStyle = {
+      ...dimensions,
+      background:
+        variant === "statement"
+          ? `linear-gradient(140deg, ${palette.strong}, ${palette.base})`
+          : `linear-gradient(135deg, ${palette.base}, ${palette.accent})`,
+    };
+
+    const overlayA = `radial-gradient(circle at 15% 15%, ${palette.glow}, transparent 55%)`;
+    const overlayB = `radial-gradient(circle at 80% 20%, ${withAlpha(
+      palette.accent,
+      0.25,
+    )}, transparent 60%)`;
+
+    const content = (() => {
+      switch (variant) {
+        case "team":
+          return renderTeamLayout(teamMembers, palette, slide);
+        case "spotlight":
+          return renderSpotlightLayout(slide, hero, caption, palette);
+        case "columns":
+          return renderColumnsLayout(slide, hero, caption, palette);
+        case "statement":
+          return renderStatementLayout(slide, hero, caption, palette);
+        case "hero":
+        default:
+          return renderHeroLayout(slide, hero, caption, palette);
+      }
+    })();
 
     return (
       <div
         ref={ref}
         className={cn(
-          baseClasses,
-          isActive && "ring-4 ring-primary/40",
-          size === "fluid"
-            ? "aspect-video w-full"
-            : "h-[720px] w-[1280px] bg-transparent",
+          "relative overflow-hidden rounded-[28px] border border-white/20 shadow-[0_35px_80px_rgba(2,6,23,0.45)] transition",
+          size === "thumbnail" && "rounded-xl border-white/15 shadow-none",
+          isActive && size === "display" ? "ring-4 ring-primary/40" : "ring-0",
         )}
-        style={{ backgroundColor: theme.background }}
+        style={containerStyle}
       >
-        <div className="absolute inset-0 opacity-40 blur-3xl">
-          <div className="absolute -left-10 top-10 h-64 w-64 rounded-full bg-white/20" />
-          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-primary/30" />
-        </div>
-        {slide.slideType === "team" ? (
-          <div className="relative z-10 flex h-full flex-col gap-6 p-8 text-white">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/60">
-                {caption}
-              </p>
-              <h2 className="text-4xl font-semibold" style={{ color: theme.title }}>
-                {slide.title}
-              </h2>
-              {slide.subtitle && (
-                <p className="mt-2 text-base" style={{ color: theme.note }}>
-                  {slide.subtitle}
-                </p>
-              )}
-            </div>
-            <div className="grid flex-1 gap-4 md:grid-cols-3">
-              {teamMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur"
-                >
-                  <p className="text-lg font-semibold">{member.name}</p>
-                  <p className="text-sm text-white/80">{member.role}</p>
-                  <p className="mt-2 text-xs leading-relaxed text-white/70">
-                    {member.expertise}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="relative z-10 grid h-full gap-6 p-8 md:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="flex flex-col justify-between text-white">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-white/60">
-                  {caption}
-                </p>
-                <h2 className="text-4xl font-semibold" style={{ color: theme.title }}>
-                  {slide.title}
-                </h2>
-                {slide.subtitle && (
-                  <p className="mt-3 text-base leading-relaxed" style={{ color: theme.note }}>
-                    {slide.subtitle}
-                  </p>
-                )}
-              </div>
-              <ul className="mt-4 space-y-3 text-base leading-relaxed">
-                {slide.bullets.map((bullet) => (
-                  <li key={bullet} style={{ color: theme.bullets }}>
-                    • {bullet}
-                  </li>
-                ))}
-              </ul>
-              {slide.notes && (
-                <p className="mt-4 text-sm italic" style={{ color: theme.note }}>
-                  {slide.notes}
-                </p>
-              )}
-            </div>
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-              {hero ? (
-                <img
-                  src={hero}
-                  alt={caption}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-white/5 to-white/10 text-white/60">
-                  <ImageIcon className="h-12 w-12" />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-80"
+          style={{ background: overlayA }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{ background: overlayB }}
+        />
+        <div className="relative z-10 h-full w-full">{content}</div>
       </div>
     );
   },
 );
 
 SlideCanvas.displayName = "SlideCanvas";
+
+function renderHeroLayout(
+  slide: PitchSlideRecord,
+  hero: string | undefined,
+  caption: string,
+  palette: SlidePalette,
+) {
+  return (
+    <div className="grid h-full gap-8 p-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="flex flex-col justify-between gap-6">
+        <div>
+          <p
+            className="text-[12px] font-semibold uppercase tracking-[0.35em]"
+            style={{ color: withAlpha(palette.contrast, 0.75) }}
+          >
+            {caption}
+          </p>
+          <h2
+            className="mt-3 text-4xl font-semibold leading-tight"
+            style={{ color: palette.contrast }}
+          >
+            {slide.title}
+          </h2>
+          {slide.subtitle && (
+            <p
+              className="mt-3 text-base leading-relaxed"
+              style={{ color: palette.muted }}
+            >
+              {slide.subtitle}
+            </p>
+          )}
+        </div>
+        <ul className="space-y-3">
+          {slide.bullets.map((bullet) => (
+            <li
+              key={bullet}
+              className="rounded-2xl px-4 py-3 text-sm font-medium"
+              style={{
+                backgroundColor: palette.accentSoft,
+                color: palette.contrast,
+              }}
+            >
+              {bullet}
+            </li>
+          ))}
+        </ul>
+        {slide.notes && (
+          <p
+            className="text-sm italic"
+            style={{ color: withAlpha(palette.contrast, 0.7) }}
+          >
+            {slide.notes}
+          </p>
+        )}
+      </div>
+      <div className="relative overflow-hidden rounded-3xl">
+        <SlideImagePanel hero={hero} caption={caption} palette={palette} />
+      </div>
+    </div>
+  );
+}
+
+function renderSpotlightLayout(
+  slide: PitchSlideRecord,
+  hero: string | undefined,
+  caption: string,
+  palette: SlidePalette,
+) {
+  const bullets = slide.bullets.slice(0, 4);
+  return (
+    <div className="flex h-full flex-col gap-6 p-8">
+      <SlideImagePanel hero={hero} caption={caption} palette={palette} variant="wide" />
+      <div className="grid gap-4 md:grid-cols-2">
+        {bullets.map((bullet, index) => (
+          <div
+            key={bullet}
+            className="rounded-2xl border px-4 py-3 text-sm"
+            style={{
+              backgroundColor: palette.accentSoft,
+              borderColor: withAlpha(palette.contrast, 0.15),
+              color: palette.contrast,
+            }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-widest">
+              Milestone {index + 1}
+            </p>
+            <p className="mt-1 leading-relaxed text-sm">{bullet}</p>
+          </div>
+        ))}
+        {!bullets.length && (
+          <p style={{ color: palette.muted }}>Add highlights to show momentum.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function renderColumnsLayout(
+  slide: PitchSlideRecord,
+  hero: string | undefined,
+  caption: string,
+  palette: SlidePalette,
+) {
+  const half = Math.ceil(slide.bullets.length / 2);
+  const left = slide.bullets.slice(0, half);
+  const right = slide.bullets.slice(half);
+  return (
+    <div className="grid h-full gap-6 p-8 lg:grid-cols-2">
+      <div className="space-y-4">
+        <SlideImagePanel hero={hero} caption={caption} palette={palette} variant="portrait" />
+        <p
+          className="text-sm"
+          style={{ color: withAlpha(palette.contrast, 0.8) }}
+        >
+          {slide.subtitle || slide.notes}
+        </p>
+      </div>
+      <div className="grid gap-4">
+        {[left, right].map((bucket, bucketIndex) => (
+          <div
+            key={bucketIndex}
+            className="rounded-3xl border px-4 py-3"
+            style={{
+              borderColor: withAlpha(palette.contrast, 0.1),
+              backgroundColor: withAlpha(palette.base, 0.4),
+            }}
+          >
+            <p
+              className="text-xs font-semibold uppercase tracking-widest"
+              style={{ color: withAlpha(palette.contrast, 0.6) }}
+            >
+              {bucketIndex === 0 ? "Drivers" : "Proof"}
+            </p>
+            <ul className="mt-2 space-y-2">
+              {bucket.map((bullet) => (
+                <li
+                  key={bullet}
+                  className="text-sm font-medium"
+                  style={{ color: palette.contrast }}
+                >
+                  {bullet}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function renderStatementLayout(
+  slide: PitchSlideRecord,
+  hero: string | undefined,
+  caption: string,
+  palette: SlidePalette,
+) {
+  return (
+    <div className="flex h-full flex-col justify-between gap-6 p-8">
+      <div>
+        <p
+          className="text-[11px] font-semibold uppercase tracking-[0.5em]"
+          style={{ color: withAlpha(palette.contrast, 0.75) }}
+        >
+          {caption}
+        </p>
+        <h2
+          className="mt-4 text-5xl font-semibold leading-tight"
+          style={{ color: palette.contrast }}
+        >
+          {slide.title}
+        </h2>
+        {slide.subtitle && (
+          <p
+            className="mt-3 max-w-3xl text-lg leading-relaxed"
+            style={{ color: palette.muted }}
+          >
+            {slide.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {slide.bullets.slice(0, 5).map((bullet) => (
+          <span
+            key={bullet}
+            className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+            style={{
+              backgroundColor: palette.accentSoft,
+              color: palette.contrast,
+            }}
+          >
+            {bullet}
+          </span>
+        ))}
+      </div>
+      <SlideImagePanel hero={hero} caption={caption} palette={palette} variant="wide" />
+    </div>
+  );
+}
+
+function renderTeamLayout(
+  teamMembers: PitchTeamMember[],
+  palette: SlidePalette,
+  slide: PitchSlideRecord,
+) {
+  return (
+    <div className="flex h-full flex-col gap-6 p-8">
+      <div>
+        <p
+          className="text-[12px] font-semibold uppercase tracking-[0.35em]"
+          style={{ color: withAlpha(palette.contrast, 0.75) }}
+        >
+          Team
+        </p>
+        <h2
+          className="mt-3 text-4xl font-semibold"
+          style={{ color: palette.contrast }}
+        >
+          {slide.title}
+        </h2>
+        {slide.subtitle && (
+          <p className="mt-2 text-base" style={{ color: palette.muted }}>
+            {slide.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="grid flex-1 gap-4 md:grid-cols-3">
+        {teamMembers.map((member) => (
+          <div
+            key={member.id}
+            className="rounded-2xl border p-4"
+            style={{
+              borderColor: withAlpha(palette.contrast, 0.2),
+              backgroundColor: palette.accentSoft,
+              color: palette.contrast,
+            }}
+          >
+            <p className="text-lg font-semibold">{member.name}</p>
+            <p className="text-sm" style={{ color: withAlpha(palette.contrast, 0.8) }}>
+              {member.role}
+            </p>
+            <p className="mt-2 text-xs leading-relaxed">{member.expertise}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SlideImagePanel({
+  hero,
+  caption,
+  palette,
+  variant = "standard",
+}: {
+  hero?: string;
+  caption: string;
+  palette: SlidePalette;
+  variant?: "standard" | "wide" | "portrait";
+}) {
+  return (
+    <div
+      className={cn(
+        "relative h-full w-full overflow-hidden rounded-3xl border",
+        variant === "wide" && "h-64",
+        variant === "portrait" && "h-full",
+      )}
+      style={{
+        borderColor: withAlpha(palette.contrast, 0.12),
+        backgroundColor: withAlpha(palette.base, 0.35),
+      }}
+    >
+      {hero ? (
+        <img
+          src={hero}
+          alt={caption}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <ImageIcon className="h-12 w-12" style={{ color: palette.muted }} />
+        </div>
+      )}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
+        style={{
+          background: `linear-gradient(180deg, transparent, ${withAlpha(
+            palette.base,
+            0.85,
+          )})`,
+        }}
+      />
+      <p
+        className="absolute left-4 bottom-4 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest"
+        style={{
+          backgroundColor: palette.accentSoft,
+          color: palette.contrast,
+        }}
+      >
+        {caption}
+      </p>
+    </div>
+  );
+}
