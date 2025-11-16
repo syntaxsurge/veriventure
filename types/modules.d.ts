@@ -1,4 +1,4 @@
-declare module "@noble/hashes/blake2b.js" {
+declare module "@noble/hashes/blake2.js" {
   export function blake2b(
     data: Uint8Array,
     options?: { dkLen?: number },

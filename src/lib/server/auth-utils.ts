@@ -10,9 +10,5 @@ export async function getAuthenticatedAddress() {
     return null;
   }
   const record = getSession(sessionCookie.value);
-  if (!record) {
-    cookieStore.delete(SESSION_COOKIE_NAME);
-    return null;
-  }
-  return record.address;
+  return record?.address ?? null;
 }
