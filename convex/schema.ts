@@ -58,4 +58,31 @@ export default defineSchema({
   })
     .index("by_owner", ["ownerAddress"])
     .index("by_ual", ["ual"]),
+
+  pitchDecks: defineTable({
+    deckId: v.string(),
+    ownerAddress: v.string(),
+    startupName: v.string(),
+    industry: v.string(),
+    features: v.string(),
+    problems: v.string(),
+    solutions: v.string(),
+    competitions: v.string(),
+    teamJson: v.string(),
+    scope: v.string(),
+    moreInfo: v.string(),
+    brandColor: v.string(),
+    businessModel: v.string(),
+    slideTemplateIds: v.array(v.string()),
+    imageStrategy: v.string(),
+    status: v.string(),
+    progress: v.number(),
+    summary: v.string(),
+    brandKitJson: v.string(),
+    slidesJson: v.string(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_owner", ["ownerAddress"])
+    .index("by_deckId", ["deckId"]),
 });

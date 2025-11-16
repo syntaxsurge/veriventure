@@ -13,6 +13,7 @@ import type * as admin from "../admin.js";
 import type * as communityNotes from "../communityNotes.js";
 import type * as documents from "../documents.js";
 import type * as notes from "../notes.js";
+import type * as pitchDecks from "../pitchDecks.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   communityNotes: typeof communityNotes;
   documents: typeof documents;
   notes: typeof notes;
+  pitchDecks: typeof pitchDecks;
 }>;
 
 /**
