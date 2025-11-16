@@ -706,19 +706,18 @@ export function PitchDeckStudio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ field, draft }),
       });
-      const payload = (await response.json()) as { suggestion?: string; error?: string };
-      if (!response.ok || !payload.suggestion) {
-        throw new Error(payload.error ?? "Unable to generate suggestion.");
+      const suggestion = await response.text();
+      if (!response.ok || !suggestion.trim()) {
+        throw new Error(suggestion || "Unable to generate suggestion.");
       }
-      const suggestion = payload.suggestion.trim();
       const updates: Partial<PitchWizardDraft> = {
-        [field]: suggestion,
+        [field]: suggestion.trim(),
       } as Partial<PitchWizardDraft>;
       if (field === "missionStatement") {
-        updates.features = suggestion;
+        updates.features = suggestion.trim();
       }
       if (field === "fundingPlan") {
-        updates.moreInfo = suggestion;
+        updates.moreInfo = suggestion.trim();
       }
       updateDraft(updates);
     } catch (error) {
