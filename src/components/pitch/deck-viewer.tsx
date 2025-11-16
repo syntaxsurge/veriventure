@@ -45,6 +45,10 @@ const IMAGE_MODES: { value: ImageStrategy; label: string }[] = [
   { value: "scrape", label: "Web search" },
 ];
 
+const THUMBNAIL_WIDTH = 220;
+const THUMBNAIL_SCALE = THUMBNAIL_WIDTH / SLIDE_BASE_WIDTH;
+const THUMBNAIL_HEIGHT = SLIDE_BASE_HEIGHT * THUMBNAIL_SCALE;
+
 export function PitchDeckViewer({ deck }: ViewerProps) {
   const router = useRouter();
   const [slides, setSlides] = useState<PitchSlideRecord[]>(deck.slides);
@@ -516,6 +520,7 @@ function SlideThumbnail({
       <div
         className="relative overflow-hidden rounded-xl border transition-shadow"
         style={{
+          width: THUMBNAIL_WIDTH,
           borderColor: isActive ? activeBorder : inactiveBorder,
           boxShadow: isActive
             ? `0 0 0 3px ${withAlpha(palette.contrast, 0.25)}`
@@ -569,14 +574,13 @@ const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
     const hero = slide.images[0]?.url;
     const caption = slide.images[0]?.caption || slide.title;
 
-    const thumbnailScale = 220 / SLIDE_BASE_HEIGHT;
-    const scale = size === "thumbnail" ? thumbnailScale : 1;
+    const scale = size === "thumbnail" ? THUMBNAIL_SCALE : 1;
 
     const wrapperStyle =
       size === "thumbnail"
         ? {
-            width: SLIDE_BASE_WIDTH * scale,
-            height: SLIDE_BASE_HEIGHT * scale,
+            width: THUMBNAIL_WIDTH,
+            height: THUMBNAIL_HEIGHT,
           }
         : size === "export"
         ? { width: SLIDE_BASE_WIDTH, height: SLIDE_BASE_HEIGHT }

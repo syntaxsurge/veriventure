@@ -241,7 +241,7 @@ function renderPptTeamMembers(
     const row = Math.floor(idx / cardsPerRow);
     const x = 0.5 + column * (cardWidth + 0.2);
     const y = 2 + row * (cardHeight + 0.2);
-    pptSlide.addShape(PptxGenJS.ShapeType.rect, {
+    pptSlide.addShape("rect", {
       x,
       y,
       w: cardWidth,
