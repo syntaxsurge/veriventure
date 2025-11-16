@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -41,11 +42,6 @@ const navItems: NavItem[] = [
     label: "Notes",
     isActive: (pathname) => pathname?.startsWith("/notes") ?? false,
   },
-  {
-    href: "/verify/demo-founder",
-    label: "Verify",
-    isActive: (pathname) => pathname?.startsWith("/verify") ?? false,
-  },
 ];
 
 export function MainNav() {
@@ -73,6 +69,65 @@ export function MainNav() {
           </Link>
         );
       })}
+      <VerifyNavItem pathname={pathname} />
     </nav>
+  );
+}
+
+type VerifyNavItemProps = {
+  pathname?: string | null;
+};
+
+function VerifyNavItem({ pathname }: VerifyNavItemProps) {
+  const [href, setHref] = useState("/verify/demo");
+  const [label, setLabel] = useState("Verify");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const response = await fetch("/api/auth/whoami", {
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+        const payload = (await response.json()) as {
+          address?: string | null;
+          handle?: string | null;
+        };
+        if (cancelled || !payload.address) {
+          return;
+        }
+        const slug = payload.handle?.trim() || payload.address;
+        setHref(`/verify/${encodeURIComponent(slug)}`);
+        setLabel("My Verify");
+      } catch {
+        // ignore network failures; fallback link remains
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isActive = useMemo(
+    () => pathname?.startsWith("/verify") ?? false,
+    [pathname],
+  );
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "rounded-full px-3 py-1.5 transition-colors",
+        isActive
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+      )}
+    >
+      {label}
+    </Link>
   );
 }

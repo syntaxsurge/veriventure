@@ -1,5 +1,6 @@
 "use server";
 
+import { serverEnv } from "@/env/server";
 import { generateAiArticle } from "@/lib/server/openai";
 import { slugifyTopic, stripHtml } from "@/lib/alignment/text";
 import type { ArticleSnapshot } from "@/types/alignment";
@@ -8,19 +9,14 @@ type FetchOptions = {
   referenceText?: string;
 };
 
-const DEFAULT_USER_AGENT =
-  process.env.GROKIPEDIA_USER_AGENT?.trim() ??
-  "VeriVenture/1.0 (+https://veriventure.app)";
+const DEFAULT_USER_AGENT = serverEnv.GROKIPEDIA_USER_AGENT;
+const BASE_URL = serverEnv.GROKIPEDIA_BASE_URL.replace(/\/$/, "");
 
 async function attemptLiveArticle(
   topic: string,
 ): Promise<ArticleSnapshot | null> {
-  const baseUrl = process.env.GROKIPEDIA_BASE_URL?.trim();
-  if (!baseUrl) {
-    return null;
-  }
   const slug = slugifyTopic(topic) || encodeURIComponent(topic.trim());
-  const url = `${baseUrl.replace(/\/$/, "")}/${slug}`;
+  const url = `${BASE_URL}/${slug}`;
   const response = await fetch(url, {
     headers: {
       "User-Agent": DEFAULT_USER_AGENT,

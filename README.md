@@ -24,11 +24,12 @@ cp .env.example .env.local
 
 Key sections:
 
-- **Public web config** (`NEXT_PUBLIC_*`): RPC endpoint, contract address, and optional gas hints for `@polkadot/api`.
+- **Public web config** (`NEXT_PUBLIC_*`): RPC endpoint, contract address, optional gas hints for `@polkadot/api`, and the explorer/DKG viewer templates (`NEXT_PUBLIC_EXPLORER_TX_TEMPLATE`, `NEXT_PUBLIC_DKG_VIEWER_TEMPLATE`) used by the Verify screen’s outbound links.
 - **Convex** – `NEXT_PUBLIC_CONVEX_URL` points to your Convex deployment (e.g. `https://veriventure.convex.cloud`). Optionally set `CONVEX_DEPLOYMENT_URL`/`CONVEX_DEPLOYMENT` for CLI tasks and `CONVEX_RESET_TOKEN` for `npm run convex:reset`.
 - **OpenAI**: API key plus completion + embedding model overrides for the copilots/embeddings pipeline.
 - **Grokipedia**: Optional base URL + user agent for live HTML scraping before falling back to AI synthesis.
 - **OriginTrail DKG**: Edge Node endpoint, blockchain signer, and retry options used when publishing Community Notes.
+- **Runtime validation** – `src/env/server.ts` and `src/env/client.ts` load these values via Zod and crash fast if anything is missing, so populate `.env.local` before running `npm run dev`.
 
 All `NEXT_PUBLIC_*` entries run in the browser (RPC + contract metadata). The remaining values stay on the server so the DKG client can talk to your Edge Node.
 
@@ -48,6 +49,7 @@ Real-world pain points and the hackathon alignment matrix are documented in `doc
 - **Social autopost studio** – `/api/ai/social-posts` drafts multi-channel campaigns (LinkedIn, Twitter, etc.) and exports CSV schedules while storing the generated posts as documents.
 - **Truth Alignment Lab** – `/api/alignment/analyze` calls Wikipedia and Grokipedia, runs embeddings for cosine similarities, and `/api/dkg/notes` publishes Community Notes onto the OriginTrail DKG.
 - **Documents vault** – `/documents` lists every AI artifact with metadata, checksum copy actions, and JSON downloads regardless of type (`pitch_deck`, `business_plan`, `resume`, `social_post`). All entries live in Convex `documents`.
+- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (`/api/auth/whoami`) so authenticated wallets land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, explorer + OriginTrail links sourced from the env templates, and never 404s when a wallet has zero achievements.
 
 ## Contracts
 

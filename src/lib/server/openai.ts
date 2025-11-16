@@ -3,6 +3,7 @@
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 import OpenAI from "openai";
+import { serverEnv } from "@/env/server";
 import { clampText } from "@/lib/alignment/text";
 import type {
   BusinessPlanSection,
@@ -20,17 +21,17 @@ import type {
 import type { SlideTemplate } from "@/data/pitch-industries";
 
 let cachedClient: OpenAI | null = null;
+const COMPLETIONS_MODEL = serverEnv.OPENAI_COMPLETIONS_MODEL;
+const EMBEDDING_MODEL = serverEnv.OPENAI_EMBEDDING_MODEL;
+const IMAGE_MODEL = serverEnv.OPENAI_IMAGE_MODEL;
+const DEFAULT_IMAGE_SIZE = serverEnv.PITCH_DECK_IMAGE_SIZE;
+const SCRAPE_IMAGE_SIZE = serverEnv.PITCH_DECK_SCRAPE_SIZE;
 
 function getClient() {
   if (cachedClient) {
     return cachedClient;
   }
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error(
-      "OPENAI_API_KEY must be configured to run the Truth Alignment Lab.",
-    );
-  }
+  const apiKey = serverEnv.OPENAI_API_KEY;
   cachedClient = new OpenAI({ apiKey });
   return cachedClient;
 }
@@ -39,7 +40,7 @@ export async function createEmbedding(text: string) {
   const client = getClient();
   const trimmed = clampText(text, 8000);
   const response = await client.embeddings.create({
-    model: process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small",
+    model: EMBEDDING_MODEL,
     input: trimmed,
   });
   const vector = response.data[0]?.embedding;
@@ -64,7 +65,7 @@ export async function generateAiArticle(topic: string, context?: string) {
   }
 
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.3,
     messages: [
       {
@@ -97,7 +98,7 @@ type PitchDeckInput = {
 export async function generatePitchDeckSlides(input: PitchDeckInput) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.4,
     response_format: { type: "json_object" },
     messages: [
@@ -148,8 +149,6 @@ export async function generatePitchDeckSlides(input: PitchDeckInput) {
   };
 }
 
-const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL?.trim() || "gpt-image-1";
-
 type OpenAIImageSize =
   | "256x256"
   | "512x512"
@@ -169,15 +168,12 @@ const IMAGE_SIZE = ((): OpenAIImageSize => {
     "1024x1792",
     "1792x1024",
   ];
-  const candidate = process.env.PITCH_DECK_IMAGE_SIZE?.trim() as
-    | OpenAIImageSize
-    | undefined;
+  const candidate = DEFAULT_IMAGE_SIZE as OpenAIImageSize | undefined;
   return candidate && allowed.includes(candidate)
     ? candidate
     : ("1792x1024" as OpenAIImageSize);
 })();
-const SCRAPE_DIMENSIONS =
-  process.env.PITCH_DECK_SCRAPE_SIZE?.trim() || "1200x675";
+const SCRAPE_DIMENSIONS = SCRAPE_IMAGE_SIZE;
 const IMAGE_CONTEXT_LIMIT = 360;
 
 export type SlideImageContext = {
@@ -370,7 +366,7 @@ type GeneratedSlide = {
 export async function generateAdvancedPitchDeck(input: AdvancedPitchDeckInput) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.45,
     response_format: { type: "json_object" },
     messages: [
@@ -496,7 +492,7 @@ type SlideCorrectionInput = {
 export async function revisePitchDeckSlide(input: SlideCorrectionInput) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.4,
     response_format: { type: "json_object" },
     messages: [
@@ -565,7 +561,7 @@ type BusinessPlanInput = {
 export async function generateBusinessPlanSections(input: BusinessPlanInput) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.35,
     response_format: { type: "json_object" },
     messages: [
@@ -625,7 +621,7 @@ type ResumeInput = {
 export async function generateResumeBlueprint(input: ResumeInput) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.35,
     response_format: { type: "json_object" },
     messages: [
@@ -694,7 +690,7 @@ type SocialPostInput = {
 export async function generateSocialPosts(input: SocialPostInput) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.5,
     response_format: { type: "json_object" },
     messages: [
@@ -778,7 +774,7 @@ export async function generatePitchFieldSuggestion(
 ) {
   const client = getClient();
   const completion = await client.chat.completions.create({
-    model: process.env.OPENAI_COMPLETIONS_MODEL ?? "gpt-4o-mini",
+    model: COMPLETIONS_MODEL,
     temperature: 0.4,
     messages: [
       {

@@ -1,5 +1,29 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  {
+    key: "Referrer-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "SAMEORIGIN",
+  },
+  {
+    key: "Permissions-Policy",
+    value:
+      "accelerometer=(), ambient-light-sensor=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=()",
+  },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+];
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["dkg.js"],
   turbopack: {},
@@ -13,6 +37,12 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
+  headers: async () => [
+    {
+      source: "/(.*)",
+      headers: securityHeaders,
+    },
+  ],
 };
 
 export default nextConfig;

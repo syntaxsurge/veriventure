@@ -1,47 +1,43 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import {
-  forwardRef,
+  MutableRefObject,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  type ReactNode,
 } from "react";
-import type { CSSProperties, ElementType, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import type {
   ImageStrategy,
   PitchDeckRecord,
   PitchSlideRecord,
-  PitchTeamMember,
   SlideTextStyles,
 } from "@/types/pitch";
-import { cn } from "@/lib/utils";
-import {
-  buildSlidePalette,
-  determineVariant,
-  SLIDE_BASE_HEIGHT,
-  SLIDE_BASE_WIDTH,
-  type ThemeTokens,
-  type SlidePalette,
-  withAlpha,
-} from "@/lib/pitch-theme";
 import { exportDeckAsPdf, exportDeckAsPptx } from "@/lib/pitch-export";
 import { DECK_PLACEHOLDER_IMAGE } from "@/lib/pitch-constants";
+import { withAlpha } from "@/lib/pitch-theme";
 import {
   ArrowLeft,
+  CheckCircle,
   Download,
   Image as ImageIcon,
   Loader2,
   Palette,
-  PenSquare,
+  Play,
+  Redo2,
   Sparkles,
   Type,
+  Undo2,
   Wand2,
 } from "lucide-react";
 
@@ -51,49 +47,33 @@ type ViewerProps = {
 
 type ExportState = "pdf" | "pptx" | null;
 
+type BrandColors = {
+  background: string;
+  title: string;
+  bullets: string;
+  note: string;
+};
+
 const IMAGE_MODES: { value: ImageStrategy; label: string }[] = [
   { value: "manual", label: "Manual upload" },
   { value: "ai", label: "AI render" },
   { value: "scrape", label: "Web search" },
 ];
 
-const THUMBNAIL_WIDTH = 220;
-const THUMBNAIL_SCALE = THUMBNAIL_WIDTH / SLIDE_BASE_WIDTH;
-const THUMBNAIL_HEIGHT = SLIDE_BASE_HEIGHT * THUMBNAIL_SCALE;
 const TEXT_SIZE_DEFAULTS = {
   title: 42,
   subtitle: 18,
   bullet: 16,
   note: 14,
-  caption: 12,
 } as const;
-const TEXT_SIZE_KEYS = {
-  title: "titleSize",
-  subtitle: "subtitleSize",
-  bullet: "bulletSize",
-  note: "noteSize",
-  caption: "captionSize",
-} as const satisfies Record<keyof typeof TEXT_SIZE_DEFAULTS, keyof SlideTextStyles>;
-
-function getSlideTextSize(
-  styles: SlideTextStyles | undefined,
-  key: keyof typeof TEXT_SIZE_DEFAULTS,
-) {
-  const styleKey = TEXT_SIZE_KEYS[key];
-  const value = styles?.[styleKey];
-  return typeof value === "number" ? value : TEXT_SIZE_DEFAULTS[key];
-}
 
 export function PitchDeckViewer({ deck }: ViewerProps) {
   const router = useRouter();
   const [slides, setSlides] = useState<PitchSlideRecord[]>(deck.slides);
-  const teamMembers = deck.team ?? [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [instruction, setInstruction] = useState("");
   const [imagePrompt, setImagePrompt] = useState(slides[0]?.notes ?? "");
-  const [imageMode, setImageMode] = useState<ImageStrategy>(
-    deck.imageStrategy,
-  );
+  const [imageMode, setImageMode] = useState<ImageStrategy>(deck.imageStrategy);
   const [imageUrl, setImageUrl] = useState(slides[0]?.images[0]?.url ?? "");
   const [imageCaption, setImageCaption] = useState(
     slides[0]?.images[0]?.caption ?? slides[0]?.title ?? "",
@@ -102,29 +82,40 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
   const [loadingImage, setLoadingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState<ExportState>(null);
-  const [editMode, setEditMode] = useState(false);
+  const slideRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   const activeSlide = slides[activeIndex];
-  const slideCount = slides.length;
-
-  const theme = useMemo<ThemeTokens>(
+  const brandColors = useMemo<BrandColors>(
     () => ({
-      background: deck.brandKit.background || "#111827",
+      background: deck.brandKit.background || "#12110D",
       title: deck.brandKit.title || "#FFFFFF",
-      bullets: deck.brandKit.bullets || "#E5E7EB",
-      note: deck.brandKit.note || "#9CA3AF",
+      bullets: deck.brandKit.bullets || "#F8FAFC",
+      note: deck.brandKit.note || "#CBD5F5",
     }),
     [deck.brandKit],
   );
 
-  const replaceSlide = useCallback(
-    (nextSlide: PitchSlideRecord) => {
-      setSlides((previous) =>
-        previous.map((entry) => (entry.id === nextSlide.id ? nextSlide : entry)),
-      );
-    },
-    [],
-  );
+  useEffect(() => {
+    slideRefs.current = slideRefs.current.slice(0, slides.length);
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (!activeSlide) return;
+    setImageUrl(activeSlide.images[0]?.url ?? "");
+    setImageCaption(activeSlide.images[0]?.caption ?? activeSlide.title);
+    setImagePrompt(activeSlide.notes ?? "");
+  }, [activeIndex, slides, activeSlide]);
+
+  useEffect(() => {
+    if (activeIndex < slides.length) return;
+    setActiveIndex(Math.max(0, slides.length - 1));
+  }, [activeIndex, slides.length]);
+
+  const replaceSlide = useCallback((nextSlide: PitchSlideRecord) => {
+    setSlides((previous) =>
+      previous.map((entry) => (entry.id === nextSlide.id ? nextSlide : entry)),
+    );
+  }, []);
 
   const mutateSlide = useCallback(
     (slideId: string, mutator: (slide: PitchSlideRecord) => PitchSlideRecord) => {
@@ -133,13 +124,6 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
       );
     },
     [],
-  );
-
-  const handleSlideUpdate = useCallback(
-    (nextSlide: PitchSlideRecord) => {
-      replaceSlide(nextSlide);
-    },
-    [replaceSlide],
   );
 
   const applyToActiveSlide = useCallback(
@@ -166,22 +150,28 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
             delete nextStyles[key];
           }
         }
-        return { ...slide, textStyles: Object.keys(nextStyles).length ? nextStyles : undefined };
+        return {
+          ...slide,
+          textStyles: Object.keys(nextStyles).length ? nextStyles : undefined,
+        };
       });
     },
     [applyToActiveSlide],
   );
 
-  useEffect(() => {
-    const slide = slides[activeIndex];
-    if (!slide) return;
-    setImageUrl(slide.images[0]?.url ?? "");
-    setImageCaption(slide.images[0]?.caption ?? slide.title);
-    setImagePrompt(slide.notes ?? "");
-  }, [activeIndex, slides]);
+  const handleSlideVisible = useCallback((index: number) => {
+    setActiveIndex((current) => (current === index ? current : index));
+  }, []);
+
+  const scrollToSlide = useCallback((index: number) => {
+    const el = slideRefs.current[index];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
 
   const handleCorrection = useCallback(async () => {
-    if (!instruction.trim()) {
+    if (!instruction.trim() || !activeSlide) {
       setError("Add an instruction before sending.");
       return;
     }
@@ -213,9 +203,10 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     } finally {
       setLoadingCorrection(false);
     }
-  }, [instruction, deck.deckId, activeSlide?.id, router, replaceSlide]);
+  }, [instruction, deck.deckId, activeSlide, router, replaceSlide]);
 
   const handleManualImageUpdate = useCallback(async () => {
+    if (!activeSlide) return;
     if (!imageUrl.trim()) {
       setError("Provide an image URL first.");
       return;
@@ -247,13 +238,14 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     } finally {
       setLoadingImage(false);
     }
-  }, [imageUrl, imageCaption, deck.deckId, activeSlide?.id, router, replaceSlide]);
+  }, [activeSlide, imageUrl, imageCaption, deck.deckId, router, replaceSlide]);
 
   const handleGenerateImage = useCallback(async () => {
     if (imageMode === "manual") {
       await handleManualImageUpdate();
       return;
     }
+    if (!activeSlide) return;
     setError(null);
     setLoadingImage(true);
     try {
@@ -286,15 +278,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     } finally {
       setLoadingImage(false);
     }
-  }, [
-    imageMode,
-    imagePrompt,
-    handleManualImageUpdate,
-    deck.deckId,
-    activeSlide?.id,
-    router,
-    replaceSlide,
-  ]);
+  }, [imageMode, imagePrompt, activeSlide, deck.deckId, router, replaceSlide, handleManualImageUpdate]);
 
   const handleExportPdf = useCallback(async () => {
     if (exporting) return;
@@ -303,9 +287,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
     try {
       await exportDeckAsPdf(deck, slides);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to export deck as PDF.",
-      );
+      setError(err instanceof Error ? err.message : "Unable to export deck as PDF.");
     } finally {
       setExporting(null);
     }
@@ -335,363 +317,292 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
   }
 
   return (
-    <div className="relative min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant="ghost"
-              className="gap-2"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-slate-400">
-                Pitch deck workspace
-              </p>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold">{deck.startupName}</h1>
-                <Badge variant="secondary">{slideCount} slides</Badge>
-                <Badge variant="outline">{deck.imageStrategy} visuals</Badge>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant={editMode ? "default" : "outline"}
-              className="gap-2"
-              onClick={() => setEditMode((previous) => !previous)}
-            >
-              <PenSquare className="h-4 w-4" />
-              {editMode ? "Editing canvas" : "Edit canvas"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="gap-2"
-              onClick={handleExportPdf}
-              disabled={exporting !== null}
-            >
-              {exporting === "pdf" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              Export PDF
-            </Button>
-            <Button
-              type="button"
-              className="gap-2 bg-primary text-white hover:bg-primary/90"
-              onClick={handleExportPptx}
-              disabled={exporting !== null}
-            >
-              {exporting === "pptx" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <ImageIcon className="h-4 w-4" />
-              )}
-              Export PPTX
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="relative flex min-h-screen bg-[#0c0b08] text-white">
+      <SlideRail
+        deckName={deck.startupName}
+        slides={slides}
+        activeIndex={activeIndex}
+        brandColors={brandColors}
+        onSlideSelect={scrollToSlide}
+      />
 
-      {error && (
-        <div className="mx-auto max-w-4xl px-4 pt-4">
-          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-            {error}
-          </p>
-        </div>
-      )}
+      <div className="flex-1 lg:ml-72">
+        <SlideToolbar
+          deckName={deck.startupName}
+          slideCount={slides.length}
+          strategy={deck.imageStrategy}
+          status={deck.status}
+          exporting={exporting}
+          onBack={() => router.push("/ai-assistant/pitch-deck")}
+          onExportPdf={handleExportPdf}
+          onExportPptx={handleExportPptx}
+          onScrollStart={() => scrollToSlide(0)}
+        />
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 pb-24 pt-6 lg:flex-row">
-        <aside className="hidden w-64 flex-shrink-0 lg:flex">
-          <div className="sticky top-28 h-fit w-full rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Slides
-              </p>
-              <span className="text-xs text-slate-500">
-                {activeIndex + 1}/{slideCount}
-              </span>
-            </div>
-            <div className="flex flex-col gap-2">
-              {slides.map((slide, index) => (
-                <SlideThumbnail
-                  key={slide.id}
-                  slide={slide}
-                  index={index}
-                  isActive={index === activeIndex}
-                  theme={theme}
-                  teamMembers={teamMembers}
-                  onSelect={() => setActiveIndex(index)}
-                />
-              ))}
-            </div>
+        {error && (
+          <div className="mx-auto max-w-4xl px-4 pt-4">
+            <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+              {error}
+            </p>
           </div>
-        </aside>
+        )}
 
-        <main className="flex-1 space-y-6">
-          <div className="rounded-3xl bg-transparent">
-            <SlideCanvas
-              slide={activeSlide}
-              theme={theme}
-              teamMembers={teamMembers}
-              slideIndex={activeIndex}
-              size="display"
-              isActive
-              isEditable={editMode}
-              onUpdateSlide={handleSlideUpdate}
+        <main className="px-4 pb-24 pt-8">
+          <section className="mx-auto max-w-6xl space-y-12">
+            <SlideStack
+              slides={slides}
+              brandColors={brandColors}
+              activeIndex={activeIndex}
+              slideRefs={slideRefs}
+              onSlideVisible={handleSlideVisible}
             />
-          </div>
+          </section>
 
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-            <Card className="space-y-4 rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm font-semibold">AI correction</p>
-                  <p className="text-xs text-slate-500">
-                    Ask the editor to tighten copy, add proof, or reframe tone.
-                  </p>
-                </div>
-              </div>
-              <Textarea
-                rows={5}
-                value={instruction}
-                onChange={(event) => setInstruction(event.target.value)}
-                placeholder="Example: Punchier intro with a data point about growth."
-              />
-              <Button
-                type="button"
-                className="w-full gap-2"
-                onClick={handleCorrection}
-                disabled={loadingCorrection}
-              >
-                {loadingCorrection ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Wand2 className="h-4 w-4" />
-                )}
-                Apply revision
-              </Button>
-            </Card>
-            <Card className="space-y-4 rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <div className="flex items-center gap-2">
-                <Type className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm font-semibold">Manual canvas editor</p>
-                  <p className="text-xs text-slate-500">
-                    Adjust text, bullets, and palette instantly. Enable Edit canvas for direct on-slide changes.
-                  </p>
-                </div>
-              </div>
-              <div className="grid gap-4">
-                <fieldset className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Title
-                  </label>
-                  <Input
-                    value={activeSlide.title}
-                    onChange={(event) =>
-                      updateActiveSlideField({ title: event.target.value })
-                    }
-                  />
-                </fieldset>
-                <fieldset className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Subtitle
-                  </label>
-                  <Input
-                    value={activeSlide.subtitle ?? ""}
-                    onChange={(event) =>
-                      updateActiveSlideField({
-                        subtitle: event.target.value || undefined,
-                      })
-                    }
-                    placeholder="Optional supporting sentence"
-                  />
-                </fieldset>
-                <fieldset className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Notes
-                  </label>
-                  <Textarea
-                    rows={3}
-                    value={activeSlide.notes}
-                    onChange={(event) =>
-                      updateActiveSlideField({ notes: event.target.value })
-                    }
-                    placeholder="Presenter notes or context"
-                  />
-                </fieldset>
-                <fieldset className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Bullets (one per line)
-                  </label>
-                  <Textarea
-                    rows={4}
-                    value={activeSlide.bullets.join("\n")}
-                    onChange={(event) => {
-                      const lines = event.target.value
-                        .split("\n")
-                        .map((line) => line.trim())
-                        .filter((line) => line.length > 0);
-                      updateActiveSlideField({ bullets: lines.length ? lines : [""] });
-                    }}
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        updateActiveSlideField({
-                          bullets: [...activeSlide.bullets, "New idea"],
-                        })
-                      }
-                    >
-                      Add bullet
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => updateActiveSlideField({ bullets: [] })}
-                    >
-                      Clear bullets
-                    </Button>
+          <section className="mx-auto mt-12 flex max-w-6xl flex-col gap-6">
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+              <Card className="space-y-4 rounded-3xl border border-slate-200 p-6 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">AI correction</p>
+                    <p className="text-xs text-slate-500">
+                      Ask the editor to tighten copy, add proof, or reframe tone.
+                    </p>
                   </div>
-                </fieldset>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <fieldset className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Slide background
-                    </label>
-                    <Input
-                      type="color"
-                      value={activeSlide.background || theme.background}
-                      onChange={(event) =>
-                        updateActiveSlideField({ background: event.target.value })
-                      }
-                    />
-                  </fieldset>
-                  <fieldset className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Title color
-                    </label>
-                    <Input
-                      type="color"
-                      value={activeSlide.textStyles?.titleColor || theme.title}
-                      onChange={(event) =>
-                        updateActiveSlideStyles({ titleColor: event.target.value })
-                      }
-                    />
-                  </fieldset>
-                  <fieldset className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Subtitle color
-                    </label>
-                    <Input
-                      type="color"
-                      value={activeSlide.textStyles?.subtitleColor || theme.note}
-                      onChange={(event) =>
-                        updateActiveSlideStyles({ subtitleColor: event.target.value })
-                      }
-                    />
-                  </fieldset>
-                  <fieldset className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Bullet color
-                    </label>
-                    <Input
-                      type="color"
-                      value={activeSlide.textStyles?.bulletColor || theme.bullets}
-                      onChange={(event) =>
-                        updateActiveSlideStyles({ bulletColor: event.target.value })
-                      }
-                    />
-                  </fieldset>
-                  <fieldset className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Notes color
-                    </label>
-                    <Input
-                      type="color"
-                      value={activeSlide.textStyles?.noteColor || theme.note}
-                      onChange={(event) =>
-                        updateActiveSlideStyles({ noteColor: event.target.value })
-                      }
-                    />
-                  </fieldset>
                 </div>
-                <div className="space-y-4">
-                  {(["title", "subtitle", "bullet", "note"] as const).map((key) => {
-                    const label = `${key.charAt(0).toUpperCase()}${key.slice(1)} size`;
-                    const styleKey = `${key}Size` as keyof SlideTextStyles;
-                    const current =
-                      (activeSlide.textStyles?.[styleKey] as number | undefined) ??
-                      TEXT_SIZE_DEFAULTS[key];
-                    return (
-                      <fieldset key={key} className="space-y-1">
-                        <div className="flex items-center justify-between text-xs text-slate-500">
-                          <span className="font-semibold uppercase tracking-wide text-slate-400">
-                            {label}
-                          </span>
-                          <span>{Math.round(current)}px</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={key === "note" ? 12 : 16}
-                          max={key === "title" ? 72 : 48}
-                          value={current}
-                          onChange={(event) =>
-                            updateActiveSlideStyles({
-                              [styleKey]: Number(event.target.value),
-                            })
-                          }
-                        />
-                      </fieldset>
-                    );
-                  })}
-                </div>
+                <Textarea
+                  rows={5}
+                  value={instruction}
+                  onChange={(event) => setInstruction(event.target.value)}
+                  placeholder="Example: Punchier intro with a data point about growth."
+                />
                 <Button
                   type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="justify-start gap-2 text-slate-500 hover:text-slate-900"
-                  onClick={() =>
-                    updateActiveSlideStyles({
-                      titleSize: undefined,
-                      subtitleSize: undefined,
-                      bulletSize: undefined,
-                      noteSize: undefined,
-                      captionSize: undefined,
-                      titleColor: undefined,
-                      subtitleColor: undefined,
-                      bulletColor: undefined,
-                      noteColor: undefined,
-                    })
-                  }
+                  className="w-full gap-2"
+                  onClick={handleCorrection}
+                  disabled={loadingCorrection}
                 >
-                  <Palette className="h-4 w-4" />
-                  Reset typography & colors
+                  {loadingCorrection ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-4 w-4" />
+                  )}
+                  Apply revision
                 </Button>
-              </div>
-            </Card>
+              </Card>
+
+              <Card className="space-y-4 rounded-3xl border border-slate-200 p-6 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Type className="h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Manual canvas editor</p>
+                    <p className="text-xs text-slate-500">
+                      Adjust text, bullets, and palette instantly.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-4">
+                  <fieldset className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Title
+                    </label>
+                    <Input
+                      value={activeSlide.title}
+                      onChange={(event) =>
+                        updateActiveSlideField({ title: event.target.value })
+                      }
+                    />
+                  </fieldset>
+                  <fieldset className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Subtitle
+                    </label>
+                    <Input
+                      value={activeSlide.subtitle ?? ""}
+                      onChange={(event) =>
+                        updateActiveSlideField({
+                          subtitle: event.target.value || undefined,
+                        })
+                      }
+                      placeholder="Optional supporting sentence"
+                    />
+                  </fieldset>
+                  <fieldset className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Notes
+                    </label>
+                    <Textarea
+                      rows={3}
+                      value={activeSlide.notes}
+                      onChange={(event) =>
+                        updateActiveSlideField({ notes: event.target.value })
+                      }
+                      placeholder="Presenter notes or context"
+                    />
+                  </fieldset>
+                  <fieldset className="space-y-2">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Bullets (one per line)
+                    </label>
+                    <Textarea
+                      rows={4}
+                      value={activeSlide.bullets.join("\n")}
+                      onChange={(event) => {
+                        const lines = event.target.value
+                          .split("\n")
+                          .map((line) => line.trim())
+                          .filter((line) => line.length > 0);
+                        updateActiveSlideField({ bullets: lines.length ? lines : [""] });
+                      }}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          updateActiveSlideField({
+                            bullets: [...activeSlide.bullets, "New idea"],
+                          })
+                        }
+                      >
+                        Add bullet
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => updateActiveSlideField({ bullets: [] })}
+                      >
+                        Clear bullets
+                      </Button>
+                    </div>
+                  </fieldset>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <fieldset className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Slide background
+                      </label>
+                      <Input
+                        type="color"
+                        value={activeSlide.background || brandColors.background}
+                        onChange={(event) =>
+                          updateActiveSlideField({ background: event.target.value })
+                        }
+                      />
+                    </fieldset>
+                    <fieldset className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Title color
+                      </label>
+                      <Input
+                        type="color"
+                        value={activeSlide.textStyles?.titleColor || brandColors.title}
+                        onChange={(event) =>
+                          updateActiveSlideStyles({ titleColor: event.target.value })
+                        }
+                      />
+                    </fieldset>
+                    <fieldset className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Subtitle color
+                      </label>
+                      <Input
+                        type="color"
+                        value={activeSlide.textStyles?.subtitleColor || brandColors.note}
+                        onChange={(event) =>
+                          updateActiveSlideStyles({ subtitleColor: event.target.value })
+                        }
+                      />
+                    </fieldset>
+                    <fieldset className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Bullet color
+                      </label>
+                      <Input
+                        type="color"
+                        value={activeSlide.textStyles?.bulletColor || brandColors.bullets}
+                        onChange={(event) =>
+                          updateActiveSlideStyles({ bulletColor: event.target.value })
+                        }
+                      />
+                    </fieldset>
+                    <fieldset className="space-y-2">
+                      <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Notes color
+                      </label>
+                      <Input
+                        type="color"
+                        value={activeSlide.textStyles?.noteColor || brandColors.note}
+                        onChange={(event) =>
+                          updateActiveSlideStyles({ noteColor: event.target.value })
+                        }
+                      />
+                    </fieldset>
+                  </div>
+                  <div className="space-y-4">
+                    {(["title", "subtitle", "bullet", "note"] as const).map((key) => {
+                      const label = `${key.charAt(0).toUpperCase()}${key.slice(1)} size`;
+                      const styleKey = `${key}Size` as keyof SlideTextStyles;
+                      const current =
+                        (activeSlide.textStyles?.[styleKey] as number | undefined) ??
+                        TEXT_SIZE_DEFAULTS[key];
+                      return (
+                        <fieldset key={key} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs text-slate-500">
+                            <span className="font-semibold uppercase tracking-wide text-slate-400">
+                              {label}
+                            </span>
+                            <span>{Math.round(current)}px</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={key === "note" ? 12 : 16}
+                            max={key === "title" ? 72 : 48}
+                            value={current}
+                            onChange={(event) =>
+                              updateActiveSlideStyles({
+                                [styleKey]: Number(event.target.value),
+                              })
+                            }
+                          />
+                        </fieldset>
+                      );
+                    })}
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="justify-start gap-2 text-slate-500 hover:text-slate-900"
+                    onClick={() =>
+                      updateActiveSlideStyles({
+                        titleSize: undefined,
+                        subtitleSize: undefined,
+                        bulletSize: undefined,
+                        noteSize: undefined,
+                        captionSize: undefined,
+                        titleColor: undefined,
+                        subtitleColor: undefined,
+                        bulletColor: undefined,
+                        noteColor: undefined,
+                      })
+                    }
+                  >
+                    <Palette className="h-4 w-4" />
+                    Reset typography & colors
+                  </Button>
+                </div>
+              </Card>
+            </div>
 
             <Card className="space-y-4 rounded-3xl border border-slate-200 p-6 shadow-sm">
               <div className="flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-primary" />
                 <div>
-                  <p className="text-sm font-semibold">Slide imagery</p>
+                  <p className="text-sm font-semibold text-slate-900">Slide imagery</p>
                   <p className="text-xs text-slate-500">
-                    Swap visuals via manual URLs, AI renders, or curated web
-                    pulls.
+                    Swap visuals via manual URLs, AI renders, or curated web pulls.
                   </p>
                 </div>
               </div>
@@ -701,9 +612,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
                     key={mode.value}
                     type="button"
                     size="sm"
-                    variant={
-                      imageMode === mode.value ? "default" : "outline"
-                    }
+                    variant={imageMode === mode.value ? "default" : "outline"}
                     onClick={() => setImageMode(mode.value)}
                   >
                     {mode.label}
@@ -714,9 +623,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
               {imageMode === "manual" ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs uppercase text-slate-400">
-                      Image URL
-                    </label>
+                    <label className="text-xs uppercase text-slate-400">Image URL</label>
                     <Input
                       value={imageUrl}
                       onChange={(event) => setImageUrl(event.target.value)}
@@ -724,9 +631,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs uppercase text-slate-400">
-                      Caption
-                    </label>
+                    <label className="text-xs uppercase text-slate-400">Caption</label>
                     <Input
                       value={imageCaption}
                       onChange={(event) => setImageCaption(event.target.value)}
@@ -776,590 +681,492 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
                 </div>
               )}
             </Card>
-          </div>
+          </section>
         </main>
       </div>
-
     </div>
   );
 }
 
-type SlideThumbnailProps = {
-  slide: PitchSlideRecord;
-  index: number;
-  isActive: boolean;
-  theme: ThemeTokens;
-  teamMembers: PitchTeamMember[];
-  onSelect: () => void;
+type SlideToolbarProps = {
+  deckName: string;
+  slideCount: number;
+  strategy: ImageStrategy;
+  status: PitchDeckRecord["status"];
+  exporting: ExportState;
+  onBack: () => void;
+  onExportPdf: () => void;
+  onExportPptx: () => void;
+  onScrollStart: () => void;
 };
 
-function SlideThumbnail({
-  slide,
-  index,
-  isActive,
-  theme,
-  teamMembers,
-  onSelect,
-}: SlideThumbnailProps) {
-  const palette = buildSlidePalette(theme);
-  const activeBorder = withAlpha(palette.contrast, 0.4);
-  const inactiveBorder = withAlpha(palette.contrast, 0.15);
+function SlideToolbar({
+  deckName,
+  slideCount,
+  strategy,
+  status,
+  exporting,
+  onBack,
+  onExportPdf,
+  onExportPptx,
+  onScrollStart,
+}: SlideToolbarProps) {
+  return (
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-[#11100c] to-[#0c0b08] px-4 py-4 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 items-center gap-4">
+          <Button type="button" variant="ghost" className="gap-2 text-white" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" />
+            Back to studio
+          </Button>
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/50">Deck workspace</p>
+            <div className="flex flex-wrap items-center gap-3 text-white">
+              <span className="text-lg font-semibold">{deckName}</span>
+              <Badge variant="secondary" className="bg-white/10 text-white">
+                {slideCount} slides
+              </Badge>
+              <Badge variant="outline" className="border-white/30 text-white">
+                {strategy} visuals
+              </Badge>
+              <Badge variant="outline" className="border-emerald-400/40 text-emerald-200">
+                {status}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ToolbarGhostButton icon={<Undo2 className="h-4 w-4" />} label="Undo" />
+          <ToolbarGhostButton icon={<Redo2 className="h-4 w-4" />} label="Redo" />
+          <Button
+            type="button"
+            variant="outline"
+            className="gap-2 border-white/30 text-white hover:bg-white/10"
+            onClick={onScrollStart}
+          >
+            <Play className="h-4 w-4" />
+            Play
+          </Button>
+          <Button
+            type="button"
+            className="gap-2 bg-white text-black hover:bg-white/90"
+            onClick={onExportPdf}
+            disabled={exporting === "pdf"}
+          >
+            {exporting === "pdf" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Export PDF
+          </Button>
+          <Button
+            type="button"
+            className="gap-2 bg-[#FF5619] text-white hover:bg-[#e14a12]"
+            onClick={onExportPptx}
+            disabled={exporting === "pptx"}
+          >
+            {exporting === "pptx" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ImageIcon className="h-4 w-4" />
+            )}
+            Export PPTX
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
 
+type ToolbarGhostButtonProps = {
+  icon: ReactNode;
+  label: string;
+};
+
+function ToolbarGhostButton({ icon, label }: ToolbarGhostButtonProps) {
   return (
     <button
       type="button"
-      onClick={onSelect}
-      className="group flex w-full flex-col gap-2 text-left focus-visible:outline-none"
+      className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-widest text-white/70"
+      disabled
     >
-      <div
-        className="relative overflow-hidden rounded-xl border transition-shadow"
-        style={{
-          width: THUMBNAIL_WIDTH,
-          height: THUMBNAIL_HEIGHT,
-          backgroundColor: palette.base,
-          borderColor: isActive ? activeBorder : inactiveBorder,
-          boxShadow: isActive
-            ? `0 0 0 3px ${withAlpha(palette.contrast, 0.25)}`
-            : "none",
-        }}
-      >
-        <SlideCanvas
-          slide={slide}
-          theme={theme}
-          teamMembers={teamMembers}
-          slideIndex={index}
-          size="thumbnail"
-        />
-        <span
-          className="pointer-events-none absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest"
-          style={{
-            backgroundColor: "rgba(0,0,0,0.5)",
-            color: "#fff",
-          }}
-        >
-          {index + 1}
-        </span>
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-foreground line-clamp-1">
-          {slide.title}
-        </p>
-        {slide.bullets[0] && (
-          <p className="text-[11px] text-muted-foreground line-clamp-1">
-            {slide.bullets[0]}
-          </p>
-        )}
-      </div>
+      {icon}
+      {label}
     </button>
   );
 }
 
-type SlideCanvasProps = {
-  slide: PitchSlideRecord;
-  theme: ThemeTokens;
-  teamMembers: PitchTeamMember[];
-  slideIndex: number;
-  size?: "display" | "thumbnail" | "export";
-  isActive?: boolean;
-  isEditable?: boolean;
-  onUpdateSlide?: (slide: PitchSlideRecord) => void;
+type SlideRailProps = {
+  deckName: string;
+  slides: PitchSlideRecord[];
+  activeIndex: number;
+  brandColors: BrandColors;
+  onSlideSelect: (index: number) => void;
 };
 
-const SlideCanvas = forwardRef<HTMLDivElement, SlideCanvasProps>(
-  (
-    {
-      slide,
-      theme,
-      teamMembers,
-      slideIndex,
-      size = "display",
-      isActive,
-      isEditable,
-      onUpdateSlide,
-    },
-    ref,
-  ) => {
-    const resolvedTheme = useMemo<ThemeTokens>(
-      () => ({
-        background: slide.background || theme.background,
-        title: slide.textStyles?.titleColor || theme.title,
-        bullets: slide.textStyles?.bulletColor || theme.bullets,
-        note: slide.textStyles?.noteColor || theme.note,
-      }),
-      [slide.background, slide.textStyles, theme],
-    );
-    const palette = useMemo(() => buildSlidePalette(resolvedTheme), [resolvedTheme]);
-    const variant = determineVariant(slide, slideIndex);
-    const hero = slide.images[0]?.url?.trim()
-      ? slide.images[0]!.url
-      : DECK_PLACEHOLDER_IMAGE;
-    const caption = slide.images[0]?.caption?.trim() || slide.title;
-    const editingEnabled = Boolean(isEditable && size === "display" && onUpdateSlide);
-    const handleFieldChange = useCallback(
-      (field: EditableField, value: string) => {
-        if (!editingEnabled || !onUpdateSlide) return;
-        onUpdateSlide(applyFieldUpdate(slide, field, value));
-      },
-      [editingEnabled, onUpdateSlide, slide],
-    );
-    const editingContext = useMemo<SlideEditingContext>(
-      () => ({
-        isEditable: editingEnabled,
-        onFieldChange: handleFieldChange,
-        textStyles: slide.textStyles,
-      }),
-      [editingEnabled, handleFieldChange, slide.textStyles],
-    );
+function SlideRail({ deckName, slides, activeIndex, brandColors, onSlideSelect }: SlideRailProps) {
+  const desktopListRef = useRef<HTMLDivElement | null>(null);
+  const mobileListRef = useRef<HTMLDivElement | null>(null);
 
-    const scale = size === "thumbnail" ? THUMBNAIL_SCALE : 1;
-
-    const wrapperStyle =
-      size === "thumbnail"
-        ? {
-            width: THUMBNAIL_WIDTH,
-            height: THUMBNAIL_HEIGHT,
-          }
-        : size === "export"
-        ? { width: SLIDE_BASE_WIDTH, height: SLIDE_BASE_HEIGHT }
-        : { width: "100%", aspectRatio: "16 / 9" };
-
-    const overlayA = `radial-gradient(circle at 15% 15%, ${palette.glow}, transparent 55%)`;
-    const overlayB = `radial-gradient(circle at 80% 20%, ${withAlpha(
-      palette.accent,
-      0.25,
-    )}, transparent 60%)`;
-
-    const content = (() => {
-      switch (variant) {
-        case "team":
-          return renderTeamLayout(teamMembers, palette, slide, editingContext);
-        case "spotlight":
-          return renderSpotlightLayout(slide, hero, caption, palette, editingContext);
-        case "columns":
-          return renderColumnsLayout(slide, hero, caption, palette, editingContext);
-        case "statement":
-          return renderStatementLayout(slide, hero, caption, palette, editingContext);
-        case "hero":
-        default:
-          return renderHeroLayout(slide, hero, caption, palette, editingContext);
+  useEffect(() => {
+    const desktop = desktopListRef.current;
+    const mobile = mobileListRef.current;
+    if (desktop) {
+      const target = desktop.children[activeIndex] as HTMLElement | undefined;
+      if (target) {
+        const offset = target.offsetTop - desktop.clientHeight / 2 + target.clientHeight / 2;
+        desktop.scrollTo({ top: offset, behavior: "smooth" });
       }
-    })();
+    }
+    if (mobile) {
+      const target = mobile.children[activeIndex] as HTMLElement | undefined;
+      if (target) {
+        const offset = target.offsetLeft - mobile.clientWidth / 2 + target.clientWidth / 2;
+        mobile.scrollTo({ left: offset, behavior: "smooth" });
+      }
+    }
+  }, [activeIndex, slides.length]);
 
-    const borderColor = withAlpha(palette.contrast, size === "thumbnail" ? 0.12 : 0.2);
-    const baseShadow = "0 35px 80px rgba(2,6,23,0.45)";
-    const activeShadow =
-      size === "display" && isActive
-        ? `${baseShadow}, 0 0 0 4px ${withAlpha(palette.contrast, 0.25)}`
-        : baseShadow;
+  const accent = withAlpha(brandColors.title, 0.4);
+  const muted = withAlpha(brandColors.note, 0.55);
 
-    return (
-      <div
-        ref={ref}
-        className="relative overflow-hidden transition-all"
-        style={{
-          ...wrapperStyle,
-          borderRadius: size === "thumbnail" ? 16 : 28,
-          border: `1px solid ${borderColor}`,
-          boxShadow: size === "thumbnail" ? "0 12px 25px rgba(15,23,42,0.18)" : activeShadow,
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              variant === "statement"
-                ? `linear-gradient(140deg, ${palette.strong}, ${palette.base})`
-                : `linear-gradient(135deg, ${palette.base}, ${palette.accent})`,
-            transform: size === "thumbnail" ? `scale(${scale})` : undefined,
-            transformOrigin: "top left",
-            width: size === "thumbnail" ? SLIDE_BASE_WIDTH : "100%",
-            height: size === "thumbnail" ? SLIDE_BASE_HEIGHT : "100%",
-          }}
-        >
-          <div
-            className="pointer-events-none absolute inset-0 opacity-80"
-            style={{ background: overlayA }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0 opacity-70"
-            style={{ background: overlayB }}
-          />
-          <div className="relative z-10 h-full w-full">{content}</div>
+  return (
+    <>
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-white/10 bg-[#070605] lg:flex">
+        <div className="border-b border-white/10 px-5 py-4">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/50">Deck</p>
+          <p className="text-base font-semibold text-white">{deckName}</p>
+          <p className="text-xs text-white/60">Slide navigator</p>
+        </div>
+        <div ref={desktopListRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {slides.map((slide, index) => {
+            const isActive = index === activeIndex;
+            const previewImage = slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE;
+            return (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => onSlideSelect(index)}
+                className="group relative w-full overflow-hidden rounded-2xl border text-left transition-all"
+                style={{
+                  borderColor: isActive ? accent : withAlpha(brandColors.title, 0.15),
+                  boxShadow: isActive ? "0 20px 45px rgba(7,5,4,0.75)" : "none",
+                  background: `linear-gradient(130deg, ${withAlpha(brandColors.title, 0.08)}, ${withAlpha(
+                    brandColors.note,
+                    0.05,
+                  )})`,
+                }}
+              >
+                {isActive && (
+                  <span className="absolute right-2 top-2 z-10 rounded-full bg-white p-1 text-[#0c0b08]">
+                    <CheckCircle className="h-4 w-4" />
+                  </span>
+                )}
+                <div className="flex h-32 w-full overflow-hidden">
+                  <div className="w-1/2 overflow-hidden">
+                    <img
+                      src={previewImage}
+                      alt={slide.title || `Slide ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div
+                    className="flex flex-1 flex-col justify-center px-3 py-3"
+                    style={{ backgroundColor: slide.background || brandColors.background }}
+                  >
+                    <p className="text-sm font-semibold" style={{ color: brandColors.title }}>
+                      {slide.title || `Slide ${index + 1}`}
+                    </p>
+                    {slide.bullets[0] && (
+                      <p className="text-xs" style={{ color: muted }}>
+                        {slide.bullets[0]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      <div className="sticky top-[72px] z-20 bg-gradient-to-b from-[#0f0e0b] to-transparent px-4 py-3 lg:hidden">
+        <div ref={mobileListRef} className="flex gap-3 overflow-x-auto">
+          {slides.map((slide, index) => (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => onSlideSelect(index)}
+              className={`min-w-[140px] rounded-xl border px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide ${
+                index === activeIndex
+                  ? "border-white bg-white/15 text-white"
+                  : "border-white/20 text-white/70"
+              }`}
+            >
+              <span className="block text-[10px] font-normal text-white/60">Slide {index + 1}</span>
+              {slide.title || `Slide ${index + 1}`}
+            </button>
+          ))}
         </div>
       </div>
-    );
-  },
-);
+    </>
+  );
+}
 
-SlideCanvas.displayName = "SlideCanvas";
+type SlideStackProps = {
+  slides: PitchSlideRecord[];
+  brandColors: BrandColors;
+  activeIndex: number;
+  slideRefs: MutableRefObject<Array<HTMLDivElement | null>>;
+  onSlideVisible: (index: number) => void;
+};
 
-function renderHeroLayout(
-  slide: PitchSlideRecord,
-  hero: string,
-  caption: string,
-  palette: SlidePalette,
-  editing: SlideEditingContext,
-) {
-  const bulletColor = slide.textStyles?.bulletColor || palette.contrast;
+function SlideStack({ slides, brandColors, activeIndex, slideRefs, onSlideVisible }: SlideStackProps) {
+  useSlideObserver(slides, slideRefs, onSlideVisible);
+
   return (
-    <div className="grid h-full gap-8 p-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="flex flex-col justify-between gap-6">
-        <div>
-          <EditableBlock
-            as="p"
-            field={{ type: "caption" }}
-            editing={editing}
-            value={caption}
-            className="text-[12px] font-semibold uppercase tracking-[0.35em]"
-            style={{
-              color: withAlpha(palette.contrast, 0.75),
-              fontSize: getSlideTextSize(editing.textStyles, "caption"),
+    <div className="space-y-12">
+      {slides.map((slide, index) => {
+        const tokens = createStageTokens(brandColors, slide.background);
+        const isActive = index === activeIndex;
+        return (
+          <article
+            key={slide.id}
+            ref={(el: HTMLDivElement | null) => {
+              slideRefs.current[index] = el;
             }}
-          />
-          <EditableBlock
-            as="h2"
-            field={{ type: "title" }}
-            editing={editing}
-            value={slide.title}
-            className="mt-3 font-semibold leading-tight"
+            data-index={index}
+            className="overflow-hidden rounded-[36px] border transition-all"
             style={{
-              color: palette.contrast,
-              fontSize: getSlideTextSize(editing.textStyles, "title"),
-              lineHeight: 1.2,
+              backgroundColor: tokens.surface,
+              borderColor: isActive ? tokens.borderStrong : tokens.border,
+              boxShadow: isActive ? tokens.glowStrong : tokens.glow,
+              backgroundImage: tokens.overlay,
             }}
-          />
-          {(slide.subtitle || editing.isEditable) && (
-            <EditableBlock
-              as="p"
-              field={{ type: "subtitle" }}
-              editing={editing}
-              value={slide.subtitle ?? ""}
-              className="mt-3 text-base leading-relaxed"
-              style={{
-                color: slide.textStyles?.subtitleColor || palette.muted,
-                fontSize: getSlideTextSize(editing.textStyles, "subtitle"),
-              }}
-            />
+          >
+            <SlideSection slide={slide} index={index} brandColors={brandColors} tokens={tokens} />
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+type StageTokens = {
+  surface: string;
+  border: string;
+  borderStrong: string;
+  glow: string;
+  glowStrong: string;
+  panel: string;
+  panelAccent: string;
+  textSoft: string;
+  textMuted: string;
+  overlay: string;
+};
+
+type SlideSectionProps = {
+  slide: PitchSlideRecord;
+  index: number;
+  brandColors: BrandColors;
+  tokens: StageTokens;
+};
+
+function SlideSection({ slide, index, brandColors, tokens }: SlideSectionProps) {
+  if (slide.slideType === "team") {
+    return (
+      <TeamSlideSection
+        slide={slide}
+        index={index}
+        brandColors={brandColors}
+        tokens={tokens}
+      />
+    );
+  }
+  return (
+    <StandardSlideSection
+      slide={slide}
+      index={index}
+      brandColors={brandColors}
+      tokens={tokens}
+    />
+  );
+}
+
+function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectionProps) {
+  const image = slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE;
+  const caption = slide.images[0]?.caption || slide.title;
+  const isFlipped = index % 2 === 1;
+  const bulletCards = slide.bullets.filter((entry) => entry.trim().length > 0);
+
+  return (
+    <div className="grid gap-10 px-6 py-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
+      <div className={`space-y-8 ${isFlipped ? "lg:order-2" : "lg:order-1"}`}>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.35em]" style={{ color: tokens.textSoft }}>
+            <span>Slide {index + 1}</span>
+            <span className="h-1 w-10 rounded-full" style={{ backgroundColor: tokens.textSoft }} />
+            <span>{slide.subtitle ? "Insight" : "Overview"}</span>
+          </div>
+          <h2 className="text-4xl font-semibold leading-tight" style={{ color: brandColors.title }}>
+            {slide.title}
+          </h2>
+          {slide.subtitle && (
+            <p className="text-lg leading-relaxed" style={{ color: brandColors.note }}>
+              {slide.subtitle}
+            </p>
           )}
         </div>
-        <ul className="space-y-3">
-          {slide.bullets.map((bullet, index) => (
-            <EditableBlock
-              key={`${slide.id}-hero-bullet-${index}`}
-              as="li"
-              field={{ type: "bullet", index }}
-              editing={editing}
-              value={bullet}
-              className="list-none rounded-2xl px-4 py-3 text-sm font-medium"
-              style={{
-                backgroundColor: palette.accentSoft,
-                color: bulletColor,
-                fontSize: getSlideTextSize(editing.textStyles, "bullet"),
-              }}
-            />
-          ))}
-        </ul>
-        {(slide.notes || editing.isEditable) && (
-          <EditableBlock
-            as="p"
-            field={{ type: "notes" }}
-            editing={editing}
-            value={slide.notes ?? ""}
-            className="text-sm italic"
-            style={{
-              color: withAlpha(palette.contrast, 0.7),
-              fontSize: getSlideTextSize(editing.textStyles, "note"),
-            }}
-          />
-        )}
-      </div>
-      <div className="relative overflow-hidden rounded-3xl">
-        <SlideImagePanel
-          hero={hero}
-          caption={caption}
-          palette={palette}
-          editing={editing}
-        />
-      </div>
-    </div>
-  );
-}
 
-function renderSpotlightLayout(
-  slide: PitchSlideRecord,
-  hero: string,
-  caption: string,
-  palette: SlidePalette,
-  editing: SlideEditingContext,
-) {
-  const bullets = slide.bullets.slice(0, 4);
-  return (
-    <div className="flex h-full flex-col gap-6 p-8">
-      <SlideImagePanel
-        hero={hero}
-        caption={caption}
-        palette={palette}
-        variant="wide"
-        editing={editing}
-      />
-      <div className="grid gap-4 md:grid-cols-2">
-        {bullets.map((bullet, index) => (
+        {bulletCards.length > 0 && (
           <div
-            key={`${slide.id}-spot-${index}`}
-            className="rounded-2xl border px-4 py-3 text-sm"
+            className={`grid gap-4 ${
+              bulletCards.length > 2 ? "sm:grid-cols-2" : "grid-cols-1"
+            }`}
+          >
+            {bulletCards.slice(0, 4).map((bullet, bulletIndex) => (
+              <div
+                key={`${slide.id}-card-${bulletIndex}`}
+                className="rounded-2xl border px-4 py-4 backdrop-blur"
+                style={{
+                  backgroundColor: tokens.panel,
+                  borderColor: tokens.border,
+                }}
+              >
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-[0.35em]"
+                  style={{ color: tokens.textSoft }}
+                >
+                  Key insight {bulletIndex + 1}
+                </p>
+                <p
+                  className="mt-2 text-base font-medium leading-relaxed"
+                  style={{ color: brandColors.bullets }}
+                >
+                  {bullet}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {slide.notes && (
+          <div
+            className="rounded-2xl border px-5 py-4 text-sm italic"
             style={{
-              backgroundColor: palette.accentSoft,
-              borderColor: withAlpha(palette.contrast, 0.15),
-              color: palette.contrast,
+              borderColor: tokens.border,
+              backgroundColor: tokens.panelAccent,
+              color: tokens.textMuted,
             }}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-widest">
-              Milestone {index + 1}
-            </p>
-            <EditableBlock
-              as="p"
-              field={{ type: "bullet", index }}
-              editing={editing}
-              value={bullet}
-              className="mt-1 leading-relaxed text-sm"
-              style={{
-                color: slide.textStyles?.bulletColor || palette.contrast,
-                fontSize: getSlideTextSize(editing.textStyles, "bullet"),
-              }}
-            />
+            {slide.notes}
           </div>
-        ))}
-        {!bullets.length && (
-          <p style={{ color: palette.muted }}>Add highlights to show momentum.</p>
         )}
       </div>
-    </div>
-  );
-}
 
-function renderColumnsLayout(
-  slide: PitchSlideRecord,
-  hero: string,
-  caption: string,
-  palette: SlidePalette,
-  editing: SlideEditingContext,
-) {
-  const half = Math.ceil(slide.bullets.length / 2);
-  const left = slide.bullets.slice(0, half).map((text, idx) => ({
-    text,
-    index: idx,
-  }));
-  const right = slide.bullets.slice(half).map((text, idx) => ({
-    text,
-    index: idx + half,
-  }));
-  const buckets = [left, right];
-  return (
-    <div className="grid h-full gap-6 p-8 lg:grid-cols-2">
-      <div className="space-y-4">
-        <SlideImagePanel
-          hero={hero}
-          caption={caption}
-          palette={palette}
-          variant="portrait"
-          editing={editing}
-        />
-        {(slide.subtitle || editing.isEditable) && (
-          <EditableBlock
-            as="p"
-            field={{ type: "subtitle" }}
-            editing={editing}
-            value={slide.subtitle ?? ""}
-            className="text-base leading-relaxed"
-            style={{
-              color: slide.textStyles?.subtitleColor || withAlpha(palette.contrast, 0.8),
-              fontSize: getSlideTextSize(editing.textStyles, "subtitle"),
-            }}
-          />
-        )}
-        {(slide.notes || editing.isEditable) && (
-          <EditableBlock
-            as="p"
-            field={{ type: "notes" }}
-            editing={editing}
-            value={slide.notes ?? ""}
-            className="text-sm"
-            style={{
-              color: withAlpha(palette.contrast, 0.7),
-              fontSize: getSlideTextSize(editing.textStyles, "note"),
-            }}
-          />
-        )}
-      </div>
-      <div className="grid gap-4">
-        {buckets.map((bucket, bucketIndex) => (
-          <div
-            key={`${slide.id}-column-bucket-${bucketIndex}`}
-            className="rounded-3xl border px-4 py-3"
-            style={{
-              borderColor: withAlpha(palette.contrast, 0.1),
-              backgroundColor: withAlpha(palette.base, 0.4),
-            }}
-          >
-            <p
-              className="text-xs font-semibold uppercase tracking-widest"
-              style={{ color: withAlpha(palette.contrast, 0.6) }}
-            >
-              {bucketIndex === 0 ? "Drivers" : "Proof"}
-            </p>
-            <ul className="mt-2 space-y-2">
-              {bucket.map(({ text, index }) => (
-                <EditableBlock
-                  key={`${slide.id}-column-bullet-${index}`}
-                  as="li"
-                  field={{ type: "bullet", index }}
-                  editing={editing}
-                  value={text}
-                  className="list-none text-sm font-medium"
-                  style={{
-                    color: slide.textStyles?.bulletColor || palette.contrast,
-                    fontSize: getSlideTextSize(editing.textStyles, "bullet"),
-                  }}
-                />
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function renderStatementLayout(
-  slide: PitchSlideRecord,
-  hero: string,
-  caption: string,
-  palette: SlidePalette,
-  editing: SlideEditingContext,
-) {
-  return (
-    <div className="flex h-full flex-col justify-between gap-6 p-8">
-      <div>
-        <EditableBlock
-          as="p"
-          field={{ type: "caption" }}
-          editing={editing}
-          value={caption}
-          className="text-[11px] font-semibold uppercase tracking-[0.5em]"
+      <div className={`space-y-4 ${isFlipped ? "lg:order-1" : "lg:order-2"}`}>
+        <div
+          className="relative rounded-[34px] border p-1"
           style={{
-            color: withAlpha(palette.contrast, 0.75),
-            fontSize: getSlideTextSize(editing.textStyles, "caption"),
+            borderColor: tokens.border,
+            backgroundImage: `linear-gradient(135deg, ${withAlpha(
+              brandColors.title,
+              0.12,
+            )}, ${withAlpha(brandColors.note, 0.06)})`,
           }}
-        />
-        <EditableBlock
-          as="h2"
-          field={{ type: "title" }}
-          editing={editing}
-          value={slide.title}
-          className="mt-4 font-semibold leading-tight"
-          style={{
-            color: palette.contrast,
-            fontSize: getSlideTextSize(editing.textStyles, "title") + 10,
-          }}
-        />
-        {(slide.subtitle || editing.isEditable) && (
-          <EditableBlock
-            as="p"
-            field={{ type: "subtitle" }}
-            editing={editing}
-            value={slide.subtitle ?? ""}
-            className="mt-3 max-w-3xl text-lg leading-relaxed"
-            style={{
-              color: slide.textStyles?.subtitleColor || palette.muted,
-              fontSize: getSlideTextSize(editing.textStyles, "subtitle"),
-            }}
-          />
-        )}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {slide.bullets.slice(0, 5).map((bullet, index) => (
-          <EditableBlock
-            key={`${slide.id}-statement-${index}`}
-            as="span"
-            field={{ type: "bullet", index }}
-            editing={editing}
-            value={bullet}
-            className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-            style={{
-              backgroundColor: palette.accentSoft,
-              color: slide.textStyles?.bulletColor || palette.contrast,
-              fontSize: getSlideTextSize(editing.textStyles, "bullet"),
-            }}
-          />
-        ))}
-      </div>
-      <SlideImagePanel
-        hero={hero}
-        caption={caption}
-        palette={palette}
-        variant="wide"
-        editing={editing}
-      />
-    </div>
-  );
-}
-
-function renderTeamLayout(
-  teamMembers: PitchTeamMember[],
-  palette: SlidePalette,
-  slide: PitchSlideRecord,
-  editing: SlideEditingContext,
-) {
-  return (
-    <div className="flex h-full flex-col gap-6 p-8">
-      <div>
-        <p
-          className="text-[12px] font-semibold uppercase tracking-[0.35em]"
-          style={{ color: withAlpha(palette.contrast, 0.75) }}
         >
-          Team
-        </p>
-        <EditableBlock
-          as="h2"
-          field={{ type: "title" }}
-          editing={editing}
-          value={slide.title}
-          className="mt-3 text-4xl font-semibold"
-          style={{
-            color: palette.contrast,
-            fontSize: getSlideTextSize(editing.textStyles, "title"),
-          }}
-        />
-        {(slide.subtitle || editing.isEditable) && (
-          <EditableBlock
-            as="p"
-            field={{ type: "subtitle" }}
-            editing={editing}
-            value={slide.subtitle ?? ""}
-            className="mt-2 text-base"
-            style={{
-              color: slide.textStyles?.subtitleColor || palette.muted,
-              fontSize: getSlideTextSize(editing.textStyles, "subtitle"),
-            }}
-          />
-        )}
+          <div className="relative overflow-hidden rounded-[30px] bg-black/30">
+            <img
+              src={image}
+              alt={caption}
+              className="h-full w-full object-cover"
+              style={{ minHeight: 320 }}
+            />
+            {caption && (
+              <span
+                className="absolute bottom-4 left-5 rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em]"
+                style={{
+                  backgroundColor: withAlpha("#000000", 0.45),
+                  color: "#fff",
+                }}
+              >
+                {caption}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="grid flex-1 gap-4 md:grid-cols-3">
-        {teamMembers.map((member) => (
+    </div>
+  );
+}
+
+function TeamSlideSection({ slide, index: _index, brandColors, tokens }: SlideSectionProps) {
+  const members = slide.images.length
+    ? slide.images
+    : [{ url: DECK_PLACEHOLDER_IMAGE, caption: "Team member" }];
+
+  return (
+    <div className="space-y-8 px-6 py-10">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)]">
+        <div className="space-y-4">
+          <p
+            className="text-xs uppercase tracking-[0.4em]"
+            style={{ color: tokens.textSoft }}
+          >
+            Leadership collective
+          </p>
+          <h2 className="text-4xl font-semibold" style={{ color: brandColors.title }}>
+            {slide.title}
+          </h2>
+          {slide.notes && (
+            <p className="text-lg leading-relaxed" style={{ color: brandColors.note }}>
+              {slide.notes}
+            </p>
+          )}
+        </div>
+        {slide.bullets.length > 0 && (
           <div
-            key={member.id}
-            className="rounded-2xl border p-4"
+            className="rounded-3xl border px-5 py-4 text-sm"
             style={{
-              borderColor: withAlpha(palette.contrast, 0.2),
-              backgroundColor: palette.accentSoft,
-              color: palette.contrast,
+              borderColor: tokens.border,
+              backgroundColor: tokens.panelAccent,
+              color: tokens.textMuted,
             }}
           >
-            <p className="text-lg font-semibold">{member.name}</p>
-            <p className="text-sm" style={{ color: withAlpha(palette.contrast, 0.8) }}>
-              {member.role}
-            </p>
-            <p className="mt-2 text-xs leading-relaxed">{member.expertise}</p>
+            {slide.bullets.map((bullet, idx) => (
+              <p key={`${slide.id}-note-${idx}`} className="mb-2 last:mb-0">
+                • {bullet}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {members.map((member, index) => (
+          <div
+            key={`${slide.id}-${index}`}
+            className="group rounded-[32px] border p-1"
+            style={{
+              borderColor: tokens.border,
+              backgroundImage: tokens.overlay,
+            }}
+          >
+            <div className="rounded-[28px] bg-black/30 p-4 text-white">
+              <div className="mb-4 h-40 overflow-hidden rounded-2xl bg-black/30">
+                <img
+                  src={member.url || DECK_PLACEHOLDER_IMAGE}
+                  alt={member.caption || `Team member ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <p className="text-xl font-semibold" style={{ color: brandColors.title }}>
+                {member.caption || `Team member ${index + 1}`}
+              </p>
+              <p
+                className="mt-1 text-sm"
+                style={{ color: tokens.textMuted }}
+              >
+                {slide.subtitle || "Core operator"}
+              </p>
+            </div>
           </div>
         ))}
       </div>
@@ -1367,163 +1174,49 @@ function renderTeamLayout(
   );
 }
 
-function SlideImagePanel({
-  hero,
-  caption,
-  palette,
-  variant = "standard",
-  editing,
-}: {
-  hero: string;
-  caption: string;
-  palette: SlidePalette;
-  variant?: "standard" | "wide" | "portrait";
-  editing?: SlideEditingContext;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative h-full w-full overflow-hidden rounded-3xl border",
-        variant === "wide" && "h-64",
-        variant === "portrait" && "h-full",
-      )}
-      style={{
-        borderColor: withAlpha(palette.contrast, 0.12),
-        backgroundColor: withAlpha(palette.base, 0.35),
-      }}
-    >
-      <img
-        src={hero}
-        alt={caption}
-        className="h-full w-full object-cover"
-        loading="lazy"
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
-        style={{
-          background: `linear-gradient(180deg, transparent, ${withAlpha(
-            palette.base,
-            0.85,
-          )})`,
-        }}
-      />
-      <EditableBlock
-        as="p"
-        field={{ type: "caption" }}
-        editing={{
-          isEditable: Boolean(editing?.isEditable),
-          onFieldChange: editing?.onFieldChange,
-          textStyles: editing?.textStyles,
-        }}
-        value={caption}
-        className="absolute left-4 bottom-4 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest"
-        style={{
-          backgroundColor: palette.accentSoft,
-          color: palette.contrast,
-          fontSize: getSlideTextSize(editing?.textStyles, "caption"),
-        }}
-      />
-    </div>
-  );
+function useSlideObserver(
+  slides: PitchSlideRecord[],
+  slideRefs: MutableRefObject<Array<HTMLDivElement | null>>,
+  onSlideVisible: (index: number) => void,
+) {
+  useEffect(() => {
+    if (!slides.length) return;
+    const nodes = slideRefs.current
+      .slice(0, slides.length)
+      .filter((node): node is HTMLDivElement => Boolean(node));
+    if (!nodes.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const index = Number(entry.target.getAttribute("data-index"));
+          if (!Number.isNaN(index)) {
+            onSlideVisible(index);
+          }
+        });
+      },
+      { threshold: 0.6 },
+    );
+    nodes.forEach((node) => observer.observe(node));
+    return () => {
+      nodes.forEach((node) => observer.unobserve(node));
+      observer.disconnect();
+    };
+  }, [slides, slideRefs, onSlideVisible]);
 }
 
-type EditableField =
-  | { type: "title" }
-  | { type: "subtitle" }
-  | { type: "notes" }
-  | { type: "bullet"; index: number }
-  | { type: "caption" };
-
-type SlideEditingContext = {
-  isEditable: boolean;
-  onFieldChange?: (field: EditableField, value: string) => void;
-  textStyles?: SlideTextStyles;
-};
-
-function applyFieldUpdate(
-  slide: PitchSlideRecord,
-  field: EditableField,
-  rawValue: string,
-): PitchSlideRecord {
-  const sanitized = rawValue.replace(/\u00A0/g, " ");
-  const trimmed = sanitized.trim();
-  switch (field.type) {
-    case "title":
-      return { ...slide, title: trimmed || slide.title };
-    case "subtitle":
-      return { ...slide, subtitle: trimmed || undefined };
-    case "notes":
-      return { ...slide, notes: sanitized };
-    case "bullet": {
-      const nextBullets = [...slide.bullets];
-      if (field.index >= nextBullets.length) {
-        nextBullets.push(trimmed || "New bullet");
-      } else if (!trimmed) {
-        nextBullets.splice(field.index, 1);
-      } else {
-        nextBullets[field.index] = trimmed;
-      }
-      return { ...slide, bullets: nextBullets.length ? nextBullets : [""] };
-    }
-    case "caption": {
-      const nextCaption = trimmed || slide.title;
-      if (!slide.images.length) {
-        return {
-          ...slide,
-          images: [{ url: "", caption: nextCaption }],
-        };
-      }
-      return {
-        ...slide,
-        images: slide.images.map((image, idx) =>
-          idx === 0 ? { ...image, caption: nextCaption } : image,
-        ),
-      };
-    }
-    default:
-      return slide;
-  }
-}
-
-type EditableBlockProps = {
-  as?: ElementType;
-  field: EditableField;
-  editing: SlideEditingContext;
-  value: string;
-  className?: string;
-  style?: CSSProperties;
-};
-
-function EditableBlock({
-  as = "div",
-  field,
-  editing,
-  value,
-  className,
-  style,
-}: EditableBlockProps) {
-  const Component = as;
-  const displayValue = value ?? "";
-  const handleInput =
-    editing.isEditable && editing.onFieldChange
-      ? (event: FormEvent<HTMLElement>) =>
-          editing.onFieldChange?.(field, event.currentTarget.textContent ?? "")
-      : undefined;
-  return (
-    <Component
-      contentEditable={editing.isEditable}
-      suppressContentEditableWarning
-      spellCheck={false}
-      onInput={handleInput}
-      className={cn(
-        editing.isEditable
-          ? "cursor-text outline-none focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-primary/40"
-          : "",
-        className,
-      )}
-      style={style}
-    >
-      {displayValue || (editing.isEditable ? " " : null)}
-    </Component>
-  );
+function createStageTokens(colors: BrandColors, background?: string): StageTokens {
+  const base = background || colors.background;
+  return {
+    surface: base,
+    border: withAlpha(colors.title, 0.22),
+    borderStrong: withAlpha(colors.title, 0.55),
+    glow: "0 25px 80px rgba(2,6,23,0.35)",
+    glowStrong: "0 35px 120px rgba(2,6,23,0.55)",
+    panel: withAlpha(colors.title, 0.08),
+    panelAccent: withAlpha(colors.note, 0.12),
+    textSoft: withAlpha(colors.title, 0.65),
+    textMuted: withAlpha(colors.note, 0.85),
+    overlay: `radial-gradient(circle at 20% 20%, ${withAlpha(colors.title, 0.12)}, transparent 60%), radial-gradient(circle at 80% 0%, ${withAlpha(colors.note, 0.06)}, transparent 45%)`,
+  };
 }

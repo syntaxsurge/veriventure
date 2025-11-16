@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { clientEnv } from "@/env/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -160,6 +161,19 @@ export function AchievementList({
                 {achievement.txHash && (
                   <p className="break-all">
                     Tx: {achievement.txHash.slice(0, 20)}…
+                    {getExplorerUrl(achievement.txHash) && (
+                      <>
+                        {" "}
+                        <a
+                          className="font-sans text-primary underline-offset-4 hover:underline"
+                          href={getExplorerUrl(achievement.txHash) ?? "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View explorer
+                        </a>
+                      </>
+                    )}
                   </p>
                 )}
               </div>
@@ -217,4 +231,10 @@ export function AchievementList({
       )}
     </div>
   );
+}
+
+function getExplorerUrl(txHash?: string | null) {
+  if (!txHash) return null;
+  const template = clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE;
+  return template.replace("{tx}", encodeURIComponent(txHash));
 }

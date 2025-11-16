@@ -8,7 +8,7 @@ edition = "2021"
 ink = { workspace = true, default-features = false }
 scale = { workspace = true, default-features = false, features = ["derive"] }
 scale-info = { workspace = true, default-features = false, features = ["derive"] }
-primitive-types = { version = "0.13", default-features = false, features = ["codec"] }
+primitive-types = { workspace = true }
 
 [lib]
 path = "lib.rs"

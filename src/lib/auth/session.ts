@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { serverEnv } from "@/env/server";
 import { SESSION_MAX_AGE_MS } from "@/lib/constants/auth";
 
 export type SessionPayload = {
@@ -6,10 +7,7 @@ export type SessionPayload = {
   expires: string;
 };
 
-const rawSecret = process.env.AUTH_SECRET?.trim();
-const secretKey = new TextEncoder().encode(
-  rawSecret && rawSecret.length > 0 ? rawSecret : "veriventure-dev-secret",
-);
+const secretKey = new TextEncoder().encode(serverEnv.AUTH_SECRET);
 
 export async function signSession(payload: SessionPayload) {
   return await new SignJWT(payload)

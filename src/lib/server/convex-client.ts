@@ -1,13 +1,15 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@convex/_generated/api";
+import { serverEnv } from "@/env/server";
+import { clientEnv } from "@/env/client";
 
 let cachedClient: ConvexHttpClient | null = null;
 
 function resolveConvexUrl() {
   const candidates = [
-    process.env.CONVEX_URL,
-    process.env.CONVEX_DEPLOYMENT_URL,
-    process.env.NEXT_PUBLIC_CONVEX_URL,
+    serverEnv.CONVEX_URL,
+    serverEnv.CONVEX_DEPLOYMENT_URL,
+    clientEnv.NEXT_PUBLIC_CONVEX_URL,
   ];
 
   const url = candidates.find(
@@ -22,7 +24,7 @@ function resolveConvexUrl() {
 
   const normalized = url.trim();
   if (normalized.startsWith("dev:")) {
-    return process.env.NEXT_PUBLIC_CONVEX_URL ?? "http://127.0.0.1:8000";
+    return clientEnv.NEXT_PUBLIC_CONVEX_URL;
   }
 
   if (normalized.startsWith("http://") || normalized.startsWith("https://")) {

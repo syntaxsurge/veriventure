@@ -133,7 +133,7 @@ export async function fetchPublicProfile(
 
   return {
     handle: normalized,
-    display: ownerAddress,
+    display: ownerAddress || normalized,
     address: ownerAddress,
     achievements,
     notes,

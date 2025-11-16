@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Copy, ExternalLink } from "lucide-react";
+import { clientEnv } from "@/env/client";
 import { AchievementList } from "@/components/credentials/achievement-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,12 @@ export function TrustPanel({ profile }: TrustPanelProps) {
 
   return (
     <div className="space-y-8">
+      {profile.achievements.length === 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
+          No on-chain achievements yet. Mint a badge from the Credentials page
+          to populate this trust surface.
+        </div>
+      )}
       <section className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -157,8 +164,10 @@ export function TrustPanel({ profile }: TrustPanelProps) {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {profile.notes.map((note) => (
-              <Card key={note.id}>
+            {profile.notes.map((note) => {
+              const noteUrl = buildDkgViewerUrl(note.ual);
+              return (
+                <Card key={note.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{note.topic}</CardTitle>
                   <p className="text-xs text-muted-foreground">
@@ -192,9 +201,9 @@ export function TrustPanel({ profile }: TrustPanelProps) {
                       </ul>
                     </div>
                   )}
-                  {note.ual && (
+                  {noteUrl && (
                     <a
-                      href={`https://origintrail.io/explorer/asset/${encodeURIComponent(note.ual)}`}
+                      href={noteUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center text-xs font-semibold text-primary underline-offset-4 hover:underline"
@@ -204,10 +213,17 @@ export function TrustPanel({ profile }: TrustPanelProps) {
                   )}
                 </CardContent>
               </Card>
-            ))}
+            );
+            })}
           </div>
         )}
       </section>
     </div>
   );
+}
+
+function buildDkgViewerUrl(ual?: string | null) {
+  if (!ual) return null;
+  const template = clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE;
+  return template.replace("{ual}", encodeURIComponent(ual));
 }

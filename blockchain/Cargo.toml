@@ -1,7 +1,9 @@
 [workspace]
 members = [
     "contracts/achievement_badge",
+    "workspace",
 ]
+default-members = ["workspace"]
 resolver = "2"
 
 [workspace.package]
@@ -13,3 +15,8 @@ version = "0.1.0"
 ink = { version = "6.0.0-alpha", default-features = false }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 scale-info = { version = "2.11", default-features = false, features = ["derive"] }
+sp-core = { version = "33.0.0", default-features = false, features = ["std"] }
+hex = "0.4"
+anyhow = { version = "1.0", default-features = true }
+dotenvy = { version = "0.15" }
+primitive-types = { version = "0.13", default-features = false, features = ["codec"] }

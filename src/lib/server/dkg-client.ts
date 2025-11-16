@@ -1,6 +1,7 @@
 "use server";
 
 import DkgClient from "dkg.js";
+import { serverEnv } from "@/env/server";
 
 type DkgConfig = {
   endpoint: string;
@@ -37,27 +38,17 @@ function buildConfig(): DkgConfig {
     return cachedConfig;
   }
 
-  const endpoint = process.env.DKG_NODE_ENDPOINT?.trim() ?? "http://127.0.0.1";
-  const port = process.env.DKG_NODE_PORT?.trim() ?? "8900";
-  const blockchainName =
-    process.env.DKG_BLOCKCHAIN_NAME?.trim() ?? "hardhat1:31337";
-  const privateKey = process.env.DKG_BLOCKCHAIN_PRIVATE_KEY?.trim();
-
-  if (!privateKey) {
-    throw new Error("DKG_BLOCKCHAIN_PRIVATE_KEY must be configured.");
-  }
-
   cachedConfig = {
-    endpoint,
-    port,
-    nodeApiVersion: process.env.DKG_NODE_API_VERSION?.trim() ?? "/v1",
-    authToken: process.env.DKG_NODE_AUTH_TOKEN?.trim(),
+    endpoint: serverEnv.DKG_NODE_ENDPOINT,
+    port: String(serverEnv.DKG_NODE_PORT),
+    nodeApiVersion: serverEnv.DKG_NODE_API_VERSION,
+    authToken: serverEnv.DKG_NODE_AUTH_TOKEN,
     blockchain: {
-      name: blockchainName,
-      privateKey,
+      name: serverEnv.DKG_BLOCKCHAIN_NAME,
+      privateKey: serverEnv.DKG_BLOCKCHAIN_PRIVATE_KEY,
     },
-    maxNumberOfRetries: Number(process.env.DKG_MAX_RETRIES ?? "180"),
-    frequency: Number(process.env.DKG_POLL_FREQUENCY ?? "2"),
+    maxNumberOfRetries: serverEnv.DKG_MAX_RETRIES,
+    frequency: serverEnv.DKG_POLL_FREQUENCY,
     communicationType: "Http",
   };
   return cachedConfig;

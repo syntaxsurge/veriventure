@@ -4,13 +4,15 @@ import { TrustPanel } from "@/features/verify/trust-panel";
 import { fetchPublicProfile } from "@/lib/server/profile-store";
 
 type VerifyPageProps = {
-  params: Promise<{
+  params: {
     handle: string;
-  }>;
+  };
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function VerifyHandlePage({ params }: VerifyPageProps) {
-  const { handle } = await params;
+  const { handle } = params;
   if (!handle) {
     notFound();
   }
