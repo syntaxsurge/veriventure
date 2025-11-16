@@ -712,7 +712,7 @@ function SlideToolbar({
   onScrollStart,
 }: SlideToolbarProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-gradient-to-b from-[#11100c] to-[#0c0b08] px-4 py-4 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-linear-to-b from-[#11100c] to-[#0c0b08] px-4 py-4 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-1 items-center gap-4">
           <Button type="button" variant="ghost" className="gap-2 text-white" onClick={onBack}>
@@ -887,7 +887,7 @@ function SlideRail({ deckName, slides, activeIndex, brandColors, onSlideSelect }
         </div>
       </aside>
 
-      <div className="sticky top-[72px] z-20 bg-gradient-to-b from-[#0f0e0b] to-transparent px-4 py-3 lg:hidden">
+      <div className="sticky top-[72px] z-20 bg-linear-to-b from-[#0f0e0b] to-transparent px-4 py-3 lg:hidden">
         <div ref={mobileListRef} className="flex gap-3 overflow-x-auto">
           {slides.map((slide, index) => (
             <button
@@ -1097,7 +1097,7 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
   );
 }
 
-function TeamSlideSection({ slide, index: _index, brandColors, tokens }: SlideSectionProps) {
+function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
   const members = slide.images.length
     ? slide.images
     : [{ url: DECK_PLACEHOLDER_IMAGE, caption: "Team member" }];
@@ -1143,7 +1143,7 @@ function TeamSlideSection({ slide, index: _index, brandColors, tokens }: SlideSe
         {members.map((member, index) => (
           <div
             key={`${slide.id}-${index}`}
-            className="group rounded-[32px] border p-1"
+            className="group rounded-4xl border p-1"
             style={{
               borderColor: tokens.border,
               backgroundImage: tokens.overlay,

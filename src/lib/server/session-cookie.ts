@@ -29,7 +29,6 @@ export async function getSession() {
   try {
     return await verifySession(cookieValue);
   } catch {
-    await clearSession();
     return null;
   }
 }
