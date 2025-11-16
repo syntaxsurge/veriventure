@@ -1,15 +1,16 @@
+import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { TrustPanel } from "@/features/verify/trust-panel";
 import { fetchPublicProfile } from "@/lib/server/profile-store";
 
 type VerifyPageProps = {
-  params: {
+  params: Promise<{
     handle: string;
-  };
+  }>;
 };
 
 export default async function VerifyHandlePage({ params }: VerifyPageProps) {
-  const { handle } = params;
+  const { handle } = await params;
   if (!handle) {
     notFound();
   }
