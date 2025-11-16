@@ -1,17 +1,8 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { getConvexClient } from "@/lib/server/convex-client";
+import { api, getConvexClient } from "@/lib/server/convex-client";
 import type { NoteInput, NoteRecord } from "@/types/note";
-
-type ConvexCaller = {
-  query: (name: string, args: unknown) => Promise<unknown>;
-  mutation: (name: string, args: unknown) => Promise<unknown>;
-};
-
-function convexClient(): ConvexCaller {
-  return getConvexClient() as unknown as ConvexCaller;
-}
 
 type NoteDoc = {
   noteId: string;
@@ -42,8 +33,8 @@ export async function listNotes(ownerAddress?: string | null) {
   if (!normalized) {
     return [];
   }
-  const convex = convexClient();
-  const docs = (await convex.query("notes:list", {
+  const convex = getConvexClient();
+  const docs = (await convex.query(api.notes.list, {
     ownerAddress: normalized,
   })) as NoteDoc[];
   return docs.map(deserialize);
@@ -69,11 +60,10 @@ export async function createNote(ownerAddress: string, input: NoteInput) {
     updatedAt: timestamp,
   };
 
-  const convex = convexClient();
-  const inserted = (await convex.mutation(
-    "notes:create",
-    payload,
-  )) as NoteDoc | null;
+  const convex = getConvexClient();
+  const inserted = (await convex.mutation(api.notes.create, payload)) as
+    | NoteDoc
+    | null;
 
   const doc = inserted ?? payload;
   return deserialize(doc);
@@ -88,7 +78,7 @@ export async function updateNote(
   if (!normalized) {
     throw new Error("Owner address is required for note updates.");
   }
-  const convex = convexClient();
+  const convex = getConvexClient();
   const payload = {
     ownerAddress: normalized,
     noteId,
@@ -101,10 +91,9 @@ export async function updateNote(
     updatedAt: new Date().toISOString(),
   };
 
-  const updated = (await convex.mutation(
-    "notes:update",
-    payload,
-  )) as NoteDoc | null;
+  const updated = (await convex.mutation(api.notes.update, payload)) as
+    | NoteDoc
+    | null;
   if (!updated) {
     throw new Error("Note not found.");
   }
@@ -116,8 +105,8 @@ export async function deleteNote(ownerAddress: string, noteId: string) {
   if (!normalized) {
     throw new Error("Owner address is required for note deletion.");
   }
-  const convex = convexClient();
-  await convex.mutation("notes:remove", {
+  const convex = getConvexClient();
+  await convex.mutation(api.notes.remove, {
     ownerAddress: normalized,
     noteId,
   });

@@ -1,17 +1,8 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { getConvexClient } from "@/lib/server/convex-client";
+import { api, getConvexClient } from "@/lib/server/convex-client";
 import type { CommunityNoteRecord } from "@/types/community-note";
-
-type ConvexCaller = {
-  query: (name: string, args: unknown) => Promise<unknown>;
-  mutation: (name: string, args: unknown) => Promise<unknown>;
-};
-
-function convexClient(): ConvexCaller {
-  return getConvexClient() as unknown as ConvexCaller;
-}
 
 type CommunityNoteDoc = {
   communityNoteId: string;
@@ -47,8 +38,8 @@ function deserialize(doc: CommunityNoteDoc): CommunityNoteRecord {
 }
 
 export async function listCommunityNotes(ownerAddress?: string | null) {
-  const convex = convexClient();
-  const docs = (await convex.query("communityNotes:list", {
+  const convex = getConvexClient();
+  const docs = (await convex.query(api.communityNotes.list, {
     ownerAddress: ownerAddress?.trim() || undefined,
   })) as CommunityNoteDoc[];
   return docs.map(deserialize);
@@ -82,8 +73,8 @@ export async function createCommunityNote(
     dkgResponse: input.dkgResponse,
   };
 
-  const convex = convexClient();
-  const inserted = (await convex.mutation("communityNotes:insert", {
+  const convex = getConvexClient();
+  const inserted = (await convex.mutation(api.communityNotes.insert, {
     communityNoteId: record.id,
     ownerAddress: record.ownerAddress,
     topic: record.topic,

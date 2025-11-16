@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { getConvexClient } from "@/lib/server/convex-client";
+import { api, getConvexClient } from "@/lib/server/convex-client";
 import { computeAchievementHash } from "@/lib/achievement-hash";
 import type {
   AchievementPayload,
@@ -24,15 +24,6 @@ type AchievementDoc = {
   contractAddress?: string | null;
 };
 
-type ConvexCaller = {
-  query: (name: string, args: unknown) => Promise<unknown>;
-  mutation: (name: string, args: unknown) => Promise<unknown>;
-};
-
-function convexClient(): ConvexCaller {
-  return getConvexClient() as unknown as ConvexCaller;
-}
-
 function mapDocToRecord(doc: AchievementDoc): AchievementRecord {
   return {
     id: doc.achievementId,
@@ -52,9 +43,9 @@ function mapDocToRecord(doc: AchievementDoc): AchievementRecord {
 }
 
 export async function listAchievements(address?: string | null) {
-  const convex = convexClient();
+  const convex = getConvexClient();
   const ownerAddress = address?.trim() || undefined;
-  const docs = (await convex.query("achievements:list", {
+  const docs = (await convex.query(api.achievements.list, {
     ownerAddress,
   })) as AchievementDoc[];
   return docs.map(mapDocToRecord);
@@ -91,8 +82,8 @@ export async function createAchievement(
     ...payload,
   };
 
-  const convex = convexClient();
-  const inserted = (await convex.mutation("achievements:insert", {
+  const convex = getConvexClient();
+  const inserted = (await convex.mutation(api.achievements.insert, {
     achievementId: record.id,
     ownerAddress: record.ownerAddress,
     title: record.title,
@@ -103,9 +94,9 @@ export async function createAchievement(
     hash: record.hash,
     hashAlgorithm: record.hashAlgorithm,
     createdAt: record.createdAt,
-    txHash: record.txHash,
-    network: record.network,
-    contractAddress: record.contractAddress,
+    txHash: record.txHash ?? undefined,
+    network: record.network ?? undefined,
+    contractAddress: record.contractAddress ?? undefined,
   })) as AchievementDoc | null;
 
   return inserted ? mapDocToRecord(inserted) : record;

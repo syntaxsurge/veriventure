@@ -3,17 +3,8 @@
 import { randomUUID } from "node:crypto";
 import { blake2b } from "@noble/hashes/blake2b";
 import { bytesToHex } from "@noble/hashes/utils";
-import { getConvexClient } from "@/lib/server/convex-client";
+import { api, getConvexClient } from "@/lib/server/convex-client";
 import type { DocumentRecord, DocumentType } from "@/types/document";
-
-type ConvexCaller = {
-  query: (name: string, args: unknown) => Promise<unknown>;
-  mutation: (name: string, args: unknown) => Promise<unknown>;
-};
-
-function convexClient(): ConvexCaller {
-  return getConvexClient() as unknown as ConvexCaller;
-}
 
 type DocumentDoc = {
   documentId: string;
@@ -54,9 +45,9 @@ function deserialize(doc: DocumentDoc): DocumentRecord {
 }
 
 export async function listDocuments(address?: string | null) {
-  const convex = convexClient();
+  const convex = getConvexClient();
   const ownerAddress = address?.trim() || undefined;
-  const docs = (await convex.query("documents:list", {
+  const docs = (await convex.query(api.documents.list, {
     ownerAddress,
   })) as DocumentDoc[];
   return docs.map(deserialize);
@@ -97,8 +88,8 @@ export async function createDocumentRecord(
     createdAt: timestamp,
   };
 
-  const convex = convexClient();
-  const inserted = (await convex.mutation("documents:insert", {
+  const convex = getConvexClient();
+  const inserted = (await convex.mutation(api.documents.insert, {
     documentId: record.id,
     ownerAddress: record.ownerAddress,
     type: record.type,

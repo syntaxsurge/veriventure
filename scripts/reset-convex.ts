@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
 import { ConvexHttpClient } from "convex/browser";
+import { api } from "@convex/_generated/api";
 
 function resolveConvexUrl(): string {
   const candidates = [
@@ -38,11 +39,8 @@ async function main() {
   const batchSize = Number(process.env.CONVEX_RESET_BATCH ?? "128");
 
   const client = new ConvexHttpClient(url);
-  const convex = client as unknown as {
-    mutation: (name: string, args: unknown) => Promise<unknown>;
-  };
   console.log(`Resetting Convex deployment at ${url}…`);
-  const result = (await convex.mutation("admin:truncateAll", {
+  const result = (await client.mutation(api.admin.truncateAll, {
     secret,
     batchSize,
   })) as Record<string, number>;

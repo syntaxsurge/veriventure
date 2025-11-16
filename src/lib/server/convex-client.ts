@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from "convex/browser";
+import { api } from "@convex/_generated/api";
 
 let cachedClient: ConvexHttpClient | null = null;
 
@@ -40,3 +41,5 @@ export function getConvexClient() {
   }
   return cachedClient;
 }
+
+export { api };
