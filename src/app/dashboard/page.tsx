@@ -5,6 +5,7 @@ import { AchievementList } from "@/components/credentials/achievement-list";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listAchievements } from "@/lib/server/achievement-store";
 import { DashboardMission } from "@/features/mission-control/dashboard-mission";
+import { InvoiceDashboardWidget } from "@/components/invoices/invoice-dashboard-widget";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -25,6 +26,9 @@ export default async function DashboardPage() {
 
         {/* Mission Control */}
         <DashboardMission address={address} />
+
+        {/* Invoicing Widget */}
+        <InvoiceDashboardWidget />
 
         {/* Stats Overview */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
