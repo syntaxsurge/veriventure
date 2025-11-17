@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { exportResumeAsPdf } from "@/lib/resume-export";
 import type { DocumentRecord, ResumeSection } from "@/types/document";
 
-type ResumeResponse = {
+export type ResumeResponse = {
   resume?: {
     headline: string;
     summary: string;
@@ -27,7 +27,7 @@ type PublishState = {
   subscan: string | null;
 };
 
-const PREVIEW_LIMITS = {
+export const PREVIEW_LIMITS = {
   summaryChars: 480,
   skills: 8,
   sections: 2,
@@ -45,7 +45,7 @@ const initialForm = {
 
 type ResumeField = keyof typeof initialForm;
 
-type PreviewResume = {
+export type PreviewResume = {
   headline: string;
   summary: string;
   sections: ResumeSection[];
@@ -60,7 +60,16 @@ function clampText(input: string, maxChars: number) {
   return `${base.trim()}…`;
 }
 
-function buildPreviewResume(resume: ResumeResponse["resume"] | null): PreviewResume | null {
+export function buildPreviewResume(
+  resume:
+    | {
+        headline: string;
+        summary: string;
+        sections: ResumeSection[];
+        skills: string[];
+      }
+    | null,
+): PreviewResume | null {
   if (!resume) return null;
   const summary = clampText(resume.summary, PREVIEW_LIMITS.summaryChars);
 

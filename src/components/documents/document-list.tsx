@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,14 @@ function renderTypeDetails(record: DocumentRecord) {
             )}
           </div>
         )}
+        <div className="pt-1">
+          <Link
+            href={`/ai-assistant/resume/${record.id}`}
+            className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Open resume
+          </Link>
+        </div>
       </div>
     );
   }

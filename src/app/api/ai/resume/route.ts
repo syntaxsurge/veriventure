@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       data: {
         resume,
         metadata: {
+          fullName: parsed.data.fullName,
           headline: resume.headline,
           focus: parsed.data.focus ?? "",
         },
