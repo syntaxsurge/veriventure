@@ -15,12 +15,12 @@ type ResumeViewerProps = {
 export function ResumeViewer({ document }: ResumeViewerProps) {
   const [exportingPdf, setExportingPdf] = useState(false);
   const resume = document.data.resume;
-  const previewResume = useMemo(
+  const pdfResume = useMemo(
     () => buildPreviewResume(resume ?? null),
     [resume],
   );
 
-  if (!resume || !previewResume) {
+  if (!resume) {
     return null;
   }
 
@@ -30,14 +30,15 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
   const focus = document.data.metadata?.focus || "";
 
   async function handleExportPdf() {
+    if (!pdfResume) return;
     setExportingPdf(true);
     try {
       await exportResumeAsPdf({
         fullName,
-        headline: previewResume.headline,
-        summary: previewResume.summary,
-        sections: previewResume.sections,
-        skills: previewResume.skills,
+        headline: pdfResume.headline,
+        summary: pdfResume.summary,
+        sections: pdfResume.sections,
+        skills: pdfResume.skills,
         focus,
         photoDataUrl: null,
       });
@@ -49,13 +50,13 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
   function copyResume() {
     const text = [
       fullName,
-      previewResume.headline,
-      previewResume.summary,
-      ...previewResume.sections.map(
+      resume.headline,
+      resume.summary,
+      ...resume.sections.map(
         (section) => `${section.heading}\n- ${section.bullets.join("\n- ")}`,
       ),
-      previewResume.skills.length
-        ? `Skills: ${previewResume.skills.join(", ")}`
+      resume.skills.length
+        ? `Skills: ${resume.skills.join(", ")}`
         : "",
     ]
       .filter(Boolean)
@@ -110,11 +111,11 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
             className="relative mx-auto w-full overflow-hidden rounded-2xl border bg-background shadow-lg"
             style={{ aspectRatio: "8.5 / 11" }}
           >
-            <div className="flex h-full flex-col bg-white px-8 py-8 text-slate-900">
+            <div className="flex h-full flex-col overflow-y-auto bg-white px-8 py-8 text-slate-900">
               <header className="flex items-start justify-between gap-6 border-b border-slate-200 pb-3">
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                    {previewResume.headline || "Resume"}
+                    {resume.headline || "Resume"}
                   </p>
                   <h2 className="text-[22px] font-semibold tracking-tight">
                     {fullName || "Full name"}
@@ -133,16 +134,16 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                       Profile
                     </h3>
                     <p className="mt-1 text-[11px] text-slate-800 md:text-xs">
-                      {previewResume.summary}
+                      {resume.summary}
                     </p>
                   </div>
-                  {previewResume.skills.length > 0 && (
+                  {resume.skills.length > 0 && (
                     <div>
                       <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Key skills
                       </h3>
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        {previewResume.skills.map((skill) => (
+                        {resume.skills.map((skill) => (
                           <span
                             key={skill}
                             className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-800"
@@ -155,7 +156,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                   )}
                 </section>
                 <section className="space-y-4">
-                  {previewResume.sections.map((section) => (
+                  {resume.sections.map((section) => (
                     <div key={section.heading}>
                       <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         {section.heading}
@@ -184,4 +185,3 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
     </div>
   );
 }
-

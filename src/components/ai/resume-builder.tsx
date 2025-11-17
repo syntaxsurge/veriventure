@@ -110,7 +110,7 @@ export function ResumeBuilder() {
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [exportingPdf, setExportingPdf] = useState(false);
 
-  const previewResume = useMemo(() => buildPreviewResume(resume), [resume]);
+  const pdfResume = useMemo(() => buildPreviewResume(resume), [resume]);
 
   function updateField<K extends keyof typeof form>(
     key: K,
@@ -257,16 +257,16 @@ export function ResumeBuilder() {
   }
 
   async function handleExportPdf() {
-    if (!previewResume) return;
+    if (!pdfResume) return;
     setExportingPdf(true);
     setError(null);
     try {
       await exportResumeAsPdf({
         fullName: form.fullName,
-        headline: previewResume.headline,
-        summary: previewResume.summary,
-        sections: previewResume.sections,
-        skills: previewResume.skills,
+        headline: pdfResume.headline,
+        summary: pdfResume.summary,
+        sections: pdfResume.sections,
+        skills: pdfResume.skills,
         focus: form.focus,
         photoDataUrl,
       });
@@ -296,7 +296,7 @@ export function ResumeBuilder() {
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="resume-photo">Profile photo (optional)</Label>
             <div className="flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-muted">
+              <div className="flex aspect-square h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-muted">
                 {photoDataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -456,7 +456,7 @@ export function ResumeBuilder() {
             {error}
           </p>
         )}
-        {resume && previewResume && (
+        {resume && (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)]">
             <div className="space-y-4">
               <div className="space-y-2 rounded-2xl border bg-muted/40 p-4">
@@ -466,10 +466,10 @@ export function ResumeBuilder() {
                       Resume summary
                     </p>
                     <p className="mt-1 text-lg font-semibold">
-                      {previewResume.headline}
+                      {resume.headline}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {previewResume.summary}
+                      {resume.summary}
                     </p>
                     {documentRecord && (
                       <p className="mt-2 text-xs text-muted-foreground">
@@ -502,13 +502,13 @@ export function ResumeBuilder() {
                     </Button>
                   </div>
                 </div>
-                {previewResume.skills.length > 0 && (
+                {resume.skills.length > 0 && (
                   <div className="pt-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       Key skills
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {previewResume.skills.map((skill) => (
+                      {resume.skills.map((skill) => (
                         <Badge key={skill} variant="secondary">
                           {skill}
                         </Badge>
@@ -582,11 +582,11 @@ export function ResumeBuilder() {
                   className="relative mx-auto w-full overflow-hidden rounded-2xl border bg-background shadow-lg"
                   style={{ aspectRatio: "8.5 / 11" }}
                 >
-                  <div className="flex h-full flex-col bg-white px-8 py-8 text-slate-900">
+                  <div className="flex h-full flex-col overflow-y-auto bg-white px-8 py-8 text-slate-900">
                     <header className="flex items-start justify-between gap-6 border-b border-slate-200 pb-3">
                       <div className="space-y-1.5">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                          {previewResume.headline || "Resume"}
+                          {resume.headline || "Resume"}
                         </p>
                         <h2 className="text-[22px] font-semibold tracking-tight">
                           {form.fullName || "Full name"}
@@ -619,16 +619,16 @@ export function ResumeBuilder() {
                             Profile
                           </h3>
                           <p className="mt-1 text-[11px] text-slate-800 md:text-xs">
-                            {previewResume.summary}
+                            {resume.summary}
                           </p>
                         </div>
-                        {previewResume.skills.length > 0 && (
+                        {resume.skills.length > 0 && (
                           <div>
                             <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                               Key skills
                             </h3>
                             <div className="mt-2 flex flex-wrap gap-1.5">
-                              {previewResume.skills.map((skill) => (
+                              {resume.skills.map((skill) => (
                                 <span
                                   key={skill}
                                   className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-800"
@@ -641,7 +641,7 @@ export function ResumeBuilder() {
                         )}
                       </section>
                       <section className="space-y-4">
-                        {previewResume.sections.map((section) => (
+                        {resume.sections.map((section) => (
                           <div key={section.heading}>
                             <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                               {section.heading}
