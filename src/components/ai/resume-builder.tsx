@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,14 @@ type PublishState = {
   subscan: string | null;
 };
 
+const PREVIEW_LIMITS = {
+  summaryChars: 480,
+  skills: 8,
+  sections: 2,
+  bulletsPerSection: 3,
+  bulletChars: 160,
+} as const;
+
 const initialForm = {
   fullName: "",
   headline: "",
@@ -36,6 +44,46 @@ const initialForm = {
 };
 
 type ResumeField = keyof typeof initialForm;
+
+type PreviewResume = {
+  headline: string;
+  summary: string;
+  sections: ResumeSection[];
+  skills: string[];
+};
+
+function clampText(input: string, maxChars: number) {
+  if (input.length <= maxChars) return input;
+  const shortened = input.slice(0, maxChars);
+  const lastSpace = shortened.lastIndexOf(" ");
+  const base = lastSpace > 40 ? shortened.slice(0, lastSpace) : shortened;
+  return `${base.trim()}…`;
+}
+
+function buildPreviewResume(resume: ResumeResponse["resume"] | null): PreviewResume | null {
+  if (!resume) return null;
+  const summary = clampText(resume.summary, PREVIEW_LIMITS.summaryChars);
+
+  const sections: ResumeSection[] = resume.sections
+    .slice(0, PREVIEW_LIMITS.sections)
+    .map((section) => ({
+      heading: section.heading,
+      bullets: section.bullets
+        .slice(0, PREVIEW_LIMITS.bulletsPerSection)
+        .map((bullet) => clampText(bullet, PREVIEW_LIMITS.bulletChars))
+        .filter((bullet) => bullet.length > 0),
+    }))
+    .filter((section) => section.bullets.length > 0);
+
+  const skills = resume.skills.slice(0, PREVIEW_LIMITS.skills);
+
+  return {
+    headline: resume.headline,
+    summary,
+    sections,
+    skills,
+  };
+}
 
 export function ResumeBuilder() {
   const [form, setForm] = useState(initialForm);
@@ -52,6 +100,8 @@ export function ResumeBuilder() {
   const [publishState, setPublishState] = useState<PublishState | null>(null);
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [exportingPdf, setExportingPdf] = useState(false);
+
+  const previewResume = useMemo(() => buildPreviewResume(resume), [resume]);
 
   function updateField<K extends keyof typeof form>(
     key: K,
@@ -198,16 +248,16 @@ export function ResumeBuilder() {
   }
 
   async function handleExportPdf() {
-    if (!resume) return;
+    if (!previewResume) return;
     setExportingPdf(true);
     setError(null);
     try {
       await exportResumeAsPdf({
         fullName: form.fullName,
-        headline: resume.headline,
-        summary: resume.summary,
-        sections: resume.sections,
-        skills: resume.skills,
+        headline: previewResume.headline,
+        summary: previewResume.summary,
+        sections: previewResume.sections,
+        skills: previewResume.skills,
         focus: form.focus,
         photoDataUrl,
       });
@@ -397,7 +447,7 @@ export function ResumeBuilder() {
             {error}
           </p>
         )}
-        {resume && (
+        {resume && previewResume && (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.1fr)]">
             <div className="space-y-4">
               <div className="space-y-2 rounded-2xl border bg-muted/40 p-4">
@@ -407,10 +457,10 @@ export function ResumeBuilder() {
                       Resume summary
                     </p>
                     <p className="mt-1 text-lg font-semibold">
-                      {resume.headline}
+                      {previewResume.headline}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {resume.summary}
+                      {previewResume.summary}
                     </p>
                     {documentRecord && (
                       <p className="mt-2 text-xs text-muted-foreground">
@@ -443,13 +493,13 @@ export function ResumeBuilder() {
                     </Button>
                   </div>
                 </div>
-                {resume.skills.length > 0 && (
+                {previewResume.skills.length > 0 && (
                   <div className="pt-2">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       Key skills
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {resume.skills.map((skill) => (
+                      {previewResume.skills.map((skill) => (
                         <Badge key={skill} variant="secondary">
                           {skill}
                         </Badge>
@@ -524,16 +574,16 @@ export function ResumeBuilder() {
                   style={{ aspectRatio: "8.5 / 11" }}
                 >
                   <div className="flex h-full flex-col bg-white px-8 py-8 text-slate-900">
-                    <header className="flex items-start justify-between gap-6 border-b border-slate-200 pb-4">
-                      <div className="space-y-1">
-                        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
-                          {resume.headline || "Resume"}
+                    <header className="flex items-start justify-between gap-6 border-b border-slate-200 pb-3">
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                          {previewResume.headline || "Resume"}
                         </p>
-                        <h2 className="text-2xl font-semibold tracking-tight">
+                        <h2 className="text-[22px] font-semibold tracking-tight">
                           {form.fullName || "Full name"}
                         </h2>
                         {form.focus && (
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">
                             {form.focus}
                           </p>
                         )}
@@ -553,23 +603,23 @@ export function ResumeBuilder() {
                         </div>
                       )}
                     </header>
-                    <main className="mt-4 grid flex-1 gap-6 text-xs leading-relaxed md:grid-cols-[0.95fr,1.4fr] md:text-sm">
+                    <main className="mt-4 grid flex-1 gap-5 text-[11px] leading-relaxed md:grid-cols-[0.95fr,1.4fr] md:text-xs">
                       <section className="space-y-4">
                         <div>
                           <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                             Profile
                           </h3>
-                          <p className="mt-1 text-[11px] text-slate-800 md:text-sm">
-                            {resume.summary}
+                          <p className="mt-1 text-[11px] text-slate-800 md:text-xs">
+                            {previewResume.summary}
                           </p>
                         </div>
-                        {resume.skills.length > 0 && (
+                        {previewResume.skills.length > 0 && (
                           <div>
                             <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                               Key skills
                             </h3>
                             <div className="mt-2 flex flex-wrap gap-1.5">
-                              {resume.skills.map((skill) => (
+                              {previewResume.skills.map((skill) => (
                                 <span
                                   key={skill}
                                   className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-800"
@@ -582,7 +632,7 @@ export function ResumeBuilder() {
                         )}
                       </section>
                       <section className="space-y-4">
-                        {resume.sections.map((section) => (
+                        {previewResume.sections.map((section) => (
                           <div key={section.heading}>
                             <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                               {section.heading}
