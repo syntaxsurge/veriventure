@@ -14,16 +14,6 @@ npm run dev
 
 The web experience runs at [http://localhost:3000](http://localhost:3000). Wallet authentication relies on RainbowKit + WalletConnect (MetaMask, Rabby, Rainbow, Talisman EVM, …).
 
-### Docker quickstart
-
-```bash
-cp .env.example .env   # only if you need a fresh copy
-docker compose build
-VERIVENTURE_PORT=4000 docker compose up -d
-```
-
-The container bundles the production build (`next build`) and reads every server + public env var from `.env`, so the app behaves the same way on laptops and servers. See `docs/dkg-quickstart.md` for an end-to-end walkthrough.
-
 ### Environment variables
 
 Copy `.env.example` to `.env.local` and update the values per your environment:
@@ -41,7 +31,7 @@ Key sections:
 - **OriginTrail DKG**: Edge Node endpoint, blockchain signer, and retry options used when publishing Community Notes.
 - **Runtime validation** – `src/env/server.ts` and `src/env/client.ts` load these values via Zod and crash fast if anything is missing, so populate `.env.local` before running `npm run dev`.
 
-All `NEXT_PUBLIC_*` entries run in the browser (RPC + contract metadata). The remaining values stay on the server so the DKG client can talk to your Edge Node.
+All `NEXT_PUBLIC_*` entries run in the browser (RPC + contract metadata). The remaining values stay on the server so the DKG client can talk to the public OriginTrail node.
 
 ## Research + requirement mapping
 
@@ -106,8 +96,6 @@ npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
   ```
 
 - Sanity-check connectivity with `curl http://localhost:3000/api/dkg/health` and publish a note through `/api/dkg/notes` (the Mission Control DKG tester hits the same routes).
-
-`docs/dkg-quickstart.md` expands on the public-node workflow and summarizes the faucet + health-check sequence.
 
 ### Convex quickstart
 

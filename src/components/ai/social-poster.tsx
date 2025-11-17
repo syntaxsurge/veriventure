@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { DocumentRecord, SocialPostVariant } from "@/types/document";
+import { clientEnv } from "@/env/client";
 
 type ApiResponse = {
   campaign?: {
@@ -36,6 +38,7 @@ const initialForm = {
 };
 
 export function SocialPostStudio() {
+  const autopostReady = clientEnv.NEXT_PUBLIC_SOCIAL_AUTOMATION_READY;
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,16 +116,26 @@ export function SocialPostStudio() {
     URL.revokeObjectURL(url);
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Social Autopost Studio</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Generate multi-channel copy that references your verifiable traction.
-          Export the schedule as CSV to upload into any scheduler.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
+  let content: React.ReactNode;
+  if (!autopostReady) {
+    content = (
+      <div className="flex items-start gap-4 rounded-2xl border border-dashed bg-muted/40 p-4">
+        <div className="rounded-full bg-primary/10 p-2 text-primary">
+          <CalendarClock className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Coming soon</p>
+          <p>
+            Social Autopost Studio is slated for a future drop. Keep drafting decks, business plans, and resumes—the
+            distribution agent will light up here once we ship scheduling + CSV export hooks.
+          </p>
+          <p>Until then, use Documents + Notes to capture copy or coordinate with your marketing stack manually.</p>
+        </div>
+      </div>
+    );
+  } else {
+    content = (
+      <>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleGenerate}>
           <div className="space-y-1">
             <Label htmlFor="campaign-name">Campaign name</Label>
@@ -267,6 +280,22 @@ export function SocialPostStudio() {
             </div>
           </div>
         )}
+      </>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Social Autopost Studio</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {autopostReady
+            ? "Generate multi-channel copy that references your verifiable traction and export the schedule as CSV to upload into any scheduler."
+            : "This workspace is earmarked for a future release so distribution automation can launch once scheduling and approvals are production-ready."}
+        </p>
+      </CardHeader>
+      <CardContent className={autopostReady ? "space-y-6" : "space-y-4"}>
+        {content}
       </CardContent>
     </Card>
   );

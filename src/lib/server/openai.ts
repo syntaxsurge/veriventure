@@ -767,22 +767,137 @@ const ASSIST_HINTS: Record<PitchAssistField, string> = {
     "Explain the raise target, allocation, and 12-month outcomes.",
 };
 
-export async function generatePitchFieldSuggestion(
-  field: PitchAssistField,
-  draft: Partial<PitchWizardDraft>,
-  maxLength?: number,
+const BUSINESS_PLAN_HINTS = {
+  idea: "Write 2 sentences summarizing the product vision, problem, and traction signals.",
+  market:
+    "Define the target market or buyer segment with size or geography context in one sentence.",
+  goToMarket:
+    "Lay out the distribution / launch strategy with channels or partners ordered by priority.",
+  differentiation:
+    "Explain the unique moat, tech, or compliance edge that makes this team defensible.",
+  impact:
+    "Describe measurable outcomes (jobs created, carbon avoided, SME adoption) in sentence form.",
+} satisfies Record<keyof BusinessPlanInput, string>;
+
+const BUSINESS_PLAN_LIMITS: Record<keyof BusinessPlanInput, number> = {
+  idea: 1000,
+  market: 240,
+  goToMarket: 800,
+  differentiation: 800,
+  impact: 800,
+};
+
+const RESUME_HINTS = {
+  fullName:
+    "Return a polished founder name based on context; echo the existing value if already provided.",
+  headline:
+    "Write a 5-8 word exec headline highlighting climate/mission focus and priority roles.",
+  achievements:
+    "List recent wins with concrete metrics or references to badges/DKG notes in 2 sentences.",
+  experience:
+    "Describe leadership experience or roles in a tight paragraph using action verbs and data.",
+  focus:
+    "Summarize top sectors, regions, or thesis areas the founder is pursuing.",
+} satisfies Record<keyof ResumeInput, string>;
+
+const RESUME_LIMITS: Record<keyof ResumeInput, number> = {
+  fullName: 120,
+  headline: 160,
+  achievements: 800,
+  experience: 1200,
+  focus: 400,
+};
+
+type AssistOptions<Field extends string, Payload extends Record<string, unknown>> = {
+  assistantName: string;
+  field: Field;
+  payload: Payload;
+  hint: string;
+  maxLength?: number;
+  temperature?: number;
+};
+
+function normalizeAssistSuggestion<Field extends string>(
+  raw: string,
+  field: Field,
 ) {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const fromValue = (value: unknown): string | null => {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        const result = fromValue(entry);
+        if (result) return result;
+      }
+      return null;
+    }
+    if (!value || typeof value !== "object") {
+      return null;
+    }
+    const record = value as Record<string, unknown>;
+    if (typeof record[field] === "string") {
+      return (record[field] as string).trim();
+    }
+    if (typeof record.suggestion === "string") {
+      return (record.suggestion as string).trim();
+    }
+    if (typeof record.value === "string") {
+      return (record.value as string).trim();
+    }
+    if (record.draft) {
+      const nested = fromValue(record.draft);
+      if (nested) return nested;
+    }
+    if (record.data) {
+      const nested = fromValue(record.data);
+      if (nested) return nested;
+    }
+    const firstText = Object.values(record).find(
+      (entry) => typeof entry === "string" && entry.trim().length > 0,
+    );
+    if (typeof firstText === "string") {
+      return firstText.trim();
+    }
+    return null;
+  };
+
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const extracted = fromValue(parsed);
+      if (extracted) {
+        return extracted;
+      }
+    } catch {
+      // ignore invalid JSON and fall through to raw text
+    }
+  }
+
+  return trimmed;
+}
+
+async function requestAssistSuggestion<Field extends string, Payload extends Record<string, unknown>>(
+  options: AssistOptions<Field, Payload>,
+) {
+  const { assistantName, field, payload, hint, maxLength, temperature = 0.4 } =
+    options;
   const client = getClient();
   const completion = await client.chat.completions.create({
     model: COMPLETIONS_MODEL,
-    temperature: 0.4,
+    temperature,
     messages: [
       {
         role: "system",
         content: [
-          "You help founders fill a pitch deck questionnaire.",
+          `You help founders complete the ${assistantName} form.`,
           "Respond with at most two sentences of plain text.",
-          ASSIST_HINTS[field],
+          hint,
           maxLength ? `Hard limit: ${maxLength} characters.` : "",
         ]
           .filter(Boolean)
@@ -790,10 +905,7 @@ export async function generatePitchFieldSuggestion(
       },
       {
         role: "user",
-        content: JSON.stringify({
-          field,
-          draft,
-        }),
+        content: JSON.stringify({ field, payload }),
       },
     ],
   });
@@ -802,31 +914,57 @@ export async function generatePitchFieldSuggestion(
   if (!text) {
     throw new Error("AI suggestion response was empty.");
   }
-  let suggestion = text;
-  try {
-    const parsed = JSON.parse(text);
-    if (typeof parsed === "string") {
-      suggestion = parsed;
-    } else if (typeof parsed?.suggestion === "string") {
-      suggestion = parsed.suggestion;
-    } else if (typeof (parsed as Record<string, unknown>)[field] === "string") {
-      suggestion = (parsed as Record<string, string>)[field];
-    } else if (
-      parsed &&
-      typeof parsed === "object" &&
-      parsed.draft &&
-      typeof parsed.draft === "object" &&
-      typeof parsed.draft[field] === "string"
-    ) {
-      suggestion = parsed.draft[field];
-    } else if (typeof parsed?.value === "string") {
-      suggestion = parsed.value;
-    }
-  } catch {
-    // fall back to raw text
+  const normalized = normalizeAssistSuggestion(text, field);
+  if (!normalized) {
+    throw new Error("AI suggestion response was empty.");
   }
-  const trimmed = suggestion.trim();
   return typeof maxLength === "number" && maxLength > 0
-    ? clampText(trimmed, maxLength)
-    : trimmed;
+    ? clampText(normalized, maxLength)
+    : normalized;
+}
+
+export async function generatePitchFieldSuggestion(
+  field: PitchAssistField,
+  draft: Partial<PitchWizardDraft>,
+  maxLength?: number,
+) {
+  return requestAssistSuggestion({
+    assistantName: "Pitch Deck Studio",
+    field,
+    payload: draft,
+    hint: ASSIST_HINTS[field],
+    maxLength,
+  });
+}
+
+type BusinessPlanField = keyof BusinessPlanInput;
+
+export async function generateBusinessPlanFieldSuggestion(
+  field: BusinessPlanField,
+  draft: Partial<BusinessPlanInput>,
+) {
+  return requestAssistSuggestion({
+    assistantName: "Business Plan Lab",
+    field,
+    payload: draft as Record<string, unknown>,
+    hint: BUSINESS_PLAN_HINTS[field],
+    maxLength: BUSINESS_PLAN_LIMITS[field],
+    temperature: 0.35,
+  });
+}
+
+type ResumeField = keyof ResumeInput;
+
+export async function generateResumeFieldSuggestion(
+  field: ResumeField,
+  draft: Partial<ResumeInput>,
+) {
+  return requestAssistSuggestion({
+    assistantName: "Resume & Bio Builder",
+    field,
+    payload: draft as Record<string, unknown>,
+    hint: RESUME_HINTS[field],
+    maxLength: RESUME_LIMITS[field],
+    temperature: 0.35,
+  });
 }

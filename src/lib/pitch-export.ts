@@ -47,6 +47,33 @@ const PPT_FONT_DEFAULTS = {
   caption: 12,
 } as const;
 
+const HTTP_URL_PATTERN = /^https?:\/\//i;
+const PPT_LAYOUT = {
+  name: "VERIVENTURE_WIDE",
+  width: SLIDE_BASE_WIDTH / 96,
+  height: SLIDE_BASE_HEIGHT / 96,
+} as const;
+
+type PresentationLayout = {
+  width: number;
+  height: number;
+};
+
+function ensurePptLayout(pptx: PptxGenJS): PresentationLayout {
+  const { name, width, height } = PPT_LAYOUT;
+  const current = pptx.presLayout;
+  if (
+    current &&
+    Math.abs(current.width - width) < 0.001 &&
+    Math.abs(current.height - height) < 0.001
+  ) {
+    return current;
+  }
+  pptx.defineLayout({ name, width, height });
+  pptx.layout = name;
+  return pptx.presLayout ?? { width, height };
+}
+
 function resolveHeroSource(slide: PitchSlideRecord) {
   const url = slide.images[0]?.url?.trim();
   return url ? url : DECK_PLACEHOLDER_IMAGE;
@@ -137,25 +164,61 @@ async function resolveImageData(url?: string) {
   if (!url) return null;
   if (url.startsWith("data:")) return url;
   if (imageCache.has(url)) return imageCache.get(url) ?? null;
+
+  const direct = await fetchImageAsDataUrl(url);
+  if (direct) {
+    imageCache.set(url, direct);
+    return direct;
+  }
+
+  if (HTTP_URL_PATTERN.test(url)) {
+    const proxied = await fetchImageViaProxy(url);
+    if (proxied) {
+      imageCache.set(url, proxied);
+      return proxied;
+    }
+  }
+  return null;
+}
+
+async function fetchImageAsDataUrl(url: string) {
   try {
     const response = await fetch(url);
     if (!response.ok) {
       return null;
     }
     const blob = await response.blob();
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(typeof reader.result === "string" ? reader.result : "");
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-    imageCache.set(url, dataUrl);
-    return dataUrl;
+    return await readBlobAsDataUrl(blob);
   } catch {
     return null;
   }
+}
+
+async function fetchImageViaProxy(url: string) {
+  try {
+    const response = await fetch(`/api/pitch/image-proxy?url=${encodeURIComponent(url)}`);
+    if (!response.ok) {
+      return null;
+    }
+    const payload = (await response.json()) as { dataUrl?: string };
+    if (typeof payload?.dataUrl === "string" && payload.dataUrl.length) {
+      return payload.dataUrl;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function readBlobAsDataUrl(blob: Blob) {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(typeof reader.result === "string" ? reader.result : "");
+    };
+    reader.onerror = () => reject(new Error("Unable to read image"));
+    reader.readAsDataURL(blob);
+  });
 }
 
 export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideRecord[]) {
@@ -383,9 +446,8 @@ export async function exportDeckAsPptx(
   slides: PitchSlideRecord[],
 ) {
   const pptx = new PptxGenJS();
+  const layout = ensurePptLayout(pptx);
   const baseTheme = buildDeckTheme(deck);
-  const layoutWidth = pptx.presLayout?.width ?? 10;
-  const layoutHeight = pptx.presLayout?.height ?? 5.625;
   for (let index = 0; index < slides.length; index += 1) {
     const slide = slides[index]!;
     const pptSlide = pptx.addSlide();
@@ -411,167 +473,225 @@ export async function exportDeckAsPptx(
     pptSlide.background = { color: slideTheme.background };
 
     if (slide.slideType === "team") {
-      await renderPptTeamSlide(pptSlide, slide, palette, deck);
+      await renderPptTeamSlide(pptSlide, slide, palette, deck, layout);
       continue;
     }
 
-    const outerPanel = {
-      x: scaleWidth(40, layoutWidth),
-      y: scaleHeight(40, layoutHeight),
-      w: scaleWidth(SLIDE_BASE_WIDTH - 80, layoutWidth),
-      h: scaleHeight(SLIDE_BASE_HEIGHT - 80, layoutHeight),
-    };
-    const textPanel = {
-      x: scaleWidth(70, layoutWidth),
-      y: scaleHeight(80, layoutHeight),
-      w: scaleWidth(650, layoutWidth),
-      h: scaleHeight(520, layoutHeight),
-    };
-    const imagePanel = {
-      x: scaleWidth(760, layoutWidth),
-      y: scaleHeight(110, layoutHeight),
-      w: scaleWidth(420, layoutWidth),
-      h: scaleHeight(420, layoutHeight),
-    };
-    const heroPaddingX = scaleWidth(24, layoutWidth);
-    const heroPaddingY = scaleHeight(24, layoutHeight);
-    const captionReserve = scaleHeight(50, layoutHeight);
-
-    pptSlide.addShape("roundRect", {
-      x: outerPanel.x,
-      y: outerPanel.y,
-      w: outerPanel.w,
-      h: outerPanel.h,
-      fill: { color: lightenHex(palette.base, 0.05) },
-      line: { color: lightenHex(palette.contrast, 0.28), width: 1.2 },
-      shadow: { type: "outer", blur: 16, color: lightenHex(palette.contrast, 0.2) },
+    await renderPptStandardSlide({
+      pptSlide,
+      slide,
+      palette,
+      layout,
+      titleSize,
+      subtitleSize,
+      bulletSize,
+      noteSize,
+      captionSize,
+      subtitleColor,
+      bulletColor,
+      noteColor,
+      caption,
     });
+  }
 
-    pptSlide.addShape("roundRect", {
-      x: imagePanel.x,
-      y: imagePanel.y,
-      w: imagePanel.w,
-      h: imagePanel.h,
-      fill: { color: lightenHex(palette.base, 0.12) },
-      line: { color: lightenHex(palette.contrast, 0.35), width: 1.3 },
-      shadow: { type: "outer", blur: 14, color: lightenHex(palette.contrast, 0.2) },
-    });
+  await pptx.writeFile({ fileName: `${deck.startupName}-deck.pptx` });
+}
 
-    pptSlide.addText(slide.title, {
-      x: textPanel.x,
-      y: textPanel.y,
-      w: textPanel.w,
-      h: scaleHeight(80, layoutHeight),
-      fontSize: titleSize,
-      bold: true,
-      color: palette.contrast,
+type StandardSlideOptions = {
+  pptSlide: PptxGenJS.Slide;
+  slide: PitchSlideRecord;
+  palette: ReturnType<typeof buildSlidePalette>;
+  layout: PresentationLayout;
+  titleSize: number;
+  subtitleSize: number;
+  bulletSize: number;
+  noteSize: number;
+  captionSize: number;
+  subtitleColor: string;
+  bulletColor: string;
+  noteColor: string;
+  caption: string;
+};
+
+async function renderPptStandardSlide(options: StandardSlideOptions) {
+  const {
+    pptSlide,
+    slide,
+    palette,
+    layout,
+    titleSize,
+    subtitleSize,
+    bulletSize,
+    noteSize,
+    captionSize,
+    subtitleColor,
+    bulletColor,
+    noteColor,
+    caption,
+  } = options;
+  const px = (value: number) => scaleWidth(value, layout.width);
+  const py = (value: number) => scaleHeight(value, layout.height);
+  const horizontalPadding = 70;
+  const verticalPadding = 90;
+  const gutter = 60;
+  const heroPaddingX = 24;
+  const heroPaddingY = 24;
+  const captionReserve = 70;
+  const availableWidth = SLIDE_BASE_WIDTH - horizontalPadding * 2;
+  const availableHeight = SLIDE_BASE_HEIGHT - verticalPadding * 2;
+  let textWidth = availableWidth * 0.56;
+  if (availableWidth - textWidth - gutter < 280) {
+    textWidth = availableWidth - gutter - 280;
+  }
+  const textPanel = {
+    x: horizontalPadding,
+    y: verticalPadding,
+    width: textWidth,
+    height: availableHeight,
+  };
+  const imagePanel = {
+    x: textPanel.x + textPanel.width + gutter,
+    y: verticalPadding,
+    width: availableWidth - textWidth - gutter,
+    height: availableHeight,
+  };
+
+  pptSlide.addShape("roundRect", {
+    x: px(40),
+    y: py(40),
+    w: px(SLIDE_BASE_WIDTH - 80),
+    h: py(SLIDE_BASE_HEIGHT - 80),
+    fill: { color: lightenHex(palette.base, 0.05) },
+    line: { color: lightenHex(palette.contrast, 0.28), width: 1.2 },
+    shadow: { type: "outer", blur: 16, color: lightenHex(palette.contrast, 0.2) },
+  });
+
+  pptSlide.addShape("roundRect", {
+    x: px(imagePanel.x),
+    y: py(imagePanel.y),
+    w: px(imagePanel.width),
+    h: py(imagePanel.height),
+    fill: { color: lightenHex(palette.base, 0.12) },
+    line: { color: lightenHex(palette.contrast, 0.35), width: 1.3 },
+    shadow: { type: "outer", blur: 14, color: lightenHex(palette.contrast, 0.2) },
+  });
+
+  const titleHeight = Math.max(titleSize * 2.4, 110);
+  pptSlide.addText(slide.title, {
+    x: px(textPanel.x),
+    y: py(textPanel.y),
+    w: px(textPanel.width),
+    h: py(titleHeight),
+    fontSize: titleSize,
+    bold: true,
+    color: palette.contrast,
+    fontFace: "Helvetica",
+    fit: "none",
+    valign: "top",
+  });
+
+  let cursorY = textPanel.y + titleHeight + 16;
+
+  if (slide.subtitle) {
+    const subtitleHeight = Math.max(subtitleSize * 4, 120);
+    pptSlide.addText(slide.subtitle, {
+      x: px(textPanel.x),
+      y: py(cursorY),
+      w: px(textPanel.width),
+      h: py(subtitleHeight),
+      fontSize: subtitleSize,
+      color: subtitleColor,
       fontFace: "Helvetica",
       fit: "none",
       valign: "top",
     });
-
-    let blockY = textPanel.y + scaleHeight(80, layoutHeight);
-
-    if (slide.subtitle) {
-      const subtitleHeight = Math.max(scaleHeight(70, layoutHeight), subtitleSize / 36);
-      pptSlide.addText(slide.subtitle, {
-        x: textPanel.x,
-        y: blockY,
-        w: textPanel.w,
-        h: subtitleHeight,
-        fontSize: subtitleSize,
-        color: subtitleColor,
-        fontFace: "Helvetica",
-        fit: "none",
-        valign: "top",
-      });
-      blockY += subtitleHeight + scaleHeight(16, layoutHeight);
-    }
-
-    const bulletEntries = slide.bullets
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-    const noteSlotHeight = slide.notes ? scaleHeight(90, layoutHeight) : 0;
-    const bulletAreaHeight = Math.max(
-      textPanel.y + textPanel.h - blockY - noteSlotHeight,
-      scaleHeight(120, layoutHeight),
-    );
-
-    if (bulletEntries.length) {
-      const bulletRuns = bulletEntries.map((entry) => ({
-        text: entry,
-        options: {
-          bullet: true,
-          color: bulletColor,
-          fontFace: "Helvetica",
-          fontSize: bulletSize,
-          paraSpaceAfter: 6,
-        },
-      }));
-
-      pptSlide.addText(bulletRuns, {
-        x: textPanel.x,
-        y: blockY,
-        w: textPanel.w,
-        h: bulletAreaHeight,
-        fit: "none",
-        margin: 0,
-        valign: "top",
-      });
-    }
-
-    if (slide.notes) {
-      const noteY = textPanel.y + textPanel.h - noteSlotHeight;
-      pptSlide.addText(slide.notes, {
-        x: textPanel.x,
-        y: noteY,
-        w: textPanel.w,
-        h: noteSlotHeight,
-        fontSize: noteSize,
-        color: noteColor,
-        italic: true,
-        fontFace: "Helvetica",
-        fit: "none",
-        valign: "top",
-      });
-    }
-
-    const imageData = await resolveImageData(resolveHeroSource(slide));
-    if (imageData) {
-      const heroWidth = Math.max(imagePanel.w - heroPaddingX * 2, 0.5);
-      const heroHeight = Math.max(imagePanel.h - heroPaddingY * 2 - captionReserve, 0.5);
-      pptSlide.addImage({
-        data: imageData,
-        x: imagePanel.x + heroPaddingX,
-        y: imagePanel.y + heroPaddingY,
-        w: heroWidth,
-        h: heroHeight,
-        sizing: {
-          type: "contain",
-          w: heroWidth,
-          h: heroHeight,
-        },
-      });
-    }
-
-    if (caption) {
-      pptSlide.addText(caption, {
-        x: imagePanel.x + heroPaddingX / 2,
-        y: imagePanel.y + imagePanel.h - captionReserve,
-        w: imagePanel.w - heroPaddingX,
-        h: captionReserve - scaleHeight(10, layoutHeight),
-        fontSize: captionSize,
-        color: palette.contrast,
-        bold: true,
-        align: "center",
-        fontFace: "Helvetica",
-        fit: "none",
-        valign: "middle",
-      });
-    }
+    cursorY += subtitleHeight + 20;
   }
 
-  await pptx.writeFile({ fileName: `${deck.startupName}-deck.pptx` });
+  const bulletEntries = slide.bullets
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  const noteReserve = slide.notes ? Math.max(noteSize * 4, 120) : 0;
+  const bulletAreaHeight = Math.max(
+    textPanel.height - (cursorY - textPanel.y) - noteReserve,
+    bulletSize * 4,
+  );
+
+  if (bulletEntries.length) {
+    const bulletRuns = bulletEntries.map((entry) => ({
+      text: entry,
+      options: {
+        bullet: true,
+        color: bulletColor,
+        fontFace: "Helvetica",
+        fontSize: bulletSize,
+        paraSpaceAfter: 10,
+      },
+    }));
+
+    pptSlide.addText(bulletRuns, {
+      x: px(textPanel.x),
+      y: py(cursorY),
+      w: px(textPanel.width),
+      h: py(bulletAreaHeight),
+      fit: "none",
+      margin: 0,
+      valign: "top",
+    });
+  }
+
+  if (slide.notes) {
+    const noteY = textPanel.y + textPanel.height - noteReserve;
+    pptSlide.addText(slide.notes, {
+      x: px(textPanel.x),
+      y: py(noteY),
+      w: px(textPanel.width),
+      h: py(noteReserve),
+      fontSize: noteSize,
+      color: noteColor,
+      italic: true,
+      fontFace: "Helvetica",
+      fit: "none",
+      valign: "top",
+    });
+  }
+
+  const imageData = await resolveImageData(resolveHeroSource(slide));
+  if (imageData) {
+    const heroBox = {
+      x: imagePanel.x + heroPaddingX,
+      y: imagePanel.y + heroPaddingY,
+      width: Math.max(imagePanel.width - heroPaddingX * 2, 120),
+      height: Math.max(imagePanel.height - heroPaddingY * 2 - captionReserve, 180),
+    };
+    pptSlide.addImage({
+      data: imageData,
+      x: px(heroBox.x),
+      y: py(heroBox.y),
+      w: px(heroBox.width),
+      h: py(heroBox.height),
+      sizing: {
+        type: "contain",
+        w: px(heroBox.width),
+        h: py(heroBox.height),
+      },
+    });
+  }
+
+  if (caption) {
+    pptSlide.addText(caption, {
+      x: px(imagePanel.x + heroPaddingX / 2),
+      y: py(imagePanel.y + imagePanel.height - captionReserve),
+      w: px(imagePanel.width - heroPaddingX),
+      h: py(captionReserve - 20),
+      fontSize: captionSize,
+      color: palette.contrast,
+      bold: true,
+      fontFace: "Helvetica",
+      fit: "none",
+      valign: "middle",
+    });
+  }
 }
 
 async function renderPptTeamSlide(
@@ -579,21 +699,24 @@ async function renderPptTeamSlide(
   slide: PitchSlideRecord,
   palette: ReturnType<typeof buildSlidePalette>,
   deck: PitchDeckRecord,
+  layout: PresentationLayout,
 ) {
+  const px = (value: number) => scaleWidth(value, layout.width);
+  const py = (value: number) => scaleHeight(value, layout.height);
   pptSlide.addShape("roundRect", {
-    x: 0.4,
-    y: 0.4,
-    w: 12.4,
-    h: 6,
+    x: px(40),
+    y: py(40),
+    w: px(SLIDE_BASE_WIDTH - 80),
+    h: py(SLIDE_BASE_HEIGHT - 80),
     fill: { color: lightenHex(palette.base, 0.05) },
     line: { color: lightenHex(palette.contrast, 0.25), width: 1.8 },
     shadow: { type: "outer", blur: 18, color: lightenHex(palette.contrast, 0.2) },
   });
 
   pptSlide.addText(slide.title, {
-    x: 0.8,
-    y: 0.6,
-    w: 8,
+    x: px(70),
+    y: py(110),
+    w: px(SLIDE_BASE_WIDTH - 140),
     fontSize: 40,
     bold: true,
     color: palette.contrast,
@@ -602,9 +725,9 @@ async function renderPptTeamSlide(
 
   if (slide.notes) {
     pptSlide.addText(slide.notes, {
-      x: 0.8,
-      y: 1.2,
-      w: 8,
+      x: px(70),
+      y: py(170),
+      w: px(SLIDE_BASE_WIDTH - 140),
       fontSize: 20,
       color: palette.muted,
       fontFace: "Helvetica",
@@ -613,23 +736,24 @@ async function renderPptTeamSlide(
 
   const cards = buildTeamCards(slide, deck).slice(0, 6);
   const columns = 3;
-  const gap = 0.4;
-  const cardWidth = (12 - gap * (columns - 1)) / columns;
-  const cardHeight = 2.3;
-  const startX = 0.8;
-  const startY = 2;
+  const gap = 30;
+  const cardWidthPx = (SLIDE_BASE_WIDTH - 140 - gap * (columns - 1)) / columns;
+  const cardHeight = 240;
+  const startX = 70;
+  const startY = 220;
+  const imageHeight = 130;
 
   for (let idx = 0; idx < cards.length; idx += 1) {
     const card = cards[idx]!;
     const column = idx % columns;
     const row = Math.floor(idx / columns);
-    const x = startX + column * (cardWidth + gap);
-    const y = startY + row * (cardHeight + 0.3);
+    const cardX = startX + column * (cardWidthPx + gap);
+    const cardY = startY + row * (cardHeight + 30);
     pptSlide.addShape("roundRect", {
-      x,
-      y,
-      w: cardWidth,
-      h: cardHeight,
+      x: px(cardX),
+      y: py(cardY),
+      w: px(cardWidthPx),
+      h: py(cardHeight),
       fill: { color: lightenHex(palette.base, 0.12) },
       line: { color: lightenHex(palette.contrast, 0.2), width: 1.2 },
       shadow: { type: "outer", blur: 10, color: lightenHex(palette.contrast, 0.15) },
@@ -639,27 +763,27 @@ async function renderPptTeamSlide(
     if (imageData) {
       pptSlide.addImage({
         data: imageData,
-        x: x + 0.2,
-        y: y + 0.2,
-        w: cardWidth - 0.4,
-        h: 1.2,
-        sizing: { type: "contain", w: cardWidth - 0.4, h: 1.2 },
+        x: px(cardX + 20),
+        y: py(cardY + 20),
+        w: px(cardWidthPx - 40),
+        h: py(imageHeight),
+        sizing: { type: "contain", w: px(cardWidthPx - 40), h: py(imageHeight) },
       });
     }
 
     pptSlide.addText(card.title, {
-      x: x + 0.2,
-      y: y + 1.5,
-      w: cardWidth - 0.4,
+      x: px(cardX + 24),
+      y: py(cardY + imageHeight + 60),
+      w: px(cardWidthPx - 48),
       fontSize: 18,
       bold: true,
       color: palette.contrast,
       fontFace: "Helvetica",
     });
     pptSlide.addText(card.role, {
-      x: x + 0.2,
-      y: y + 1.85,
-      w: cardWidth - 0.4,
+      x: px(cardX + 24),
+      y: py(cardY + imageHeight + 95),
+      w: px(cardWidthPx - 48),
       fontSize: 14,
       color: palette.muted,
       fontFace: "Helvetica",

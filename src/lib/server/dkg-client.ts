@@ -6,8 +6,6 @@ import { serverEnv } from "@/env/server";
 type DkgConfig = {
   endpoint: string;
   port: string;
-  nodeApiVersion: string;
-  authToken?: string;
   blockchain: {
     name: string;
     privateKey: string;
@@ -44,8 +42,6 @@ function buildConfig(): DkgConfig {
   cachedConfig = {
     endpoint: serverEnv.DKG_NODE_ENDPOINT,
     port: String(serverEnv.DKG_NODE_PORT),
-    nodeApiVersion: serverEnv.DKG_NODE_API_VERSION,
-    authToken: serverEnv.DKG_NODE_AUTH_TOKEN,
     blockchain: {
       name: serverEnv.DKG_BLOCKCHAIN_NAME,
       privateKey: serverEnv.DKG_BLOCKCHAIN_PRIVATE_KEY,

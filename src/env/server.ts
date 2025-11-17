@@ -37,11 +37,6 @@ const serverSchema = z.object({
     .string()
     .url("DKG_NODE_ENDPOINT must be a valid URL."),
   DKG_NODE_PORT: z.coerce.number().int().positive().default(8900),
-  DKG_NODE_API_VERSION: z
-    .string()
-    .min(1)
-    .default("/v1"),
-  DKG_NODE_AUTH_TOKEN: z.string().optional(),
   DKG_BLOCKCHAIN_NAME: z.string().min(1),
   DKG_BLOCKCHAIN_PRIVATE_KEY: z.string().min(1),
   DKG_MAX_RETRIES: z.coerce.number().int().positive().default(180),

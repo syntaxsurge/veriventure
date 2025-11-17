@@ -32,6 +32,10 @@ const clientSchema = z.object({
       /\{ual\}/,
       "NEXT_PUBLIC_DKG_VIEWER_TEMPLATE must include a {ual} placeholder.",
     ),
+  NEXT_PUBLIC_SOCIAL_AUTOMATION_READY: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
 });
 
 const parsed = clientSchema.safeParse({
@@ -44,6 +48,8 @@ const parsed = clientSchema.safeParse({
     process.env.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE,
   NEXT_PUBLIC_DKG_VIEWER_TEMPLATE:
     process.env.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE,
+  NEXT_PUBLIC_SOCIAL_AUTOMATION_READY:
+    process.env.NEXT_PUBLIC_SOCIAL_AUTOMATION_READY ?? "false",
 });
 
 if (!parsed.success) {

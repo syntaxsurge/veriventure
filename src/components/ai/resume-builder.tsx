@@ -28,10 +28,14 @@ const initialForm = {
   focus: "",
 };
 
+type ResumeField = keyof typeof initialForm;
+
 export function ResumeBuilder() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState<Partial<Record<ResumeField, boolean>>>({});
   const [resume, setResume] = useState<ResumeResponse["resume"] | null>(null);
   const [documentRecord, setDocumentRecord] = useState<DocumentRecord | null>(
     null,
@@ -73,6 +77,36 @@ export function ResumeBuilder() {
     }
   }
 
+  async function handleAssist(field: ResumeField) {
+    setAiBusy((prev) => ({ ...prev, [field]: true }));
+    setAiError(null);
+    try {
+      const response = await fetch("/api/ai/forms/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assistant: "resume",
+          field,
+          form,
+        }),
+      });
+      const payload = (await response.json()) as {
+        suggestion?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.suggestion) {
+        throw new Error(payload.error ?? "Unable to suggest field.");
+      }
+      updateField(field, payload.suggestion);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to suggest field.";
+      setAiError(message);
+    } finally {
+      setAiBusy((prev) => ({ ...prev, [field]: false }));
+    }
+  }
+
   function copyResume() {
     if (!resume) return;
     const text = [
@@ -99,8 +133,20 @@ export function ResumeBuilder() {
       </CardHeader>
       <CardContent className="space-y-6">
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleGenerate}>
-          <div className="space-y-1">
-            <Label htmlFor="resume-name">Full name</Label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="resume-name">Full name</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("fullName")}
+                disabled={loading || aiBusy.fullName}
+              >
+                {aiBusy.fullName ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Input
               id="resume-name"
               value={form.fullName}
@@ -109,8 +155,20 @@ export function ResumeBuilder() {
               required
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="resume-headline">Target role / headline</Label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="resume-headline">Target role / headline</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("headline")}
+                disabled={loading || aiBusy.headline}
+              >
+                {aiBusy.headline ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Input
               id="resume-headline"
               value={form.headline}
@@ -119,8 +177,20 @@ export function ResumeBuilder() {
               required
             />
           </div>
-          <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="resume-achievements">Recent wins</Label>
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="resume-achievements">Recent wins</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("achievements")}
+                disabled={loading || aiBusy.achievements}
+              >
+                {aiBusy.achievements ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="resume-achievements"
               rows={3}
@@ -132,8 +202,20 @@ export function ResumeBuilder() {
               required
             />
           </div>
-          <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="resume-experience">Experience highlights</Label>
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="resume-experience">Experience highlights</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("experience")}
+                disabled={loading || aiBusy.experience}
+              >
+                {aiBusy.experience ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="resume-experience"
               rows={4}
@@ -145,8 +227,20 @@ export function ResumeBuilder() {
               required
             />
           </div>
-          <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="resume-focus">Focus / sectors</Label>
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="resume-focus">Focus / sectors</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("focus")}
+                disabled={loading || aiBusy.focus}
+              >
+                {aiBusy.focus ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="resume-focus"
               rows={2}
@@ -159,6 +253,11 @@ export function ResumeBuilder() {
             {loading ? "Compiling…" : "Generate resume"}
           </Button>
         </form>
+        {aiError && (
+          <p className="text-sm text-destructive" role="alert">
+            {aiError}
+          </p>
+        )}
         {error && (
           <p className="text-sm text-destructive" role="alert">
             {error}

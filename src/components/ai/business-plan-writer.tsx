@@ -23,10 +23,14 @@ const initialForm = {
   impact: "",
 };
 
+type BusinessPlanField = keyof typeof initialForm;
+
 export function BusinessPlanWriter() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState<Partial<Record<BusinessPlanField, boolean>>>({});
   const [sections, setSections] = useState<BusinessPlanSection[] | null>(null);
   const [body, setBody] = useState<string | null>(null);
   const [documentRecord, setDocumentRecord] = useState<DocumentRecord | null>(
@@ -76,6 +80,36 @@ export function BusinessPlanWriter() {
     }
   }
 
+  async function handleAssist(field: BusinessPlanField) {
+    setAiBusy((prev) => ({ ...prev, [field]: true }));
+    setAiError(null);
+    try {
+      const response = await fetch("/api/ai/forms/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assistant: "businessPlan",
+          field,
+          form,
+        }),
+      });
+      const payload = (await response.json()) as {
+        suggestion?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.suggestion) {
+        throw new Error(payload.error ?? "Unable to suggest copy.");
+      }
+      updateField(field, payload.suggestion);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to suggest copy.";
+      setAiError(message);
+    } finally {
+      setAiBusy((prev) => ({ ...prev, [field]: false }));
+    }
+  }
+
   function copyBody() {
     if (!body) return;
     void navigator.clipboard.writeText(body);
@@ -93,8 +127,20 @@ export function BusinessPlanWriter() {
       </CardHeader>
       <CardContent className="space-y-6">
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleGenerate}>
-          <div className="space-y-1 md:col-span-2">
-            <Label htmlFor="plan-idea">Company / idea overview</Label>
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="plan-idea">Company / idea overview</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("idea")}
+                disabled={loading || aiBusy.idea}
+              >
+                {aiBusy.idea ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="plan-idea"
               rows={3}
@@ -104,8 +150,20 @@ export function BusinessPlanWriter() {
               required
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="plan-market">Target market</Label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="plan-market">Target market</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("market")}
+                disabled={loading || aiBusy.market}
+              >
+                {aiBusy.market ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Input
               id="plan-market"
               placeholder="SMEs in LatAm + SE Asia with compliance burdens"
@@ -114,8 +172,20 @@ export function BusinessPlanWriter() {
               required
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="plan-go-to-market">Go-to-market motion</Label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="plan-go-to-market">Go-to-market motion</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("goToMarket")}
+                disabled={loading || aiBusy.goToMarket}
+              >
+                {aiBusy.goToMarket ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="plan-go-to-market"
               rows={3}
@@ -127,8 +197,20 @@ export function BusinessPlanWriter() {
               required
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="plan-differentiation">Differentiation</Label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="plan-differentiation">Differentiation</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("differentiation")}
+                disabled={loading || aiBusy.differentiation}
+              >
+                {aiBusy.differentiation ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="plan-differentiation"
               rows={3}
@@ -140,8 +222,20 @@ export function BusinessPlanWriter() {
               required
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="plan-impact">Impact goals</Label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="plan-impact">Impact goals</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() => handleAssist("impact")}
+                disabled={loading || aiBusy.impact}
+              >
+                {aiBusy.impact ? "Generating…" : "Use AI"}
+              </Button>
+            </div>
             <Textarea
               id="plan-impact"
               rows={3}
@@ -154,6 +248,11 @@ export function BusinessPlanWriter() {
             {loading ? "Compiling…" : "Generate plan"}
           </Button>
         </form>
+        {aiError && (
+          <p className="text-sm text-destructive" role="alert">
+            {aiError}
+          </p>
+        )}
         {error && (
           <p className="text-sm text-destructive" role="alert">
             {error}
