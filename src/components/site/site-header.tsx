@@ -7,37 +7,41 @@ import { WalletConnectButton } from "@/components/web3/wallet-connect-button";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
+        {/* Logo and Brand */}
         <Link
           href="/"
           aria-label="VeriVenture home"
-          className="group inline-flex items-center gap-3 rounded-full border border-transparent px-3 py-1.5 transition hover:border-border/80 hover:bg-muted/50"
+          className="group flex items-center gap-3 transition-opacity hover:opacity-80"
         >
-          <div className="relative h-10 w-10 shrink-0 rounded-full bg-background/80 p-1 ring-1 ring-border/60 transition group-hover:bg-background sm:h-12 sm:w-12">
+          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg">
             <Image
               src="/images/veriventure-logo.png"
-              alt="VeriVenture logo"
+              alt="VeriVenture"
               fill
-              sizes="(min-width: 640px) 3rem, 2.5rem"
-              className="rounded-full object-contain"
+              sizes="2.25rem"
+              className="object-cover"
               priority
             />
           </div>
-          <div className="text-left">
-            <span className="block text-lg font-semibold tracking-tight">VeriVenture</span>
-            <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Agent Trust OS</span>
-          </div>
+          <span className="text-xl font-bold tracking-tight">VeriVenture</span>
         </Link>
+
+        {/* Desktop Navigation */}
         <div className="hidden flex-1 justify-center lg:flex">
           <MainNav />
         </div>
-        <div className="flex flex-shrink-0 items-center gap-3">
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
           <ThemeToggle />
           <WalletConnectButton />
         </div>
       </div>
-      <div className="border-t border-border/70 px-4 py-3 sm:px-6 lg:hidden">
+
+      {/* Mobile Navigation */}
+      <div className="border-t px-4 py-3 sm:px-6 lg:hidden">
         <MainNav />
       </div>
     </header>

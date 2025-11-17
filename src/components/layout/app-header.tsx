@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { LayoutDashboard } from "lucide-react";
 
 import { ThemeToggle } from "@/components/site/theme-toggle";
@@ -11,24 +12,31 @@ export async function AppHeader() {
   const session = await getSession();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container-app flex h-16 items-center justify-between gap-4">
+        {/* Logo and Navigation */}
         <div className="flex items-center gap-4">
           <MobileNav address={session?.address ?? null} />
           <Link
             href="/"
-            className="flex items-center gap-3 rounded-lg border border-transparent px-3 py-1.5 transition hover:border-border/80 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex items-center gap-3 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
           >
-            <div>
-              <span className="block text-lg font-semibold tracking-tight">VeriVenture</span>
-              <span className="hidden text-xs uppercase tracking-[0.25em] text-muted-foreground sm:block">
-                Agent Trust OS
-              </span>
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg">
+              <Image
+                src="/images/veriventure-logo.png"
+                alt="VeriVenture"
+                fill
+                sizes="2.25rem"
+                className="object-cover"
+                priority
+              />
             </div>
+            <span className="text-xl font-bold tracking-tight">VeriVenture</span>
           </Link>
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-3">
+        {/* Actions */}
+        <div className="flex items-center gap-2">
           {session?.address && (
             <Button variant="ghost" size="sm" asChild className="hidden gap-2 md:inline-flex">
               <Link href="/dashboard">
