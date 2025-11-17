@@ -33,7 +33,6 @@ export type SidebarNavItem = {
   icon: LucideIcon;
   description?: string;
   children?: SidebarNavItem[];
-  dataTour?: string;
   isActive?: (pathname: string) => boolean;
 };
 
@@ -61,7 +60,6 @@ const aiAssistantItems: SidebarNavItem[] = [
     href: "/ai-assistant/truth",
     icon: FlaskConical,
     description: "Turn claims into verifiable proofs",
-    dataTour: "claim-checker",
   },
 ];
 
@@ -79,21 +77,18 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
       href: "/invoices",
       icon: Receipt,
       description: "Create and manage on-chain invoices",
-      dataTour: "create-invoice",
     },
     {
       title: "Proofs",
       href: "/proofs",
       icon: ListChecks,
       description: "Your verifiable proofs and audit log",
-      dataTour: "proofs",
     },
     {
       title: "Passport",
       href: "/passport",
       icon: Shield,
       description: "Your public Supplier Passport",
-      dataTour: "passport",
     },
   ];
 
@@ -114,7 +109,6 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
     icon: Bot,
     children: aiAssistantItems,
     description: "AI-powered business tools",
-    dataTour: "ai-tools",
   });
 
   // Conditionally add Documents
@@ -189,7 +183,6 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                         ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                         : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                     )}
-                    {...(item.dataTour ? { "data-tour": item.dataTour } : {})}
                   >
                     <Icon
                       className={cn(
@@ -226,7 +219,6 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                               : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                           )}
                           aria-current={isChildActive ? "page" : undefined}
-                          {...(child.dataTour ? { "data-tour": child.dataTour } : {})}
                         >
                           <ChildIcon
                             className={cn(
@@ -258,7 +250,6 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                 )}
                 aria-current={isActive ? "page" : undefined}
-                {...(item.dataTour ? { "data-tour": item.dataTour } : {})}
               >
                 <Icon
                   className={cn(

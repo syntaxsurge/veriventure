@@ -140,7 +140,6 @@ export default defineSchema({
   userProfiles: defineTable({
     ownerAddress: v.string(),
     featuredProofs: v.array(v.string()), // array of proof IDs (UALs or invoice IDs)
-    firstRunComplete: v.boolean(), // track if user completed first-run tour
     checklistComplete: v.array(v.string()), // array of completed checklist items
     createdAt: v.string(),
     updatedAt: v.string(),
