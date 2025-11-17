@@ -67,14 +67,14 @@ npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
 ### Hardhat dev loop tips
 
 - `npm run clean && npm run compile` resets artifacts if TypeChain output drifts.
-- `npm run deploy:moonbase` appends the new address to `blockchain/deployment.log`; copy it into `NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS`.
+- `npm run deploy:moonbase` appends the new address to `blockchain/deployment.log`; copy it into `NEXT_PUBLIC_VALIDITY_REGISTRY_ADDRESS`.
 - The generated ABI lives under `blockchain/artifacts/contracts/ValidityRegistry.sol/ValidityRegistry.json`.
 
 ### Local deployment
 
 1. Run `npx hardhat node` (optional) or point at Moonbase Alpha.
 2. `npm run deploy:moonbase`.
-3. Update `NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS`.
+3. Update `NEXT_PUBLIC_VALIDITY_REGISTRY_ADDRESS`.
 4. Restart the Next.js dev server so the new address is picked up.
 
 ### OriginTrail DKG quickstart
