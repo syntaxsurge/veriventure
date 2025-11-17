@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { exportResumeAsPdf } from "@/lib/resume-export";
 import type { DocumentRecord } from "@/types/document";
 import { buildPreviewResume } from "@/components/ai/resume-builder";
@@ -14,6 +16,14 @@ type ResumeViewerProps = {
 
 export function ResumeViewer({ document }: ResumeViewerProps) {
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishState, setPublishState] = useState<{
+    ual: string;
+    explorer: string | null;
+    subscan: string | null;
+  } | null>(null);
   const resume = document.data.resume;
   const pdfResume = useMemo(
     () => buildPreviewResume(resume ?? null),
@@ -29,6 +39,21 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
     document.title.replace(/ resume draft$/i, "");
   const focus = document.data.metadata?.focus || "";
 
+  function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setPhotoDataUrl(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setPhotoDataUrl(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function handleExportPdf() {
     if (!pdfResume) return;
     setExportingPdf(true);
@@ -40,7 +65,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
         sections: pdfResume.sections,
         skills: pdfResume.skills,
         focus,
-        photoDataUrl: null,
+        photoDataUrl,
       });
     } finally {
       setExportingPdf(false);
@@ -62,6 +87,51 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
       .filter(Boolean)
       .join("\n\n");
     void navigator.clipboard.writeText(text);
+  }
+
+  async function handlePublishToDkg() {
+    if (!resume) return;
+    setPublishing(true);
+    setPublishError(null);
+    setPublishState(null);
+    try {
+      const response = await fetch("/api/dkg/assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "resume",
+          title: document.title || resume.headline,
+          summary: resume.summary || document.summary,
+          references: [],
+          payload: {
+            documentId: document.id,
+            checksum: document.checksum,
+            resume,
+          },
+        }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        ual?: string;
+        explorer?: string | null;
+        subscan?: string | null;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok || !payload.ual) {
+        throw new Error(payload.error ?? "Unable to publish to the DKG.");
+      }
+      setPublishState({
+        ual: payload.ual,
+        explorer: payload.explorer ?? null,
+        subscan: payload.subscan ?? null,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to publish to the DKG.";
+      setPublishError(message);
+    } finally {
+      setPublishing(false);
+    }
   }
 
   return (
@@ -101,11 +171,91 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
             >
               {exportingPdf ? "Exporting…" : "Export PDF"}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handlePublishToDkg}
+              disabled={publishing}
+            >
+              {publishing ? "Publishing…" : "Publish to DKG"}
+            </Button>
           </div>
+          {publishState && (
+            <div className="space-y-1 text-[11px]">
+              <p className="font-semibold text-foreground">
+                UAL:{" "}
+                <span className="break-all font-mono text-muted-foreground">
+                  {publishState.ual}
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-4">
+                {publishState.explorer && (
+                  <a
+                    href={publishState.explorer}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    View on DKG Explorer
+                  </a>
+                )}
+                {publishState.subscan && (
+                  <a
+                    href={publishState.subscan}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    View tx on Subscan
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+          {publishError && (
+            <p className="text-[11px] text-destructive" role="alert">
+              {publishError}
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      <div className="flex items-start justify-center">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="resume-photo">Profile photo (optional)</Label>
+          <div className="flex items-center gap-4">
+            <div className="flex aspect-square h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-muted">
+              {photoDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoDataUrl}
+                  alt={fullName ? `${fullName} headshot` : "Headshot"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="px-2 text-center text-[10px] text-muted-foreground">
+                  1x1 headshot
+                  <br />
+                  (square photo)
+                </span>
+              )}
+            </div>
+            <div className="flex flex-1 flex-col gap-2 text-xs text-muted-foreground">
+              <Input
+                id="resume-photo"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+              />
+              <p>
+                Upload a square headshot to appear in the resume preview and exported PDF.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-start justify-center">
         <div className="w-full max-w-[720px] rounded-2xl border bg-muted/30 p-4 shadow-sm">
           <div
             className="relative mx-auto w-full overflow-hidden rounded-2xl border bg-background shadow-lg"
@@ -126,6 +276,16 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                     </p>
                   )}
                 </div>
+                {photoDataUrl && (
+                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photoDataUrl}
+                      alt={fullName ? `${fullName} headshot` : "Headshot"}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
               </header>
               <main className="mt-4 grid flex-1 gap-5 text-[11px] leading-relaxed md:grid-cols-[0.95fr,1.4fr] md:text-xs">
                 <section className="space-y-4">
@@ -181,6 +341,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

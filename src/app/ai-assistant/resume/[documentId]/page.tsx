@@ -4,19 +4,20 @@ import { ResumeViewer } from "@/components/ai/resume-viewer";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listDocuments } from "@/lib/server/document-store";
 
-type ResumeDetailPageProps = {
-  params: { documentId: string };
+type RouteParams = {
+  params: Promise<{
+    documentId: string;
+  }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function ResumeDetailPage({
-  params,
-}: ResumeDetailPageProps) {
+export default async function ResumeDetailPage({ params }: RouteParams) {
+  const { documentId } = await params;
   const address = await requireAuthenticatedAddress();
   const documents = await listDocuments(address);
   const document = documents.find(
-    (entry) => entry.id === params.documentId && entry.type === "resume",
+    (entry) => entry.id === documentId && entry.type === "resume",
   );
 
   if (!document || !document.data.resume) {
@@ -37,4 +38,3 @@ export default async function ResumeDetailPage({
     </div>
   );
 }
-
