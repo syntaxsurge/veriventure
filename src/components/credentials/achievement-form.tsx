@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { computeAchievementHash } from "@/lib/achievement-hash";
 import { mintAchievementBadge } from "@/lib/web3/validity-contract";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
-import { Coachmark } from "@/components/onboarding/coachmark";
 import { cn } from "@/lib/utils";
 import { clientEnv } from "@/env/client";
 import type {
@@ -66,7 +65,7 @@ export function AchievementForm({
     network: string | null;
     contractAddress: string | null;
   } | null>(null);
-  const { mark, progress } = useOnboardingProgress();
+  const { mark } = useOnboardingProgress();
 
   const previewHash = useMemo(() => computeAchievementHash(form), [form]);
   const fieldLimit = (field: AchievementField) => FIELD_LIMITS[field];
@@ -380,15 +379,6 @@ export function AchievementForm({
       >
         {submitting ? "Submitting…" : "Mint achievement"}
       </Button>
-      <Coachmark
-        id="achievement"
-        targetId="mint-achievement-button"
-        text="Mint at least one badge to unlock every other workflow."
-        active={
-          progress.walletConnected &&
-          !progress.firstAchievementMinted
-        }
-      />
       {error && (
         <p className="text-sm text-destructive" role="alert">
           {error}

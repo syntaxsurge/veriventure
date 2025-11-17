@@ -24,7 +24,6 @@ import { Label } from "@/components/ui/label";
 import type { ImageStrategy, PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
-import { Coachmark } from "@/components/onboarding/coachmark";
 
 type PitchField = keyof Pick<
   PitchWizardDraft,
@@ -877,7 +876,6 @@ type ReviewProps = {
   onSubmit: () => void;
   errors: string[];
   setErrors: (messages: string[]) => void;
-  showCoachmark?: boolean;
   publishToDKG: boolean;
   setPublishToDKG: (value: boolean) => void;
 };
@@ -889,7 +887,6 @@ function ReviewStep({
   onSubmit,
   errors,
   setErrors,
-  showCoachmark,
   publishToDKG,
   setPublishToDKG,
 }: ReviewProps) {
@@ -1041,12 +1038,6 @@ function ReviewStep({
             "Create pitch deck"
           )}
         </Button>
-        <Coachmark
-          id="pitch-deck"
-          targetId="create-pitch-deck-button"
-          text="Generate your first deck to sync every copilot."
-          active={Boolean(showCoachmark)}
-        />
       </div>
     </div>
   );
@@ -1054,7 +1045,7 @@ function ReviewStep({
 
 export function PitchDeckStudio() {
   const router = useRouter();
-  const { mark, progress } = useOnboardingProgress();
+  const { mark } = useOnboardingProgress();
   const {
     ready,
     draft,
@@ -1207,9 +1198,6 @@ export function PitchDeckStudio() {
             {...stepProps}
             submitting={submitting}
             onSubmit={handleSubmit}
-            showCoachmark={
-              progress.firstNotePublished && !progress.firstDeckGenerated
-            }
             publishToDKG={publishToDKG}
             setPublishToDKG={setPublishToDKG}
           />

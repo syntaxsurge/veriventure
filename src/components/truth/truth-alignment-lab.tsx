@@ -20,8 +20,8 @@ import {
 } from "lucide-react";
 import type { AlignmentReport } from "@/types/alignment";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
-import { Coachmark } from "@/components/onboarding/coachmark";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 
 type ApiResponse = {
   report?: AlignmentReport;
@@ -57,11 +57,24 @@ export function TruthAlignmentLab() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [noteError, setNoteError] = useState<string | null>(null);
-  const { mark, progress } = useOnboardingProgress();
+  const { mark } = useOnboardingProgress();
 
   const cosinePercent = useMemo(() => {
     if (!analysis) return null;
     return `${(analysis.similarity.cosineScore * 100).toFixed(1)}%`;
+  }, [analysis]);
+
+  const sanitizedSummaries = useMemo(() => {
+    if (!analysis) {
+      return {
+        wikipedia: "",
+        grokipedia: "",
+      };
+    }
+    return {
+      wikipedia: DOMPurify.sanitize(analysis.wikipedia.summary),
+      grokipedia: DOMPurify.sanitize(analysis.grokipedia.summary),
+    };
   }, [analysis]);
 
   async function handleAnalyze(event: React.FormEvent<HTMLFormElement>) {
@@ -192,7 +205,7 @@ export function TruthAlignmentLab() {
                 className="text-base"
               />
               <p className="text-xs text-muted-foreground">
-                We'll fetch data from Wikipedia and Grokipedia to compare sources
+                We&apos;ll fetch data from Wikipedia and Grokipedia to compare sources
               </p>
             </div>
 
@@ -229,7 +242,7 @@ export function TruthAlignmentLab() {
           <CardContent className="p-8 text-center">
             <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">
-              Enter a topic above to fetch and compare encyclopedia entries. We'll surface
+              Enter a topic above to fetch and compare encyclopedia entries. We&apos;ll surface
               divergences, missing sections, and generate a ready-to-publish note draft.
             </p>
           </CardContent>
@@ -312,9 +325,10 @@ export function TruthAlignmentLab() {
                 )}
               </CardHeader>
               <CardContent className="space-y-3 pt-6">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {analysis.wikipedia.summary}
-                </p>
+                <div
+                  className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground [&>p]:mb-2"
+                  dangerouslySetInnerHTML={{ __html: sanitizedSummaries.wikipedia }}
+                />
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span>Words: {analysis.wikipedia.wordCount}</span>
                   {analysis.wikipedia.lastModified && (
@@ -352,9 +366,10 @@ export function TruthAlignmentLab() {
                 )}
               </CardHeader>
               <CardContent className="space-y-3 pt-6">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {analysis.grokipedia.summary}
-                </p>
+                <div
+                  className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground [&>p]:mb-2"
+                  dangerouslySetInnerHTML={{ __html: sanitizedSummaries.grokipedia }}
+                />
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span>Words: {analysis.grokipedia.wordCount}</span>
                   {analysis.grokipedia.lastModified && (
@@ -565,16 +580,6 @@ export function TruthAlignmentLab() {
                     </CardContent>
                   </Card>
                 )}
-
-                <Coachmark
-                  id="community-note"
-                  targetId="publish-community-note-button"
-                  text="Publish a Community Note after minting to anchor provenance."
-                  active={
-                    progress.firstAchievementMinted &&
-                    !progress.firstNotePublished
-                  }
-                />
 
                 {noteError && (
                   <Card className="border-2 border-destructive/50 bg-destructive/5">
