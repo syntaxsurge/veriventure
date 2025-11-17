@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@/polyfills/indexeddb";
 import { AppHeader } from "@/components/layout/app-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OnboardingDialog } from "@/components/onboarding/onboarding-dialog";

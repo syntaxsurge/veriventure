@@ -17,7 +17,7 @@ const wagmiConfig = getDefaultConfig({
   appName: "VeriVenture",
   projectId: "455a9939d641d79b258424737e7f9205",
   chains: [moonbaseAlpha, moonbeam],
-  ssr: true,
+  ssr: false,
 });
 
 const queryClient = new QueryClient();

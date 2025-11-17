@@ -59,6 +59,7 @@
     "date-fns": "^4.1.0",
     "diff": "^8.0.2",
     "dkg.js": "^8.2.0",
+    "fake-indexeddb": "5.0.2",
     "framer-motion": "^12.23.24",
     "html2canvas": "^1.4.1",
     "jose": "^6.1.2",
