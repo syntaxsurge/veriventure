@@ -50,7 +50,7 @@ Real-world pain points and the hackathon alignment matrix are documented in `doc
 - **Truth Alignment Lab** – `/api/alignment/analyze` calls Wikipedia and Grokipedia, runs embeddings for cosine similarities, and `/api/dkg/notes` publishes Community Notes onto the OriginTrail DKG with instant “View on DKG Explorer/Subscan” proof links.
 - **Documents vault** – `/documents` lists every AI artifact with metadata, checksum copy actions, and JSON downloads regardless of type (`pitch_deck`, `business_plan`, `resume`, `social_post`). All entries live in Convex `documents`.
 - **DKG Activity** – `/ai-assistant/dkg-test` is now a production history surface listing every Knowledge Asset tied to the wallet (Truth Alignment notes, plans, resumes, future copilots) with UAL, DKG Explorer, and NeuroWeb Subscan links.
-- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (resolved server-side from the wallet session) so authenticated users land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, OriginTrail UAL links, and NeuroWeb Subscan tx links sourced from the env templates, and never 404s when a wallet has zero achievements.
+- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (resolved server-side from the wallet session) so authenticated users land on their live trust surface. The page exposes share/copy actions, recompute buttons, OriginTrail UAL links, and NeuroWeb Subscan tx links sourced from the env templates, and never 404s when a wallet has zero achievements.
 
 ## Contracts
 

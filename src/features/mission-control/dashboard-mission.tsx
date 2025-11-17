@@ -2,13 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Circle, ExternalLink, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2, Circle, Share2 } from "lucide-react";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 import { cn } from "@/lib/utils";
 
 type DashboardMissionProps = {
   address?: string | null;
+};
+
+type MissionStep = {
+  key: string;
+  label: string;
+  complete: boolean;
+  action: () => void | Promise<void>;
+  disabled?: boolean;
 };
 
 export function DashboardMission({ address }: DashboardMissionProps) {
@@ -19,13 +26,13 @@ export function DashboardMission({ address }: DashboardMissionProps) {
   );
 
   const shareUrl = useMemo(() => {
-    if (typeof window === "undefined") return "";
+    const handle = address?.trim();
+    if (typeof window === "undefined" || !handle) return "";
     const origin = window.location.origin;
-    const handle = address?.trim() || "demo";
-    return `${origin}/verify/${handle}`;
+    return `${origin}/verify/${encodeURIComponent(handle)}`;
   }, [address]);
 
-  const steps = useMemo(
+  const steps = useMemo<MissionStep[]>(
     () => [
       {
         key: "walletConnected",
@@ -55,6 +62,7 @@ export function DashboardMission({ address }: DashboardMissionProps) {
         key: "verifyShared",
         label: "Share Verify link",
         complete: progress.verifyShared,
+        disabled: !shareUrl,
         action: async () => {
           if (!shareUrl || typeof navigator === "undefined") return;
           if (!navigator.clipboard) {
@@ -72,7 +80,7 @@ export function DashboardMission({ address }: DashboardMissionProps) {
             setTimeout(() => setShareStatus("idle"), 2500);
           }
         },
-      },
+      }
     ],
     [
       progress.walletConnected,
@@ -97,12 +105,20 @@ export function DashboardMission({ address }: DashboardMissionProps) {
             <button
               key={step.key}
               type="button"
-              onClick={() => step.action()}
+              onClick={() => {
+                if (!step.disabled) {
+                  step.action();
+                }
+              }}
+              disabled={step.disabled}
               className={cn(
-                "flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium hover:border-primary/50 hover:text-primary",
+                "flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 step.complete
                   ? "border-emerald-200 text-emerald-700"
                   : "border-border text-muted-foreground",
+                step.disabled
+                  ? "cursor-not-allowed opacity-60"
+                  : "hover:border-primary/50 hover:text-primary",
               )}
             >
               {step.complete ? (
@@ -127,14 +143,6 @@ export function DashboardMission({ address }: DashboardMissionProps) {
               Clipboard blocked
             </span>
           )}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => router.push("/verify/demo")}
-          >
-            Demo Flight
-            <ExternalLink className="h-3.5 w-3.5" />
-          </Button>
         </div>
       </div>
     </div>

@@ -84,7 +84,7 @@ export default function Home() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/verify/demo">Explore Verify demo</Link>
+              <Link href="/credentials">Review credentials</Link>
             </Button>
           </div>
         </div>

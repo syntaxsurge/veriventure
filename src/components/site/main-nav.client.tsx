@@ -52,9 +52,10 @@ export function MainNavClient({ address }: MainNavClientProps) {
   const normalizedAddress = address?.trim();
   const verifyHref = normalizedAddress
     ? `/verify/${encodeURIComponent(normalizedAddress)}`
-    : "/verify/demo";
-  const verifyLabel = normalizedAddress ? "My Verify" : "Verify demo";
-  const verifyActive = pathname?.startsWith("/verify") ?? false;
+    : null;
+  const verifyActive = verifyHref
+    ? pathname?.startsWith("/verify") ?? false
+    : false;
 
   return (
     <nav className="flex flex-wrap items-center gap-2 text-sm font-medium">
@@ -78,17 +79,19 @@ export function MainNavClient({ address }: MainNavClientProps) {
           </Link>
         );
       })}
-      <Link
-        href={verifyHref}
-        className={cn(
-          "rounded-full px-3 py-1.5 transition-colors",
-          verifyActive
-            ? "bg-primary text-primary-foreground"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground",
-        )}
-      >
-        {verifyLabel}
-      </Link>
+      {verifyHref && (
+        <Link
+          href={verifyHref}
+          className={cn(
+            "rounded-full px-3 py-1.5 transition-colors",
+            verifyActive
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          My Verify
+        </Link>
+      )}
     </nav>
   );
 }
