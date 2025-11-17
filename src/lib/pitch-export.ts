@@ -179,6 +179,7 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
     );
     const bulletSize = resolveFontSize(slide.textStyles, "bullet", PDF_FONT_DEFAULTS.bullet);
     const noteSize = resolveFontSize(slide.textStyles, "note", PDF_FONT_DEFAULTS.note);
+    const captionSize = resolveFontSize(slide.textStyles, "caption", PDF_FONT_DEFAULTS.caption);
 
     const [baseR, baseG, baseB] = hexToRgbTuple(palette.base);
     doc.setFillColor(baseR, baseG, baseB);
@@ -189,24 +190,27 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
       continue;
     }
 
-    const textPanel = { x: 70, y: 80, width: 650, height: 520 };
-    const imagePanel = { x: 760, y: 110, width: 420, height: 420 };
-    const panelFill = lightenHex(palette.base, 0.08);
-    const panelStroke = lightenHex(palette.contrast, 0.35);
-    const [panelR, panelG, panelB] = hexToRgbTuple(panelFill);
-    const [panelStrokeR, panelStrokeG, panelStrokeB] = hexToRgbTuple(panelStroke);
-
-    doc.setFillColor(panelR, panelG, panelB);
-    doc.setDrawColor(panelStrokeR, panelStrokeG, panelStrokeB);
-    doc.roundedRect(
-      textPanel.x - 20,
-      textPanel.y - 35,
-      textPanel.width + 40,
-      textPanel.height + 70,
-      32,
-      32,
-      "FD",
-    );
+    const horizontalPadding = 70;
+    const verticalPadding = 90;
+    const gutter = 60;
+    const availableWidth = SLIDE_BASE_WIDTH - horizontalPadding * 2;
+    const availableHeight = SLIDE_BASE_HEIGHT - verticalPadding * 2;
+    let textWidth = availableWidth * 0.56;
+    if (availableWidth - textWidth - gutter < 280) {
+      textWidth = availableWidth - gutter - 280;
+    }
+    const textPanel = {
+      x: horizontalPadding,
+      y: verticalPadding,
+      width: textWidth,
+      height: availableHeight,
+    };
+    const imagePanel = {
+      x: textPanel.x + textPanel.width + gutter,
+      y: verticalPadding,
+      width: availableWidth - textWidth - gutter,
+      height: availableHeight,
+    };
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...hexToRgbTuple(palette.contrast));
@@ -234,64 +238,60 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
     let bulletCursor = cursorY;
     let bulletAreaBottom = cursorY;
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(bulletSize);
-    doc.setTextColor(bulletR, bulletG, bulletB);
-
-    bulletEntries.forEach((bullet) => {
-      const lines = doc.splitTextToSize(bullet, textPanel.width - 110);
-      const blockHeight = lines.length * bulletSize * 1.3;
-      const indicatorY = bulletCursor - bulletSize * 0.25;
-      doc.setDrawColor(bulletR, bulletG, bulletB);
-      doc.setLineWidth(3);
-      doc.line(textPanel.x - 10, indicatorY, textPanel.x + 30, indicatorY);
-      doc.text(lines, textPanel.x + 40, bulletCursor, {
-        maxWidth: textPanel.width - 110,
-        lineHeightFactor: 1.3,
+    if (bulletEntries.length) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(bulletSize);
+      doc.setTextColor(bulletR, bulletG, bulletB);
+      const bulletIndent = 30;
+      bulletEntries.forEach((bullet) => {
+        const lines = doc.splitTextToSize(bullet, textPanel.width - bulletIndent - 20);
+        doc.text("•", textPanel.x, bulletCursor, { baseline: "top" });
+        doc.text(lines, textPanel.x + bulletIndent, bulletCursor, {
+          maxWidth: textPanel.width - bulletIndent,
+          lineHeightFactor: 1.4,
+          baseline: "top",
+        });
+        const blockHeight = lines.length * bulletSize * 0.9 + bulletSize;
+        bulletCursor += blockHeight + 18;
+        bulletAreaBottom = bulletCursor;
       });
-      bulletCursor += blockHeight + 16;
-      bulletAreaBottom = bulletCursor;
-    });
-    doc.setLineWidth(1);
+    }
 
     if (slide.notes) {
-      const noteY = Math.max(
-        bulletAreaBottom + 10,
-        textPanel.y + textPanel.height - 80,
+      const noteY = Math.min(
+        textPanel.y + textPanel.height - noteSize - 12,
+        bulletAreaBottom + 20,
       );
       doc.setFont("helvetica", "italic");
       doc.setFontSize(noteSize);
       doc.setTextColor(...hexToRgbTuple(noteColor));
       doc.text(slide.notes, textPanel.x, noteY, {
-        maxWidth: textPanel.width - 60,
+        maxWidth: textPanel.width - 20,
+        lineHeightFactor: 1.4,
       });
     }
-
-    const [imagePanelR, imagePanelG, imagePanelB] = hexToRgbTuple(lightenHex(palette.base, 0.18));
-    doc.setFillColor(imagePanelR, imagePanelG, imagePanelB);
-    doc.setDrawColor(panelStrokeR, panelStrokeG, panelStrokeB);
-    doc.roundedRect(imagePanel.x, imagePanel.y, imagePanel.width, imagePanel.height, 40, 40, "FD");
 
     const imageData = await resolveImageData(resolveHeroSource(slide));
     if (imageData) {
       const format = imageData.startsWith("data:image/png") ? "PNG" : "JPEG";
       const properties = doc.getImageProperties(imageData);
-      const maxWidth = imagePanel.width - 80;
-      const maxHeight = imagePanel.height - 140;
-      const scale = Math.min(maxWidth / properties.width, maxHeight / properties.height);
+      const captionReserve = caption ? 70 : 0;
+      const maxWidth = imagePanel.width;
+      const maxHeight = imagePanel.height - captionReserve;
+      const scale = Math.min(maxWidth / properties.width, maxHeight / properties.height, 1);
       const imageWidth = properties.width * scale;
       const imageHeight = properties.height * scale;
-      const imageX = imagePanel.x + (imagePanel.width - imageWidth) / 2;
-      const imageY = imagePanel.y + 30;
+      const imageX = imagePanel.x + (maxWidth - imageWidth) / 2;
+      const imageY = imagePanel.y + (maxHeight - imageHeight) / 2;
       doc.addImage(imageData, format, imageX, imageY, imageWidth, imageHeight);
     }
 
     if (caption) {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
+      doc.setFontSize(captionSize);
       doc.setTextColor(...hexToRgbTuple(palette.contrast));
-      doc.text(caption, imagePanel.x + 30, imagePanel.y + imagePanel.height - 40, {
-        maxWidth: imagePanel.width - 60,
+      doc.text(caption, imagePanel.x, imagePanel.y + imagePanel.height - 30, {
+        maxWidth: imagePanel.width,
       });
     }
   }
@@ -376,6 +376,11 @@ export async function exportDeckAsPptx(
 ) {
   const pptx = new PptxGenJS();
   const baseTheme = buildDeckTheme(deck);
+  const slideWidth = pptx.presLayout.width;
+  const slideHeight = pptx.presLayout.height;
+  const horizontalPadding = Math.max(slideWidth * 0.05, 0.4);
+  const verticalPadding = Math.max(slideHeight * 0.08, 0.4);
+  const gutter = 0.4;
 
   for (let index = 0; index < slides.length; index += 1) {
     const slide = slides[index]!;
@@ -393,6 +398,11 @@ export async function exportDeckAsPptx(
     );
     const bulletSize = resolveFontSize(slide.textStyles, "bullet", PPT_FONT_DEFAULTS.bullet);
     const noteSize = resolveFontSize(slide.textStyles, "note", PPT_FONT_DEFAULTS.note);
+    const captionSize = resolveFontSize(
+      slide.textStyles,
+      "caption",
+      PPT_FONT_DEFAULTS.caption,
+    );
     const caption = slide.images[0]?.caption || slide.title;
     pptSlide.background = { color: slideTheme.background };
 
@@ -401,20 +411,26 @@ export async function exportDeckAsPptx(
       continue;
     }
 
-    const textPanel = { x: 0.5, y: 0.4, w: 6.6, h: 5.2 };
-    const imagePanel = { x: 7.4, y: 0.6, w: 4.5, h: 5.3 };
-    const panelFill = lightenHex(palette.base, 0.05);
-    const panelStroke = lightenHex(palette.contrast, 0.3);
-
-    pptSlide.addShape("roundRect", {
-      x: textPanel.x - 0.1,
-      y: textPanel.y - 0.25,
-      w: textPanel.w + 0.2,
-      h: textPanel.h + 0.35,
-      fill: { color: panelFill },
-      line: { color: panelStroke, width: 1.6 },
-      shadow: { type: "outer", blur: 15, color: lightenHex(palette.contrast, 0.2) },
-    });
+    const innerWidth = slideWidth - horizontalPadding * 2;
+    const innerHeight = slideHeight - verticalPadding * 2;
+    let textWidth = innerWidth * 0.56;
+    let imageWidth = innerWidth - textWidth - gutter;
+    if (imageWidth < innerWidth * 0.32) {
+      imageWidth = innerWidth * 0.32;
+      textWidth = innerWidth - imageWidth - gutter;
+    }
+    const textPanel = {
+      x: horizontalPadding,
+      y: verticalPadding,
+      w: textWidth,
+      h: innerHeight,
+    };
+    const imagePanel = {
+      x: textPanel.x + textPanel.w + gutter,
+      y: verticalPadding,
+      w: innerWidth - textWidth - gutter,
+      h: innerHeight,
+    };
 
     pptSlide.addText(slide.title, {
       x: textPanel.x,
@@ -443,13 +459,13 @@ export async function exportDeckAsPptx(
     const bulletEntries = slide.bullets
       .map((entry) => entry.trim())
       .filter((entry) => entry.length > 0);
-    const noteSlotHeight = slide.notes ? 0.9 : 0;
+    const noteSlotHeight = slide.notes ? Math.min(1.1, textPanel.h * 0.25) : 0;
     const bulletAreaHeight = Math.max(
-      textPanel.h - (blockY - textPanel.y) - noteSlotHeight - 0.3,
-      0,
+      textPanel.h - (blockY - textPanel.y) - noteSlotHeight,
+      0.1,
     );
 
-    if (bulletEntries.length && bulletAreaHeight > 0.2) {
+    if (bulletEntries.length && bulletAreaHeight > 0.1) {
       const bulletRuns = bulletEntries.map((entry) => ({
         text: entry,
         options: {
@@ -464,7 +480,7 @@ export async function exportDeckAsPptx(
       pptSlide.addText(bulletRuns, {
         x: textPanel.x,
         y: blockY,
-        w: textPanel.w - 0.4,
+        w: textPanel.w,
         h: bulletAreaHeight,
         fit: "shrink",
         margin: 0,
@@ -476,7 +492,7 @@ export async function exportDeckAsPptx(
       pptSlide.addText(slide.notes, {
         x: textPanel.x,
         y: noteY,
-        w: textPanel.w - 0.4,
+        w: textPanel.w,
         h: Math.max(noteSlotHeight - 0.1, 0.6),
         fontSize: noteSize,
         color: noteColor,
@@ -485,41 +501,35 @@ export async function exportDeckAsPptx(
       });
     }
 
-    pptSlide.addShape("roundRect", {
-      x: imagePanel.x,
-      y: imagePanel.y,
-      w: imagePanel.w,
-      h: imagePanel.h,
-      fill: { color: lightenHex(palette.base, 0.2) },
-      line: { color: panelStroke, width: 1.8 },
-      shadow: { type: "outer", blur: 18, color: lightenHex(palette.contrast, 0.25) },
-    });
-
     const imageData = await resolveImageData(resolveHeroSource(slide));
+    const captionReserve = caption ? Math.min(0.5, imagePanel.h * 0.18) : 0;
+    const heroHeight = imagePanel.h - captionReserve;
     if (imageData) {
       pptSlide.addImage({
         data: imageData,
-        x: imagePanel.x + 0.2,
-        y: imagePanel.y + 0.2,
-        w: imagePanel.w - 0.4,
-        h: imagePanel.h - 1,
+        x: imagePanel.x,
+        y: imagePanel.y,
+        w: imagePanel.w,
+        h: heroHeight,
         sizing: {
           type: "contain",
-          w: imagePanel.w - 0.4,
-          h: imagePanel.h - 1,
+          w: imagePanel.w,
+          h: heroHeight,
         },
       });
     }
 
-    pptSlide.addText(caption, {
-      x: imagePanel.x + 0.3,
-      y: imagePanel.y + imagePanel.h - 0.65,
-      w: imagePanel.w - 0.6,
-      fontSize: 14,
-      color: palette.contrast,
-      bold: true,
-      fontFace: "Helvetica",
-    });
+    if (caption) {
+      pptSlide.addText(caption, {
+        x: imagePanel.x,
+        y: imagePanel.y + heroHeight + 0.1,
+        w: imagePanel.w,
+        fontSize: captionSize,
+        color: palette.contrast,
+        bold: true,
+        fontFace: "Helvetica",
+      });
+    }
   }
 
   await pptx.writeFile({ fileName: `${deck.startupName}-deck.pptx` });

@@ -1005,14 +1005,6 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
     <div className="grid gap-10 px-6 py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <div className={`flex flex-col gap-6 ${isFlipped ? "lg:order-2" : "lg:order-1"}`}>
         <div className="space-y-3">
-          <div
-            className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.35em]"
-            style={{ color: tokens.textSoft }}
-          >
-            <span>Slide {index + 1}</span>
-            <span className="h-1 w-10 rounded-full" style={{ backgroundColor: tokens.textSoft }} />
-            <span>{slide.subtitle ? "Insight" : "Overview"}</span>
-          </div>
           <h2
             className="font-semibold leading-tight"
             style={{ color: titleColor, fontSize: titleSize, lineHeight: 1.1 }}
@@ -1030,27 +1022,20 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
         </div>
 
         {bulletCards.length > 0 && (
-          <div className="space-y-4">
-            {bulletCards.slice(0, 4).map((bullet, bulletIndex) => (
-              <div key={`${slide.id}-card-${bulletIndex}`} className="flex gap-3">
-                <span
-                  className="mt-2 h-1 w-10 rounded-full"
-                  style={{ backgroundColor: withAlpha(titleColor, 0.55) }}
-                />
-                <p
-                  className="flex-1 font-medium"
-                  style={{
-                    color: bulletColor,
-                    fontSize: bulletSize,
-                    lineHeight: 1.5,
-                    maxWidth: "72ch",
-                  }}
-                >
-                  {bullet}
-                </p>
-              </div>
+          <ul
+            className="list-disc space-y-4 pl-6"
+            style={{ color: bulletColor, fontSize: bulletSize }}
+          >
+            {bulletCards.map((bullet, bulletIndex) => (
+              <li
+                key={`${slide.id}-card-${bulletIndex}`}
+                className="font-medium leading-relaxed"
+                style={{ lineHeight: 1.5, maxWidth: "72ch" }}
+              >
+                {bullet}
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
         {slide.notes && (
