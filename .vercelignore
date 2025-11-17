@@ -1,0 +1,2 @@
+# Exclude local-only tooling from Vercel deployments
+blockchain/
