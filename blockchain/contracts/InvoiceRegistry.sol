@@ -76,7 +76,7 @@ contract InvoiceRegistry is Ownable, ReentrancyGuard {
     constructor(address initialOwner) Ownable(initialOwner) {}
 
     /// @notice Create a native currency invoice (DEV on Moonbase Alpha)
-    /// @param payer The address that should pay this invoice
+    /// @param payer The address that should pay this invoice (address(0) means open to anyone)
     /// @param amountWei Amount in wei
     /// @param dueAt Unix timestamp for due date
     /// @param memo Human-readable description
@@ -89,7 +89,6 @@ contract InvoiceRegistry is Ownable, ReentrancyGuard {
         string calldata memo,
         string calldata dkgUAL
     ) external returns (uint256 id) {
-        require(payer != address(0), "InvoiceRegistry: invalid payer");
         require(amountWei > 0, "InvoiceRegistry: amount must be > 0");
         require(dueAt > block.timestamp, "InvoiceRegistry: due date must be future");
 
@@ -110,7 +109,9 @@ contract InvoiceRegistry is Ownable, ReentrancyGuard {
         inv.paidAt = 0;
 
         _issuerInvoices[msg.sender].push(id);
-        _payerInvoices[payer].push(id);
+        if (payer != address(0)) {
+            _payerInvoices[payer].push(id);
+        }
 
         emit InvoiceCreated(
             id,
@@ -126,7 +127,7 @@ contract InvoiceRegistry is Ownable, ReentrancyGuard {
     }
 
     /// @notice Create an ERC20 token invoice
-    /// @param payer The address that should pay this invoice
+    /// @param payer The address that should pay this invoice (address(0) means open to anyone)
     /// @param token The ERC20 token contract address
     /// @param amount Amount in token units
     /// @param dueAt Unix timestamp for due date
@@ -141,7 +142,6 @@ contract InvoiceRegistry is Ownable, ReentrancyGuard {
         string calldata memo,
         string calldata dkgUAL
     ) external returns (uint256 id) {
-        require(payer != address(0), "InvoiceRegistry: invalid payer");
         require(token != address(0), "InvoiceRegistry: invalid token");
         require(amount > 0, "InvoiceRegistry: amount must be > 0");
         require(dueAt > block.timestamp, "InvoiceRegistry: due date must be future");
@@ -163,7 +163,9 @@ contract InvoiceRegistry is Ownable, ReentrancyGuard {
         inv.paidAt = 0;
 
         _issuerInvoices[msg.sender].push(id);
-        _payerInvoices[payer].push(id);
+        if (payer != address(0)) {
+            _payerInvoices[payer].push(id);
+        }
 
         emit InvoiceCreated(
             id,

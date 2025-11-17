@@ -53,6 +53,14 @@ export async function listDocuments(address?: string | null) {
   return docs.map(deserialize);
 }
 
+export async function getDocument(documentId: string) {
+  const convex = getConvexClient();
+  const doc = (await convex.query(api.documents.getByDocumentId, {
+    documentId,
+  })) as DocumentDoc | null;
+  return doc ? deserialize(doc) : null;
+}
+
 type DocumentInput = {
   ownerAddress: string;
   type: DocumentType;

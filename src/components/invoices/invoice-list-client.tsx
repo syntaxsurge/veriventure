@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { formatEther } from "viem";
+import { formatEther, zeroAddress } from "viem";
 import {
   Receipt,
   Plus,
@@ -132,6 +132,7 @@ export function InvoiceListClient() {
   const InvoiceCard = ({ invoice, type }: { invoice: Invoice; type: "issued" | "received" }) => {
     const isIssued = type === "issued";
     const otherParty = isIssued ? invoice.payerAddress : invoice.issuerAddress;
+    const isOpenInvoice = isIssued && invoice.payerAddress === zeroAddress;
     const amountDEV = formatEther(BigInt(invoice.amount));
     const dueDate = new Date(invoice.dueAt);
     const isOverdue = dueDate < new Date() && invoice.status === "Pending";
@@ -157,9 +158,15 @@ export function InvoiceListClient() {
                     <div className="flex items-center gap-2">
                       <p className="font-medium">
                         {isIssued ? "To" : "From"}:{" "}
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {otherParty.slice(0, 6)}...{otherParty.slice(-4)}
-                        </span>
+                        {isOpenInvoice ? (
+                          <span className="text-xs font-medium text-muted-foreground">
+                            Open to any wallet
+                          </span>
+                        ) : (
+                          <span className="font-mono text-sm text-muted-foreground">
+                            {otherParty.slice(0, 6)}...{otherParty.slice(-4)}
+                          </span>
+                        )}
                       </p>
                       {invoice.onChainId && (
                         <Badge variant="outline" className="text-xs">

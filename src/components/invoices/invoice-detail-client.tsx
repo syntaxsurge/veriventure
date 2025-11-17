@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { formatEther } from "viem";
+import { formatEther, zeroAddress } from "viem";
 import {
   ArrowLeft,
   Receipt,
@@ -217,8 +217,11 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const dueDate = new Date(invoice.dueAt);
   const isOverdue = dueDate < new Date() && invoice.status === "Pending";
   const isIssuer = address?.toLowerCase() === invoice.issuerAddress.toLowerCase();
-  const isPayer = address?.toLowerCase() === invoice.payerAddress.toLowerCase();
-  const canPay = isPayer && invoice.status === "Pending";
+  const isOpenInvoice = invoice.payerAddress === zeroAddress;
+  const isPayer = !isOpenInvoice && address?.toLowerCase() === invoice.payerAddress.toLowerCase();
+  const canPay =
+    invoice.status === "Pending" &&
+    ((isOpenInvoice && Boolean(address)) || Boolean(isPayer));
   const canCancel = isIssuer && invoice.status === "Pending";
 
   return (
@@ -305,19 +308,25 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                 <User className="h-4 w-4" />
                 Payer
               </div>
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                  {invoice.payerAddress.slice(0, 6)}...{invoice.payerAddress.slice(-4)}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => copyToClipboard(invoice.payerAddress)}
-                >
-                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                </Button>
-              </div>
+              {isOpenInvoice ? (
+                <p className="text-sm font-medium text-muted-foreground">
+                  Open payment link — any wallet with this invoice can pay
+                </p>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                    {invoice.payerAddress.slice(0, 6)}...{invoice.payerAddress.slice(-4)}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => copyToClipboard(invoice.payerAddress)}
+                  >
+                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -477,6 +486,8 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               <AlertDescription>
                 {isIssuer
                   ? "Waiting for payment from the client"
+                  : isOpenInvoice
+                  ? "Connect your wallet above to pay this open invoice"
                   : isPayer
                   ? "You can pay this invoice above"
                   : "You are not authorized to interact with this invoice"}
@@ -491,7 +502,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
         <CardHeader>
           <CardTitle className="text-base">Share Invoice</CardTitle>
           <CardDescription>
-            Send this link to the payer to view and pay the invoice
+            Send this link to the payer. If no wallet was specified, any wallet with this link can pay.
           </CardDescription>
         </CardHeader>
         <CardContent>

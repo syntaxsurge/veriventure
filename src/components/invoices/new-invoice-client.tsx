@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount, useWalletClient } from "wagmi";
-import { parseEther } from "viem";
+import { parseEther, zeroAddress } from "viem";
 import { ArrowLeft, Loader2, Receipt, Sparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -39,16 +39,20 @@ export function NewInvoiceClient() {
       return;
     }
 
-    if (!payerAddress || !amount || !dueDate || !memo) {
+    if (!amount || !dueDate || !memo) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    // Validate payer address
-    if (!/^0x[a-fA-F0-9]{40}$/.test(payerAddress)) {
+    const trimmedPayer = payerAddress.trim();
+
+    // Validate payer address when provided
+    if (trimmedPayer && !/^0x[a-fA-F0-9]{40}$/.test(trimmedPayer)) {
       toast.error("Invalid payer address");
       return;
     }
+
+    const targetPayer = trimmedPayer || zeroAddress;
 
     // Validate amount
     const amountNum = parseFloat(amount);
@@ -70,7 +74,7 @@ export function NewInvoiceClient() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               topic: `Invoice: ${memo.slice(0, 100)}`,
-              summary: `Invoice from ${address} to ${payerAddress}. Amount: ${amount} DEV. Due: ${new Date(dueDate).toLocaleDateString()}. Description: ${memo}`,
+              summary: `Invoice from ${address} to ${trimmedPayer || "any wallet with the invoice link"}. Amount: ${amount} DEV. Due: ${new Date(dueDate).toLocaleDateString()}. Description: ${memo}`,
               references: [],
             }),
           });
@@ -93,7 +97,7 @@ export function NewInvoiceClient() {
       // Create invoice on-chain
       const result = await createNativeInvoice({
         walletClient,
-        payer: payerAddress,
+        payer: targetPayer,
         amountDEV: amount,
         dueDate: new Date(dueDate),
         memo,
@@ -107,7 +111,7 @@ export function NewInvoiceClient() {
         body: JSON.stringify({
           onChainId: Number(result.invoiceId),
           issuerAddress: address,
-          payerAddress,
+          payerAddress: targetPayer,
           currencyType: "NATIVE",
           amount: parseEther(amount).toString(),
           dueAt: new Date(dueDate).toISOString(),
@@ -177,7 +181,7 @@ export function NewInvoiceClient() {
         <CardContent className="space-y-6">
           {/* Payer Address */}
           <div className="space-y-2">
-            <Label htmlFor="payer">Client Wallet Address *</Label>
+            <Label htmlFor="payer">Client Wallet Address</Label>
             <Input
               id="payer"
               placeholder="0x..."
@@ -186,7 +190,7 @@ export function NewInvoiceClient() {
               className="font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              The wallet address that will pay this invoice
+              Optional — leave blank to accept payment from any wallet with the invoice link
             </p>
           </div>
 
@@ -295,7 +299,7 @@ export function NewInvoiceClient() {
           <div className="flex gap-3 pt-4">
             <Button
               onClick={handleCreateInvoice}
-              disabled={isCreating || !payerAddress || !amount || !memo}
+              disabled={isCreating || !amount || !memo}
               className="flex-1"
               size="lg"
             >

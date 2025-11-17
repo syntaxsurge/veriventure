@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { api } from "@convex/_generated/api";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { zeroAddress } from "viem";
 
 // GET /api/invoices - Get all invoices for a user
 export async function GET(request: NextRequest) {
@@ -57,8 +58,13 @@ export async function POST(request: NextRequest) {
       contractAddress,
     } = body;
 
+    const normalizedPayer =
+      typeof payerAddress === "string" && payerAddress.trim() !== ""
+        ? payerAddress
+        : zeroAddress;
+
     // Validate required fields
-    if (!issuerAddress || !payerAddress || !currencyType || !amount || !dueAt || !status || !memo) {
+    if (!issuerAddress || !currencyType || !amount || !dueAt || !status || !memo) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -68,7 +74,7 @@ export async function POST(request: NextRequest) {
     const result = await fetchMutation(api.invoices.createInvoice, {
       onChainId,
       issuerAddress,
-      payerAddress,
+      payerAddress: normalizedPayer,
       currencyType,
       tokenAddress,
       amount,

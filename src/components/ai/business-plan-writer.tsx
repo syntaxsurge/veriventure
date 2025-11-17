@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import type { BusinessPlanSection, DocumentRecord } from "@/types/document";
 
 type ApiResponse = {
@@ -32,6 +34,7 @@ const initialForm = {
 type BusinessPlanField = keyof typeof initialForm;
 
 export function BusinessPlanWriter() {
+  const router = useRouter();
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,13 +82,23 @@ export function BusinessPlanWriter() {
           payload.error ?? "Failed to compile the business plan.",
         );
       }
-      setSections(payload.sections);
-      setBody(payload.body);
-      setDocumentRecord(payload.document);
+
+      // Success! Show toast and redirect to the view page
+      toast.success("Business plan generated successfully!", {
+        description: "Redirecting to your business plan...",
+      });
+
+      // Redirect to the business plan view page
+      setTimeout(() => {
+        router.push(`/ai-assistant/business-plan/${payload.document!.id}`);
+      }, 1000);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unexpected business plan error.";
       setError(message);
+      toast.error("Failed to generate business plan", {
+        description: message,
+      });
     } finally {
       setLoading(false);
     }

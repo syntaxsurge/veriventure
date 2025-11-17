@@ -19,6 +19,18 @@ export const list = query({
   },
 });
 
+export const getByDocumentId = query({
+  args: {
+    documentId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("documents")
+      .withIndex("by_documentId", (q) => q.eq("documentId", args.documentId))
+      .unique();
+  },
+});
+
 export const insert = mutation({
   args: {
     documentId: v.string(),
