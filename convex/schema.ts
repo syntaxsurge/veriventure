@@ -100,4 +100,28 @@ export default defineSchema({
   })
     .index("by_owner", ["ownerAddress"])
     .index("by_deckId", ["deckId"]),
+
+  invoices: defineTable({
+    invoiceId: v.string(),
+    onChainId: v.optional(v.number()),
+    issuerAddress: v.string(),
+    payerAddress: v.string(),
+    currencyType: v.string(), // "NATIVE" or "ERC20"
+    tokenAddress: v.optional(v.string()),
+    amount: v.string(), // stored as string to preserve precision
+    dueAt: v.string(),
+    status: v.string(), // "Pending", "Paid", "Cancelled", "Overdue"
+    memo: v.string(),
+    dkgUAL: v.optional(v.string()),
+    txHash: v.optional(v.string()),
+    network: v.optional(v.string()),
+    contractAddress: v.optional(v.string()),
+    createdAt: v.string(),
+    paidAt: v.optional(v.string()),
+  })
+    .index("by_issuer", ["issuerAddress"])
+    .index("by_payer", ["payerAddress"])
+    .index("by_invoiceId", ["invoiceId"])
+    .index("by_onChainId", ["onChainId"])
+    .index("by_status", ["status"]),
 });

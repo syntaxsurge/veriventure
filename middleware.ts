@@ -9,6 +9,7 @@ import { signSession, verifySession } from "@/lib/auth/session";
 const gatedPrefixes = [
   "/dashboard",
   "/credentials",
+  "/invoices",
   "/ai-assistant",
   "/documents",
   "/notes",
@@ -63,6 +64,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/credentials/:path*",
+    "/invoices/:path*",
     "/ai-assistant/:path*",
     "/documents/:path*",
     "/notes/:path*",

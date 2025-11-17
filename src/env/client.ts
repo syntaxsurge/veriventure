@@ -14,6 +14,14 @@ const clientSchema = z.object({
       /^0x[a-fA-F0-9]{40}$/,
       "NEXT_PUBLIC_VALIDITY_REGISTRY_ADDRESS must be a checksummed hex address.",
     ),
+  NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS: z
+    .string()
+    .regex(
+      /^0x[a-fA-F0-9]{40}$/,
+      "NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS must be a checksummed hex address.",
+    )
+    .optional()
+    .default("0x0000000000000000000000000000000000000000"),
   NEXT_PUBLIC_EVM_NETWORK_NAME: z
     .string()
     .min(1, "NEXT_PUBLIC_EVM_NETWORK_NAME is required."),
@@ -48,6 +56,8 @@ const parsed = clientSchema.safeParse({
   NEXT_PUBLIC_EVM_RPC_URL: process.env.NEXT_PUBLIC_EVM_RPC_URL,
   NEXT_PUBLIC_VALIDITY_REGISTRY_ADDRESS:
     process.env.NEXT_PUBLIC_VALIDITY_REGISTRY_ADDRESS,
+  NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS:
+    process.env.NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS ?? "0x0000000000000000000000000000000000000000",
   NEXT_PUBLIC_EVM_NETWORK_NAME: process.env.NEXT_PUBLIC_EVM_NETWORK_NAME,
   NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
   NEXT_PUBLIC_EXPLORER_TX_TEMPLATE:

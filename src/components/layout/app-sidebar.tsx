@@ -17,6 +17,7 @@ import {
   Share2,
   FlaskConical,
   Activity,
+  Receipt,
   type LucideIcon,
 } from "lucide-react";
 
@@ -71,6 +72,12 @@ export const sidebarNavItems: SidebarNavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Invoices",
+    href: "/invoices",
+    icon: Receipt,
+    description: "Create and manage on-chain invoices",
   },
   {
     title: "Credentials",
