@@ -177,7 +177,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
           >
-            <Button asChild size="lg" className="gap-2 h-14 px-10 text-lg shadow-lg hover:shadow-xl transition-shadow">
+            <Button asChild size="lg" className="gap-2 h-14 px-10 text-lg shadow-lg hover:shadow-xl transition-shadow bg-primary/90 hover:bg-primary text-primary-foreground font-semibold">
               <Link href="/dashboard">
                 <Rocket className="h-5 w-5" />
                 Start free
@@ -188,7 +188,7 @@ export default function Home() {
               asChild
               size="lg"
               variant="outline"
-              className="h-14 px-10 text-lg border-2 backdrop-blur-sm hover:bg-primary/5"
+              className="h-14 px-10 text-lg border-2 border-primary/30 bg-background/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 font-semibold"
             >
               <Link href="/proofs">
                 <Eye className="mr-2 h-5 w-5" />
@@ -545,7 +545,7 @@ export default function Home() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 viewport={{ once: true }}
               >
-                <Button asChild size="lg" className="gap-2 h-14 px-10 text-lg shadow-xl hover:shadow-2xl transition-shadow">
+                <Button asChild size="lg" className="gap-2 h-14 px-10 text-lg shadow-xl hover:shadow-2xl transition-shadow bg-primary/90 hover:bg-primary text-primary-foreground font-semibold">
                   <Link href="/dashboard">
                     <Rocket className="h-5 w-5" />
                     Start free
@@ -556,7 +556,7 @@ export default function Home() {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="h-14 px-10 text-lg border-2 bg-background/50 backdrop-blur-sm hover:bg-background/80"
+                  className="h-14 px-10 text-lg border-2 border-primary/30 bg-background/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 font-semibold"
                 >
                   <Link href="/verify/demo-founder">
                     <Eye className="mr-2 h-5 w-5" />

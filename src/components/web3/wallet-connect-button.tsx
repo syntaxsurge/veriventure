@@ -30,7 +30,13 @@ export function WalletConnectButton() {
   }, [address, mark]);
 
   useEffect(() => {
-    if (!address || !walletClient || syncing || session.address === address) {
+    if (
+      !address ||
+      !walletClient ||
+      syncing ||
+      session.loading ||
+      session.address === address
+    ) {
       return;
     }
     let cancelled = false;
@@ -71,7 +77,7 @@ export function WalletConnectButton() {
     return () => {
       cancelled = true;
     };
-  }, [address, walletClient, session.address, syncing, router]);
+  }, [address, walletClient, session.address, session.loading, syncing, router]);
 
   useEffect(() => {
     if (status !== "disconnected" || !session.address || syncing) {
