@@ -107,7 +107,7 @@ npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
 
 - Sanity-check connectivity with `curl http://localhost:3000/api/dkg/health` and publish a note through `/api/dkg/notes` (the Mission Control DKG tester hits the same routes).
 
-`docs/dkg-quickstart.md` expands on these steps and includes the official Edge Node installer commands if you later decide to self-host.
+`docs/dkg-quickstart.md` expands on the public-node workflow and summarizes the faucet + health-check sequence.
 
 ### Convex quickstart
 
