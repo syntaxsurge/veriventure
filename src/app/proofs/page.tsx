@@ -42,6 +42,86 @@ const typeLabels: Record<ProofType, string> = {
   credential: "Credential",
 };
 
+type ProofCardProps = {
+  proof: ProofItem;
+  onToggleFeatured: (proofId: string) => Promise<void> | void;
+};
+
+function ProofCard({ proof, onToggleFeatured }: ProofCardProps) {
+  const Icon = typeIcons[proof.type];
+
+  return (
+    <Card className="border-2">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+        <div className="flex items-start gap-3 flex-1">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <Icon className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">{typeLabels[proof.type]}</Badge>
+              {proof.featured && (
+                <Badge variant="outline" className="gap-1">
+                  <Star className="h-3 w-3 fill-current" />
+                  Featured
+                </Badge>
+              )}
+            </div>
+            <h3 className="font-semibold leading-tight">{proof.title}</h3>
+            <p className="text-xs text-muted-foreground">
+              {new Date(proof.createdAt).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        {proof.ual && (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">DKG UAL</p>
+            <DKGLink ual={proof.ual} truncate showCopy showExternalLink />
+          </div>
+        )}
+
+        {proof.txHash && proof.network && (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Transaction</p>
+            <ChainLink
+              txHash={proof.txHash}
+              network={proof.network}
+              showNetwork
+              showCopy
+              showExternalLink
+            />
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter className="flex gap-2">
+        <Button
+          variant={proof.featured ? "secondary" : "default"}
+          size="sm"
+          onClick={() => onToggleFeatured(proof.id)}
+        >
+          {proof.featured ? "Remove from Public Profile" : "Feature on Public Profile"}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
+function EmptyState({ type }: { type?: string }) {
+  return (
+    <Alert>
+      <Info className="h-4 w-4" />
+      <AlertDescription>
+        You have no {type || "proofs"} yet. Create your first invoice or publish a Truth Note to get
+        started.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export default function ProofsPage() {
   const { address } = useAccount();
 
@@ -128,85 +208,12 @@ export default function ProofsPage() {
       toast.success(
         result.featured ? "Added to Public Profile" : "Removed from Public Profile"
       );
-    } catch (error) {
+    } catch {
       toast.error("Failed to update featured status");
     }
   };
 
   const filterByType = (type: ProofType) => allProofs.filter((p) => p.type === type);
-
-  const ProofCard = ({ proof }: { proof: ProofItem }) => {
-    const Icon = typeIcons[proof.type];
-
-    return (
-      <Card className="border-2">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Icon className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">{typeLabels[proof.type]}</Badge>
-                {proof.featured && (
-                  <Badge variant="outline" className="gap-1">
-                    <Star className="h-3 w-3 fill-current" />
-                    Featured
-                  </Badge>
-                )}
-              </div>
-              <h3 className="font-semibold leading-tight">{proof.title}</h3>
-              <p className="text-xs text-muted-foreground">
-                {new Date(proof.createdAt).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-3">
-          {proof.ual && (
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">DKG UAL</p>
-              <DKGLink ual={proof.ual} truncate showCopy showExternalLink />
-            </div>
-          )}
-
-          {proof.txHash && proof.network && (
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">Transaction</p>
-              <ChainLink
-                txHash={proof.txHash}
-                network={proof.network}
-                showNetwork
-                showCopy
-                showExternalLink
-              />
-            </div>
-          )}
-        </CardContent>
-
-        <CardFooter className="flex gap-2">
-          <Button
-            variant={proof.featured ? "secondary" : "default"}
-            size="sm"
-            onClick={() => handleToggleFeatured(proof.id)}
-          >
-            {proof.featured ? "Remove from Public Profile" : "Feature on Public Profile"}
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  };
-
-  const EmptyState = ({ type }: { type?: string }) => (
-    <Alert>
-      <Info className="h-4 w-4" />
-      <AlertDescription>
-        You have no {type || "proofs"} yet. Create your first invoice or publish a Truth Note to get
-        started.
-      </AlertDescription>
-    </Alert>
-  );
 
   return (
     <AppShellClient sidebar maxWidth="7xl">
@@ -237,7 +244,11 @@ export default function ProofsPage() {
             ) : (
               <div className="grid gap-4">
                 {allProofs.map((proof) => (
-                  <ProofCard key={proof.id} proof={proof} />
+                  <ProofCard
+                    key={proof.id}
+                    proof={proof}
+                    onToggleFeatured={handleToggleFeatured}
+                  />
                 ))}
               </div>
             )}
@@ -249,7 +260,11 @@ export default function ProofsPage() {
             ) : (
               <div className="grid gap-4">
                 {filterByType("invoice").map((proof) => (
-                  <ProofCard key={proof.id} proof={proof} />
+                  <ProofCard
+                    key={proof.id}
+                    proof={proof}
+                    onToggleFeatured={handleToggleFeatured}
+                  />
                 ))}
               </div>
             )}
@@ -261,7 +276,11 @@ export default function ProofsPage() {
             ) : (
               <div className="grid gap-4">
                 {filterByType("milestone").map((proof) => (
-                  <ProofCard key={proof.id} proof={proof} />
+                  <ProofCard
+                    key={proof.id}
+                    proof={proof}
+                    onToggleFeatured={handleToggleFeatured}
+                  />
                 ))}
               </div>
             )}
@@ -273,7 +292,11 @@ export default function ProofsPage() {
             ) : (
               <div className="grid gap-4">
                 {filterByType("truth-note").map((proof) => (
-                  <ProofCard key={proof.id} proof={proof} />
+                  <ProofCard
+                    key={proof.id}
+                    proof={proof}
+                    onToggleFeatured={handleToggleFeatured}
+                  />
                 ))}
               </div>
             )}
@@ -285,7 +308,11 @@ export default function ProofsPage() {
             ) : (
               <div className="grid gap-4">
                 {filterByType("credential").map((proof) => (
-                  <ProofCard key={proof.id} proof={proof} />
+                  <ProofCard
+                    key={proof.id}
+                    proof={proof}
+                    onToggleFeatured={handleToggleFeatured}
+                  />
                 ))}
               </div>
             )}

@@ -8,6 +8,13 @@ import { useSessionAddress } from "@/hooks/use-session-address";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 import { useRouter } from "next/navigation";
 
+function emitSessionUpdate() {
+  if (typeof window === "undefined") return;
+  window.setTimeout(() => {
+    window.dispatchEvent(new Event(SESSION_EVENT_NAME));
+  }, 0);
+}
+
 export function WalletConnectButton() {
   const router = useRouter();
   const { address, status } = useAccount();
@@ -49,7 +56,7 @@ export function WalletConnectButton() {
           throw new Error("Signature verification failed.");
         }
         if (!cancelled) {
-          window.dispatchEvent(new Event(SESSION_EVENT_NAME));
+          emitSessionUpdate();
           router.refresh();
         }
       } catch (error) {
@@ -75,7 +82,7 @@ export function WalletConnectButton() {
       try {
         await fetch("/api/auth/session", { method: "DELETE" });
         if (!cancelled) {
-          window.dispatchEvent(new Event(SESSION_EVENT_NAME));
+          emitSessionUpdate();
           router.refresh();
         }
       } catch (error) {

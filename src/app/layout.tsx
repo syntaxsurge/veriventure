@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OnboardingDialog } from "@/components/onboarding/onboarding-dialog";
 import { RainbowKitWalletProvider } from "@/providers/rainbowkit-provider";
+import { ConvexClientProvider } from "@/providers/convex-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { HelpBeacon } from "@/components/help/help-beacon";
 
@@ -33,20 +34,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}>
-        <RainbowKitWalletProvider>
-          <ThemeProvider>
-            <OnboardingDialog />
-            <div className="relative min-h-screen bg-background text-foreground">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_55%)]" />
-              <div className="relative flex min-h-screen flex-col">
-                <AppHeader />
-                <main className="flex-1">{children}</main>
+        <ConvexClientProvider>
+          <RainbowKitWalletProvider>
+            <ThemeProvider>
+              <OnboardingDialog />
+              <div className="relative min-h-screen bg-background text-foreground">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_55%)]" />
+                <div className="relative flex min-h-screen flex-col">
+                  <AppHeader />
+                  <main className="flex-1">{children}</main>
+                </div>
               </div>
-            </div>
-            <HelpBeacon />
-            <Toaster />
-          </ThemeProvider>
-        </RainbowKitWalletProvider>
+              <HelpBeacon />
+              <Toaster />
+            </ThemeProvider>
+          </RainbowKitWalletProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );
