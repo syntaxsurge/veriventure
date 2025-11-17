@@ -39,7 +39,15 @@ function readStoredProgress(): OnboardingProgress {
 
 function emitUpdate() {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new Event(EVENT_KEY));
+  /**
+   * Dispatch outside the current render tick so setState calls triggered by
+   * listeners never fire while another component is rendering. React warns
+   * when cross-component updates happen during render, and the async dispatch
+   * keeps these updates in a later task.
+   */
+  window.setTimeout(() => {
+    window.dispatchEvent(new Event(EVENT_KEY));
+  }, 0);
 }
 
 export function useOnboardingProgress() {

@@ -73,8 +73,6 @@ function resolveFontSize(
 
 const imageCache = new Map<string, string>();
 
-const BULLET_CARD_LIMIT = 4;
-
 type TeamCard = {
   title: string;
   role: string;
@@ -195,8 +193,6 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
     const imagePanel = { x: 760, y: 110, width: 420, height: 420 };
     const panelFill = lightenHex(palette.base, 0.08);
     const panelStroke = lightenHex(palette.contrast, 0.35);
-    const cardFill = lightenHex(palette.base, 0.16);
-    const cardStroke = lightenHex(palette.contrast, 0.2);
     const [panelR, panelG, panelB] = hexToRgbTuple(panelFill);
     const [panelStrokeR, panelStrokeG, panelStrokeB] = hexToRgbTuple(panelStroke);
 
@@ -231,56 +227,38 @@ export async function exportDeckAsPdf(deck: PitchDeckRecord, slides: PitchSlideR
       cursorY += subtitleSize + 20;
     }
 
-    const bulletCards = slide.bullets.filter((entry) => entry.trim().length > 0);
-    const cardsToRender = bulletCards.slice(0, BULLET_CARD_LIMIT);
-    const columns = cardsToRender.length > 2 ? 2 : 1;
-    const cardWidth = columns === 2 ? (textPanel.width - 80) / 2 : textPanel.width - 60;
-    let cardAreaBottom = cursorY;
+    const bulletEntries = slide.bullets
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+    const [bulletR, bulletG, bulletB] = hexToRgbTuple(bulletColor);
+    let bulletCursor = cursorY;
+    let bulletAreaBottom = cursorY;
 
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...hexToRgbTuple(bulletColor));
+    doc.setFontSize(bulletSize);
+    doc.setTextColor(bulletR, bulletG, bulletB);
 
-    cardsToRender.forEach((bullet, idx) => {
-      const lines = Math.max(1, Math.ceil(bullet.length / 60));
-      const cardHeight = 70 + lines * 18;
-      const column = columns === 2 ? idx % 2 : 0;
-      const row = columns === 2 ? Math.floor(idx / 2) : idx;
-      const cardX = textPanel.x + column * (cardWidth + 40);
-      const cardY = cursorY + row * (cardHeight + 20);
-      const [cardR, cardG, cardB] = hexToRgbTuple(cardFill);
-      const [cardStrokeR, cardStrokeG, cardStrokeB] = hexToRgbTuple(cardStroke);
-      doc.setFillColor(cardR, cardG, cardB);
-      doc.setDrawColor(cardStrokeR, cardStrokeG, cardStrokeB);
-      doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 20, 20, "FD");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.setTextColor(...hexToRgbTuple(subtitleColor));
-      doc.text(`KEY INSIGHT ${idx + 1}`, cardX + 20, cardY + 28);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(bulletSize);
-      doc.setTextColor(...hexToRgbTuple(bulletColor));
-      doc.text(bullet, cardX + 20, cardY + 48, {
-        maxWidth: cardWidth - 40,
+    bulletEntries.forEach((bullet) => {
+      const lines = doc.splitTextToSize(bullet, textPanel.width - 110);
+      const blockHeight = lines.length * bulletSize * 1.3;
+      const indicatorY = bulletCursor - bulletSize * 0.25;
+      doc.setDrawColor(bulletR, bulletG, bulletB);
+      doc.setLineWidth(3);
+      doc.line(textPanel.x - 10, indicatorY, textPanel.x + 30, indicatorY);
+      doc.text(lines, textPanel.x + 40, bulletCursor, {
+        maxWidth: textPanel.width - 110,
+        lineHeightFactor: 1.3,
       });
-      cardAreaBottom = Math.max(cardAreaBottom, cardY + cardHeight);
+      bulletCursor += blockHeight + 16;
+      bulletAreaBottom = bulletCursor;
     });
-
-    if (bulletCards.length > BULLET_CARD_LIMIT) {
-      doc.setFontSize(bulletSize - 2);
-      doc.setTextColor(...hexToRgbTuple(subtitleColor));
-      doc.text(
-        bulletCards.slice(BULLET_CARD_LIMIT).map((entry) => `• ${entry}`).join("\n"),
-        textPanel.x,
-        cardAreaBottom + 24,
-        {
-          maxWidth: textPanel.width - 60,
-        },
-      );
-      cardAreaBottom += 80;
-    }
+    doc.setLineWidth(1);
 
     if (slide.notes) {
-      const noteY = Math.max(cardAreaBottom + 30, textPanel.y + textPanel.height - 80);
+      const noteY = Math.max(
+        bulletAreaBottom + 10,
+        textPanel.y + textPanel.height - 80,
+      );
       doc.setFont("helvetica", "italic");
       doc.setFontSize(noteSize);
       doc.setTextColor(...hexToRgbTuple(noteColor));
@@ -427,8 +405,6 @@ export async function exportDeckAsPptx(
     const imagePanel = { x: 7.4, y: 0.6, w: 4.5, h: 5.3 };
     const panelFill = lightenHex(palette.base, 0.05);
     const panelStroke = lightenHex(palette.contrast, 0.3);
-    const cardFill = lightenHex(palette.base, 0.15);
-    const cardStroke = lightenHex(palette.contrast, 0.2);
 
     pptSlide.addShape("roundRect", {
       x: textPanel.x - 0.1,
@@ -464,67 +440,44 @@ export async function exportDeckAsPptx(
       blockY += subtitleSize / 72 + 0.4;
     }
 
-    const bulletCards = slide.bullets.filter((entry) => entry.trim().length > 0);
-    const cardsToRender = bulletCards.slice(0, BULLET_CARD_LIMIT);
-    const columns = cardsToRender.length > 2 ? 2 : 1;
-    const cardWidth = columns === 2 ? (textPanel.w - 0.6) / 2 - 0.15 : textPanel.w - 0.4;
-    let cardsBottom = blockY;
+    const bulletEntries = slide.bullets
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+    const noteSlotHeight = slide.notes ? 0.9 : 0;
+    const bulletAreaHeight = Math.max(
+      textPanel.h - (blockY - textPanel.y) - noteSlotHeight - 0.3,
+      0,
+    );
 
-    cardsToRender.forEach((bullet, idx) => {
-      const lines = Math.max(1, Math.ceil(bullet.length / 55));
-      const cardHeight = 0.95 + lines * 0.35;
-      const column = columns === 2 ? idx % 2 : 0;
-      const row = columns === 2 ? Math.floor(idx / 2) : idx;
-      const cardX = textPanel.x + column * (cardWidth + 0.25);
-      const cardY = blockY + row * (cardHeight + 0.3);
-      pptSlide.addShape("roundRect", {
-        x: cardX,
-        y: cardY,
-        w: cardWidth,
-        h: cardHeight,
-        fill: { color: cardFill },
-        line: { color: cardStroke, width: 1.2 },
-        shadow: { type: "outer", blur: 8, color: lightenHex(palette.contrast, 0.15) },
-      });
-      pptSlide.addText(`Key insight ${idx + 1}`.toUpperCase(), {
-        x: cardX + 0.2,
-        y: cardY + 0.15,
-        w: cardWidth - 0.4,
-        fontSize: 12,
-        bold: true,
-        color: subtitleColor,
-        fontFace: "Helvetica",
-      });
-      pptSlide.addText(bullet, {
-        x: cardX + 0.2,
-        y: cardY + 0.45,
-        w: cardWidth - 0.4,
-        fontSize: bulletSize,
-        color: bulletColor,
-        lineSpacing: 20,
-        fontFace: "Helvetica",
-      });
-      cardsBottom = Math.max(cardsBottom, cardY + cardHeight);
-    });
+    if (bulletEntries.length && bulletAreaHeight > 0.2) {
+      const bulletRuns = bulletEntries.map((entry) => ({
+        text: entry,
+        options: {
+          bullet: true,
+          color: bulletColor,
+          fontFace: "Helvetica",
+          fontSize: bulletSize,
+          paraSpaceAfter: 6,
+        },
+      }));
 
-    if (bulletCards.length > BULLET_CARD_LIMIT) {
-      pptSlide.addText(bulletCards.slice(BULLET_CARD_LIMIT).join(" • "), {
+      pptSlide.addText(bulletRuns, {
         x: textPanel.x,
-        y: cardsBottom + 0.3,
+        y: blockY,
         w: textPanel.w - 0.4,
-        fontSize: bulletSize - 2,
-        color: subtitleColor,
-        fontFace: "Helvetica",
+        h: bulletAreaHeight,
+        fit: "shrink",
+        margin: 0,
       });
-      cardsBottom += 0.6;
     }
 
     if (slide.notes) {
-      const noteY = Math.max(cardsBottom + 0.4, textPanel.y + textPanel.h - 0.8);
+      const noteY = textPanel.y + textPanel.h - noteSlotHeight;
       pptSlide.addText(slide.notes, {
         x: textPanel.x,
         y: noteY,
         w: textPanel.w - 0.4,
+        h: Math.max(noteSlotHeight - 0.1, 0.6),
         fontSize: noteSize,
         color: noteColor,
         italic: true,
