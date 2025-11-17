@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/site/site-header";
+import { AppHeader } from "@/components/layout/app-header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OnboardingDialog } from "@/components/onboarding/onboarding-dialog";
 import { RainbowKitWalletProvider } from "@/providers/rainbowkit-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,13 +34,14 @@ export default function RootLayout({
         <RainbowKitWalletProvider>
           <ThemeProvider>
             <OnboardingDialog />
-            <div className="relative bg-background text-foreground">
+            <div className="relative min-h-screen bg-background text-foreground">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_55%)]" />
-              <SiteHeader />
-              <main className="relative mx-auto w-full max-w-6xl px-6 py-10">
-                {children}
-              </main>
+              <div className="relative flex min-h-screen flex-col">
+                <AppHeader />
+                <main className="flex-1">{children}</main>
+              </div>
             </div>
+            <Toaster />
           </ThemeProvider>
         </RainbowKitWalletProvider>
       </body>

@@ -27,8 +27,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["dkg.js"],
   output: "standalone",
-  turbopack: {},
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve = config.resolve || {};
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -36,6 +35,24 @@ const nextConfig: NextConfig = {
       net: false,
       tls: false,
     };
+
+    // Exclude test files and helpers from being bundled
+    config.module = config.module || {};
+    config.module.rules = config.module.rules || [];
+    config.module.rules.push({
+      test: /node_modules\/thread-stream\/test/,
+      use: "null-loader",
+    });
+
+    // Handle pino and dependencies that include test files
+    config.externals = config.externals || [];
+    if (!isServer) {
+      config.externals.push({
+        "thread-stream/test": "thread-stream/test",
+        "why-is-node-running": "why-is-node-running",
+      });
+    }
+
     return config;
   },
   headers: async () => [

@@ -1,12 +1,8 @@
 import Link from "next/link";
-import {
-  ArrowRightIcon,
-  CheckCircledIcon,
-  LightningBoltIcon,
-  RocketIcon,
-} from "@radix-ui/react-icons";
+import { ArrowRight, Check, Zap, Rocket, Shield, Database, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const heroStats = [
   { label: "Verifiable credentials issued", value: "1,240" },
@@ -17,16 +13,19 @@ const heroStats = [
 const playbooks = [
   {
     title: "Trust Layer",
+    icon: Shield,
     description:
       "Soulbound achievements on Moonbase Alpha plus verified OriginTrail notes prove you are who you say you are.",
   },
   {
     title: "Knowledge Layer",
+    icon: Database,
     description:
       "A single Convex knowledge base keeps your plans, decks, and social content versioned in one workspace.",
   },
   {
     title: "Agent Layer",
+    icon: Sparkles,
     description:
       "OpenAI powered copilots run due diligence, generate assets, and surface Grokipedia vs Wikipedia gaps.",
   },
@@ -60,78 +59,94 @@ const toolkits = [
 
 export default function Home() {
   return (
-    <div className="space-y-16">
-      <section className="grid gap-10 rounded-3xl border bg-card/80 px-8 py-12 text-center shadow-sm md:px-12">
-        <div className="space-y-6">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
-            <LightningBoltIcon className="h-4 w-4" />
-            AI trust operating system for founders
-          </span>
-          <h1 className="text-4xl font-semibold leading-tight text-balance md:text-5xl">
-            Launch faster with wallet-only access, AI copilots, and verifiable
-            truth rails.
-          </h1>
-          <p className="text-lg text-muted-foreground md:text-xl">
-            VeriVenture unifies Moonbase Alpha credentials, OriginTrail
-            Community Notes, and Next.js workspaces so entrepreneurs everywhere
-            can prove traction and protect their ventures.
-          </p>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="/dashboard">
-                Go to dashboard
-                <ArrowRightIcon className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/credentials">Review credentials</Link>
-            </Button>
-          </div>
-        </div>
-        <dl className="grid gap-6 text-left sm:grid-cols-3">
-          {heroStats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl border p-5 text-left shadow-sm"
-            >
-              <dt className="text-sm text-muted-foreground">{stat.label}</dt>
-              <dd className="text-2xl font-semibold">{stat.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+    <div className="container-app section-spacing py-16">
+      {/* Hero Section */}
+      <section className="animate-in">
+        <Card className="border-2 shadow-lg">
+          <CardContent className="px-8 py-12 md:px-16 md:py-16">
+            <div className="mx-auto max-w-4xl space-y-8 text-center">
+              <Badge variant="secondary" className="gap-2 px-4 py-1.5">
+                <Zap className="h-4 w-4" aria-hidden="true" />
+                <span>AI trust operating system for founders</span>
+              </Badge>
 
-      <section className="grid gap-6 md:grid-cols-3">
-        {playbooks.map((block) => (
-          <Card key={block.title} className="bg-muted/30">
-            <CardHeader>
-              <CardTitle>{block.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {block.description}
+              <h1 className="text-balance">
+                Launch faster with wallet-only access, AI copilots, and verifiable truth rails
+              </h1>
+
+              <p className="text-lead mx-auto max-w-3xl">
+                VeriVenture unifies Moonbase Alpha credentials, OriginTrail Community Notes, and
+                Next.js workspaces so entrepreneurs everywhere can prove traction and protect their
+                ventures.
               </p>
-            </CardContent>
-          </Card>
-        ))}
+
+              <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/dashboard">
+                    Go to dashboard
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/credentials">Review credentials</Link>
+                </Button>
+              </div>
+
+              <dl className="grid gap-6 pt-8 text-left sm:grid-cols-3">
+                {heroStats.map((stat) => (
+                  <div key={stat.label} className="rounded-xl border bg-muted/30 p-6 shadow-sm">
+                    <dt className="text-muted">{stat.label}</dt>
+                    <dd className="mt-2 text-3xl font-semibold tracking-tight">{stat.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
-      <section className="space-y-6">
-        <h2 className="text-3xl font-semibold text-balance">
-          Enterprise-grade tooling without enterprise red tape.
-        </h2>
+      {/* Playbooks Section */}
+      <section className="animate-in grid gap-6 md:grid-cols-3">
+        {playbooks.map((block) => {
+          const Icon = block.icon;
+          return (
+            <Card key={block.title} className="transition-shadow hover:shadow-md">
+              <CardHeader>
+                <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                </div>
+                <CardTitle>{block.title}</CardTitle>
+                <CardDescription>{block.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          );
+        })}
+      </section>
+
+      {/* Toolkits Section */}
+      <section className="animate-in space-y-8">
+        <div className="space-y-3">
+          <h2>Enterprise-grade tooling without enterprise red tape</h2>
+          <p className="text-lead max-w-3xl">
+            Everything you need to build, verify, and share your venture&apos;s story with confidence.
+          </p>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-3">
           {toolkits.map((tool) => (
-            <Card key={tool.title}>
+            <Card key={tool.title} className="transition-shadow hover:shadow-md">
               <CardHeader>
-                <CardTitle className="text-2xl">{tool.title}</CardTitle>
+                <CardTitle className="text-xl">{tool.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-3 text-sm text-muted-foreground">
+                <ul className="space-y-3">
                   {tool.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-start gap-2">
-                      <CheckCircledIcon className="mt-1 h-4 w-4 text-primary" />
-                      <span>{bullet}</span>
+                    <li key={bullet} className="flex items-start gap-3 text-sm">
+                      <Check
+                        className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      <span className="text-muted-foreground">{bullet}</span>
                     </li>
                   ))}
                 </ul>
@@ -141,37 +156,71 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="grid gap-6 rounded-3xl border bg-primary text-primary-foreground px-8 py-10 shadow-lg md:grid-cols-2 md:items-center">
-        <div className="space-y-4">
-          <h3 className="text-3xl font-semibold">Three steps to resilience</h3>
-          <p className="text-primary-foreground/90">
-            Connect an EVM wallet via RainbowKit, tell the AI assistant
-            what you&apos;re building, and let VeriVenture assemble
-            verifiable knowledge assets that back up every claim you make.
-          </p>
-          <Button variant="secondary" asChild>
-            <Link href="/ai-assistant">
-              Explore the agent layer
-              <RocketIcon className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        <div className="rounded-2xl bg-background/10 p-6 text-sm leading-relaxed text-primary-foreground/90">
-          <ol className="space-y-4">
-            <li>
-              <strong>1. Prove identity.</strong> Sign in with your Moonbase
-              wallet and mint tamper-resistant badges.
-            </li>
-            <li>
-              <strong>2. Capture knowledge.</strong> Generate decks, plans, and
-              updates that inherit real metrics from your badges.
-            </li>
-            <li>
-              <strong>3. Publish trust.</strong> Release OriginTrail notes that
-              AI agents can query via MCP to stay aligned with reality.
-            </li>
-          </ol>
-        </div>
+      {/* CTA Section */}
+      <section className="animate-in">
+        <Card className="border-2 border-primary bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-xl">
+          <CardContent className="grid gap-8 p-8 md:grid-cols-2 md:items-center md:p-12">
+            <div className="space-y-4">
+              <h3 className="text-3xl font-semibold">Three steps to resilience</h3>
+              <p className="text-primary-foreground/90">
+                Connect an EVM wallet via RainbowKit, tell the AI assistant what you&apos;re
+                building, and let VeriVenture assemble verifiable knowledge assets that back up
+                every claim you make.
+              </p>
+              <Button
+                variant="secondary"
+                size="lg"
+                asChild
+                className="gap-2 hover:shadow-md"
+              >
+                <Link href="/ai-assistant">
+                  Explore the agent layer
+                  <Rocket className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="rounded-xl border border-primary-foreground/20 bg-background/10 p-6 backdrop-blur-sm">
+              <ol className="space-y-4 text-sm leading-relaxed">
+                <li className="flex gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-foreground/20 text-sm font-semibold">
+                    1
+                  </span>
+                  <div>
+                    <strong className="block">Prove identity</strong>
+                    <span className="text-primary-foreground/80">
+                      Sign in with your Moonbase wallet and mint tamper-resistant badges.
+                    </span>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-foreground/20 text-sm font-semibold">
+                    2
+                  </span>
+                  <div>
+                    <strong className="block">Capture knowledge</strong>
+                    <span className="text-primary-foreground/80">
+                      Generate decks, plans, and updates that inherit real metrics from your
+                      badges.
+                    </span>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-foreground/20 text-sm font-semibold">
+                    3
+                  </span>
+                  <div>
+                    <strong className="block">Publish trust</strong>
+                    <span className="text-primary-foreground/80">
+                      Release OriginTrail notes that AI agents can query via MCP to stay aligned
+                      with reality.
+                    </span>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
