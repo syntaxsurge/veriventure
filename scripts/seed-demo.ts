@@ -51,7 +51,7 @@ function buildAchievements(): DemoAchievement[] {
       payload: {
         title: "Unlocked $45K ARR with 8 climate finance pilots",
         summary:
-          "Converted GrokGov pilot data into ink! proofs so lenders can trust SME carbon data. Anchored Grokipedia divergences to the DKG for reviewers.",
+          "Converted GrokGov pilot data into Moonbase proofs so lenders can trust SME carbon data. Anchored Grokipedia divergences to the DKG for reviewers.",
         metrics: "MRR: $3.7K · CAC: $410 · Retention: 93%",
         evidenceUrl: "https://demo.veriventure.xyz/arr-dashboard",
         impactArea: "SME climate finance",

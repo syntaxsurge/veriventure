@@ -26,6 +26,10 @@
 AGENTS.md
 CLAUDE.md
 blockchain/.idea/
+blockchain/node_modules
+blockchain/artifacts
+blockchain/cache
+blockchain/typechain-types
 
 # debug
 npm-debug.log*

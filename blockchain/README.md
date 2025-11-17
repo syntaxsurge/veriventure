@@ -1,129 +1,36 @@
-# VeriVenture Blockchain Package — **ink! v5 (Wasm)**
+# VeriVenture – Moonbase Alpha Contracts
 
-This workspace compiles, tests, and deploys the `achievement_badge` ink! contract that powers VeriVenture’s credential hashes. It targets the stable ink! v5 toolchain and runs on any contracts-enabled Substrate node (local `substrate-contracts-node`, Shibuya, etc.).
+This folder hosts the Solidity version of VeriVenture's soulbound credential registry.
+It mirrors the Hardhat layout used in the AIPenGuild and Push Campus repos so the
+Moonbase Alpha tooling (Hardhat + RainbowKit + Moonbeam RPCs) stays consistent.
 
----
+## Requirements
 
-## 📂 Folder Structure
+- Node 20+
+- `npm install` from this folder to grab Hardhat + toolbox
+- `.env` file populated with:
+  - `MOONBASE_RPC_NETWORK=https://rpc.testnet.moonbeam.network`
+  - `PRIVATE_KEY=0x4777e4060466e23792e80ebd9cd3df92664026f950e224a77dfca86fe9f38b69`
 
-| Path                              | Purpose                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| `contracts/achievement_badge`     | ink! soulbound badge contract (Wasmtime/Wasm target).                    |
-| `workspace/bin/instantiate.rs`    | Rust CLI → builds & instantiates the badge contract on the target chain. |
-| `workspace/bin/extract_address.rs`| Helper that parses `cargo contract` logs and prints the deployed address.|
-| `deployment.log`                  | Auto-updated ledger storing the latest deployed contract address.        |
-| `.env` / `.env.example`           | Shared configuration consumed by the CLI when instantiating contracts.   |
-| `Cargo.toml`                      | Workspace manifest wiring the contract crate + CLI tooling.              |
+(Values align with the AIPenGuild setup so deployments line up across projects.)
 
----
-
-## 🛠 Prerequisites (ink! v5)
-
-1. **Rust stable** (`rustup`)
-2. **wasm32 target**
-3. **cargo-contract 5.x**
-4. **substrate-contracts-node 0.42+** for local testing
+## Scripts
 
 ```bash
-rustup default stable
-rustup update
-rustup target add wasm32-unknown-unknown
-
-cargo install cargo-contract --version ^5.0.0 --locked
-cargo install contracts-node --locked
+npm run compile          # hardhat compile
+npm run deploy:moonbase  # deploy scripts/deployValidity.ts --network moonbase
+npm run deploy:local     # deploy to the local Hardhat node
 ```
 
-> `cargo-contract 5.0.3` is the latest release at the time of writing and is fully compatible with ink! v5.1. `contracts-node` bundles pallet-contracts with sensible defaults for local devnets.
+Deployment logs are appended to `deployment.log` for quick reference so the frontend can
+pick up the fresh address.
 
----
+## Contract summary
 
-## ⚡ Start a Local Chain
+`contracts/ValidityRegistry.sol` is a minimal Ownable registry:
+- `mint(address holder, bytes32 hash)` records a BLAKE2b-256 hash for a holder (soulbound).
+- `revoke(address holder, bytes32 hash)` deletes the mapping.
+- `hasBadge(address, bytes32)` / `countOf(address)` power quick reads for the dashboard.
 
-```bash
-substrate-contracts-node
-# RPC: ws://127.0.0.1:9944
-```
-
-Connect the Contracts UI (`https://ui.use.ink/`) or Polkadot/apps to that endpoint for key management.
-
----
-
-## 🔐 Configure Environment
-
-Copy `.env.example` to `.env` inside `blockchain/` and update:
-
-- `POLKADOT_WS_ENDPOINT` – RPC endpoint (defaults to `ws://127.0.0.1:9944`).
-- `POLKADOT_SUDO_SEED` – Secret phrase that signs instantiations (defaults to `//Alice`).
-- `ADMIN_SS58_ADDRESS` – Wallet that becomes the contract owner (converted to H160 for constructor args).
-- `PLATFORM_SS58_ADDRESS` – Optional downstream signer (kept for parity with PolkaStamp scripts).
-
-The instantiate CLI prints a masked summary before running so you can verify values.
-
----
-
-## 🚀 Instantiate the Achievement Badge Contract
-
-```bash
-cargo run --release --bin instantiate_contracts
-```
-
-The script:
-
-1. Loads `.env`, prints the resolved WS endpoint + sudo/dev key.
-2. Builds `contracts/achievement_badge` via `cargo contract build --release`.
-3. Instantiates it on the configured node with `cargo contract instantiate --suri <seed> --args Some(0x…)` so the ADMIN wallet becomes the owner.
-4. Parses the `cargo contract` stdout for the deployed address (preferring `0x…` hex, falling back to SS58).
-5. Updates/creates `deployment.log` with `NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS=<value>` so frontend `.env` files can be patched quickly.
-
-After a successful run, copy the printed address into the project-root `.env` key `NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS` for the Next.js app.
-
----
-
-## 🧪 Test & Build the Contract
-
-Run Wasm-side tests directly inside the contract crate:
-
-```bash
-cd contracts/achievement_badge
-cargo contract test
-```
-
-Compile the release artifacts (Wasm + metadata JSON) with:
-
-```bash
-cargo contract build --release
-# artifacts under target/ink/achievement_badge/
-```
-
----
-
-## 🔍 Extract an Address from Logs
-
-If you only have a log file (or clipboard text) from a previous deployment, run:
-
-```bash
-cargo run --bin extract_address -- deployment.log
-# or
-cat some.log | cargo run --bin extract_address
-```
-
-The helper scans for the first `0x…` 32-byte value and prints it, making it easy to backfill `.env` keys.
-
----
-
-## 🗝 Deployment Log Keys
-
-| Purpose                 | Key                                   |
-| ----------------------- | ------------------------------------- |
-| Achievement Badge (H160)| `NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS`  |
-
-`deployment.log` only stores the latest values so secrets aren’t scattered across files.
-
----
-
-## 🌐 Explorer & Wallet Links
-
-- **Contracts UI**: <https://ui.use.ink/>
-- **Polkadot/apps**: <https://polkadot.js.org/apps/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/contracts>
-
-Happy hacking with **ink! v5 + VeriVenture badges** 🚀
+The Moonbase Alpha RPC and deployer key match the faucet-funded account already used in
+AIPenGuild, so you can deploy and immediately reference the same wallet inside RainbowKit.

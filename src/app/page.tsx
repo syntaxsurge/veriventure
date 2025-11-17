@@ -18,7 +18,7 @@ const playbooks = [
   {
     title: "Trust Layer",
     description:
-      "Soulbound achievements on Polkadot plus verified OriginTrail notes prove you are who you say you are.",
+      "Soulbound achievements on Moonbase Alpha plus verified OriginTrail notes prove you are who you say you are.",
   },
   {
     title: "Knowledge Layer",
@@ -72,9 +72,9 @@ export default function Home() {
             truth rails.
           </h1>
           <p className="text-lg text-muted-foreground md:text-xl">
-            VeriVenture unifies Polkadot credentials, OriginTrail Community
-            Notes, and Next.js workspaces so entrepreneurs everywhere can prove
-            traction and protect their ventures.
+            VeriVenture unifies Moonbase Alpha credentials, OriginTrail
+            Community Notes, and Next.js workspaces so entrepreneurs everywhere
+            can prove traction and protect their ventures.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
@@ -145,9 +145,9 @@ export default function Home() {
         <div className="space-y-4">
           <h3 className="text-3xl font-semibold">Three steps to resilience</h3>
           <p className="text-primary-foreground/90">
-            Connect a Polkadot wallet, tell the AI assistant what you&apos;re
-            building, and let VeriVenture assemble verifiable knowledge assets
-            that back up every claim you make.
+            Connect an EVM wallet via RainbowKit, tell the AI assistant
+            what you&apos;re building, and let VeriVenture assemble
+            verifiable knowledge assets that back up every claim you make.
           </p>
           <Button variant="secondary" asChild>
             <Link href="/ai-assistant">
@@ -159,7 +159,7 @@ export default function Home() {
         <div className="rounded-2xl bg-background/10 p-6 text-sm leading-relaxed text-primary-foreground/90">
           <ol className="space-y-4">
             <li>
-              <strong>1. Prove identity.</strong> Sign in with a Substrate
+              <strong>1. Prove identity.</strong> Sign in with your Moonbase
               wallet and mint tamper-resistant badges.
             </li>
             <li>

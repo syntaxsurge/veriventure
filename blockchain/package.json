@@ -1,0 +1,26 @@
+{
+  "name": "veriventure-validity-contracts",
+  "version": "0.1.0",
+  "license": "MIT",
+  "scripts": {
+    "clean": "hardhat clean",
+    "compile": "hardhat compile",
+    "typechain": "hardhat typechain",
+    "deploy:moonbase": "hardhat run scripts/deployValidity.ts --network moonbase",
+    "deploy:local": "hardhat run scripts/deployValidity.ts --network hardhat"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.0.0",
+    "ethers": "^6.13.4",
+    "hardhat": "^2.22.18",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
+    "typescript": "^5.7.3"
+  }
+}

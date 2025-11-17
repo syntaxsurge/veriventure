@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { readBadgeHashes } from "@/lib/web3/badge-contract";
+import { readBadgeHashes } from "@/lib/web3/validity-contract";
 
 const requestSchema = z.object({
   address: z.string().min(4).max(200),

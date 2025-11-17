@@ -1,32 +1,19 @@
 import { z } from "zod";
 
 const rpcProtocol = /^(https?|wss?):\/\//i;
-const numericPattern = /^\d+$/;
-
 const clientSchema = z.object({
-  NEXT_PUBLIC_POLKADOT_RPC_URL: z
+  NEXT_PUBLIC_EVM_RPC_URL: z
     .string()
     .regex(
       rpcProtocol,
-      "NEXT_PUBLIC_POLKADOT_RPC_URL must start with http(s) or ws(s).",
+      "NEXT_PUBLIC_EVM_RPC_URL must start with http(s) or ws(s).",
     ),
-  NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS: z
+  NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS: z
     .string()
-    .min(5, "NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS is required."),
-  NEXT_PUBLIC_POLKADOT_NETWORK_NAME: z
+    .regex(/^0x[a-fA-F0-9]{40}$/, "NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS must be a checksummed hex address."),
+  NEXT_PUBLIC_EVM_NETWORK_NAME: z
     .string()
-    .min(1, "NEXT_PUBLIC_POLKADOT_NETWORK_NAME is required."),
-  NEXT_PUBLIC_POLKADOT_GAS_REF_TIME: z
-    .string()
-    .regex(numericPattern, "NEXT_PUBLIC_POLKADOT_GAS_REF_TIME must be numeric.")
-    .default("5000000000"),
-  NEXT_PUBLIC_POLKADOT_GAS_PROOF_SIZE: z
-    .string()
-    .regex(
-      numericPattern,
-      "NEXT_PUBLIC_POLKADOT_GAS_PROOF_SIZE must be numeric.",
-    )
-    .default("131072"),
+    .min(1, "NEXT_PUBLIC_EVM_NETWORK_NAME is required."),
   NEXT_PUBLIC_CONVEX_URL: z
     .string()
     .url("NEXT_PUBLIC_CONVEX_URL must be a valid URL."),
@@ -45,15 +32,10 @@ const clientSchema = z.object({
 });
 
 const parsed = clientSchema.safeParse({
-  NEXT_PUBLIC_POLKADOT_RPC_URL: process.env.NEXT_PUBLIC_POLKADOT_RPC_URL,
-  NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS:
-    process.env.NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS,
-  NEXT_PUBLIC_POLKADOT_NETWORK_NAME:
-    process.env.NEXT_PUBLIC_POLKADOT_NETWORK_NAME,
-  NEXT_PUBLIC_POLKADOT_GAS_REF_TIME:
-    process.env.NEXT_PUBLIC_POLKADOT_GAS_REF_TIME,
-  NEXT_PUBLIC_POLKADOT_GAS_PROOF_SIZE:
-    process.env.NEXT_PUBLIC_POLKADOT_GAS_PROOF_SIZE,
+  NEXT_PUBLIC_EVM_RPC_URL: process.env.NEXT_PUBLIC_EVM_RPC_URL,
+  NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS:
+    process.env.NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS,
+  NEXT_PUBLIC_EVM_NETWORK_NAME: process.env.NEXT_PUBLIC_EVM_NETWORK_NAME,
   NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
   NEXT_PUBLIC_EXPLORER_TX_TEMPLATE:
     process.env.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE,

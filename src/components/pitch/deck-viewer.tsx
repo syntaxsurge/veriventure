@@ -795,7 +795,6 @@ function SlideRail({ deckName, slides, activeIndex, brandColors, onSlideSelect }
     }
   }, [activeIndex, slides.length]);
 
-  const accent = withAlpha(brandColors.title, 0.4);
   const muted = withAlpha(brandColors.note, 0.6);
 
   return (
@@ -1001,8 +1000,6 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
   const subtitleColor = slide.textStyles?.subtitleColor || brandColors.note;
   const bulletColor = slide.textStyles?.bulletColor || brandColors.bullets;
   const noteColor = slide.textStyles?.noteColor || brandColors.note;
-  const memberNameSize = Math.max(subtitleSize, 20);
-  const memberRoleSize = Math.max(12, Math.round(subtitleSize * 0.6));
 
   return (
     <div className="grid gap-10 px-6 py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
@@ -1122,6 +1119,8 @@ function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
   const subtitleColor = slide.textStyles?.subtitleColor || brandColors.note;
   const bulletColor = slide.textStyles?.bulletColor || brandColors.bullets;
   const noteColor = slide.textStyles?.noteColor || brandColors.note;
+  const memberNameSize = Math.max(subtitleSize, 20);
+  const memberRoleSize = Math.max(12, Math.round(subtitleSize * 0.6));
 
   return (
     <div className="space-y-10 px-6 py-12">

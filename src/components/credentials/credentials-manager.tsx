@@ -42,7 +42,7 @@ export function CredentialsManager({
           />
           {!activeAddress && (
             <p className="mt-4 text-sm text-destructive">
-              Connect your Polkadot wallet to mint a badge.
+              Connect your wallet to mint a badge.
             </p>
           )}
         </CardContent>

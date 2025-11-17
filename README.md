@@ -1,9 +1,9 @@
 # VeriVenture
 
-VeriVenture is a Next.js workspace plus an ink! smart-contract package that powers the "wallet-only" entrepreneur trust layer described in the build plan. The project is split into:
+VeriVenture is a Next.js workspace plus a Solidity/Hardhat contract package that powers the "wallet-only" entrepreneur trust layer described in the build plan. The project is split into:
 
 - `src/app` – the Next.js application (wallet-only auth already wired in day 1).
-- `blockchain/` – ink! v5 contracts and tooling that will be deployed to a Polkadot-compatible environment.
+- `blockchain/` – Moonbase Alpha Solidity contracts + Hardhat scripts for the ValidityRegistry.
 
 ## Quick start
 
@@ -12,7 +12,7 @@ npm install
 npm run dev
 ```
 
-The web experience runs at [http://localhost:3000](http://localhost:3000). Wallet authentication requires a Substrate-compatible extension (Polkadot.js, SubWallet, Talisman, …).
+The web experience runs at [http://localhost:3000](http://localhost:3000). Wallet authentication relies on RainbowKit + WalletConnect (MetaMask, Rabby, Rainbow, Talisman EVM, …).
 
 ### Environment variables
 
@@ -24,7 +24,7 @@ cp .env.example .env.local
 
 Key sections:
 
-- **Public web config** (`NEXT_PUBLIC_*`): RPC endpoint, contract address, optional gas hints for `@polkadot/api`, and the explorer/DKG viewer templates (`NEXT_PUBLIC_EXPLORER_TX_TEMPLATE`, `NEXT_PUBLIC_DKG_VIEWER_TEMPLATE`) used by the Verify screen’s outbound links.
+- **Public web config** (`NEXT_PUBLIC_*`): Moonbase Alpha RPC endpoint, deployed ValidityRegistry address, and the explorer/DKG viewer templates (`NEXT_PUBLIC_EXPLORER_TX_TEMPLATE`, `NEXT_PUBLIC_DKG_VIEWER_TEMPLATE`) used by the Verify screen’s outbound links.
 - **Convex** – `NEXT_PUBLIC_CONVEX_URL` points to your Convex deployment (e.g. `https://veriventure.convex.cloud`). Optionally set `CONVEX_DEPLOYMENT_URL`/`CONVEX_DEPLOYMENT` for CLI tasks and `CONVEX_RESET_TOKEN` for `npm run convex:reset`.
 - **OpenAI**: API key plus completion + embedding model overrides for the copilots/embeddings pipeline.
 - **Grokipedia**: Optional base URL + user agent for live HTML scraping before falling back to AI synthesis.
@@ -53,26 +53,28 @@ Real-world pain points and the hackathon alignment matrix are documented in `doc
 
 ## Contracts
 
-The `blockchain` folder is a self-contained Cargo workspace. The first contract (`achievement_badge`) issues non-transferable badge hashes and is built with ink! v5 (Wasm target).
+The `blockchain` folder is a Hardhat workspace. `contracts/ValidityRegistry.sol` is an Ownable soulbound registry that records `bytes32` hashes for every wallet, matching the Moonbase Alpha deployment strategy from AIPenGuild.
 
 ```bash
-cd blockchain/contracts/achievement_badge
-cargo contract build --release
+cd blockchain
+npm install              # once
+npm run compile          # hardhat compile
+npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
 ```
 
-> **Tooling:** install `cargo-contract` 5.x (`cargo install cargo-contract --version ^5.0.0 --locked`) plus the standard `wasm32-unknown-unknown` Rust target. ink! v5.1 runs on pallet-contracts chains, so no PolkaVM tooling is required.
+> **Tooling:** this repo reuses the Moonbase Alpha RPC + funded private key from AIPenGuild so you can deploy with the faucet-backed account at `https://rpc.testnet.moonbeam.network`.
 
-### ink! dev loop tips
+### Hardhat dev loop tips
 
-- Use `cargo contract test` for pure logic/unit tests without the linker pass.
-- Run `cargo +stable contract build --release --manifest-path blockchain/contracts/achievement_badge/Cargo.toml` when you only want the badge contract.
-- The generated metadata & Wasm artifacts live under `blockchain/target/ink/achievement_badge/`.
+- `npm run clean && npm run compile` resets artifacts if TypeChain output drifts.
+- `npm run deploy:moonbase` appends the new address to `blockchain/deployment.log`; copy it into `NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS`.
+- The generated ABI lives under `blockchain/artifacts/contracts/ValidityRegistry.sol/ValidityRegistry.json`.
 
 ### Local deployment
 
-1. Launch `substrate-contracts-node` (or any contracts-enabled devnet) locally.
-2. Deploy `achievement_badge` via `cargo contract instantiate` or Contracts UI.
-3. Copy the instantiated address into `NEXT_PUBLIC_BADGE_CONTRACT_ADDRESS`.
+1. Run `npx hardhat node` (optional) or point at Moonbase Alpha.
+2. `npm run deploy:moonbase`.
+3. Update `NEXT_PUBLIC_VALIDITY_CONTRACT_ADDRESS`.
 4. Restart the Next.js dev server so the new address is picked up.
 
 ### OriginTrail DKG quickstart

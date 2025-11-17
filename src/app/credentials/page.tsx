@@ -12,7 +12,7 @@ const credentialSteps = [
   {
     title: "Sign & mint",
     detail:
-      "Submit the hash to the ink! AchievementBadge contract. Your wallet signature proves authorship forever.",
+      "Submit the hash to the Moonbase Alpha ValidityRegistry. Your wallet signature proves authorship forever.",
   },
   {
     title: "Publish provenance",

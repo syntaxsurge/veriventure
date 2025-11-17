@@ -132,7 +132,7 @@ export function BusinessPlanWriter() {
             <Textarea
               id="plan-differentiation"
               rows={3}
-              placeholder="OriginTrail-backed provenance + Polkadot automation."
+              placeholder="OriginTrail-backed provenance + Moonbase automation."
               value={form.differentiation}
               onChange={(event) =>
                 updateField("differentiation", event.target.value)

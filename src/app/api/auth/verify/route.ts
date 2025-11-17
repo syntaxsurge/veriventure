@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stringToU8a } from "@polkadot/util";
-import { cryptoWaitReady, signatureVerify } from "@polkadot/util-crypto";
+import { getAddress, verifyMessage } from "viem";
 import { consumeNonce, readNonce } from "@/lib/server/session-store";
 import { createSession } from "@/lib/server/session-cookie";
 
@@ -34,14 +33,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Nonce mismatch" }, { status: 400 });
   }
 
-  await cryptoWaitReady();
-  const { isValid } = signatureVerify(stringToU8a(message), signature, address);
-
-  if (!isValid) {
+  try {
+    const normalizedAddress = getAddress(address);
+    const isValid = await verifyMessage({
+      address: normalizedAddress,
+      message,
+      signature: signature as `0x${string}`,
+    });
+    if (!isValid) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+    consumeNonce(normalizedAddress);
+    await createSession(normalizedAddress);
+    return NextResponse.json({ address: normalizedAddress });
+  } catch (error) {
+    const fallback =
+      error instanceof Error ? error.message : "Signature verification failed";
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
-
-  consumeNonce(address);
-  await createSession(address);
-  return NextResponse.json({ address });
 }

@@ -1,20 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { cryptoWaitReady } from "@polkadot/util-crypto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { computeAchievementHash } from "@/lib/achievement-hash";
-import { mintAchievementBadge } from "@/lib/web3/badge-contract";
-import { loadExtensionDapp } from "@/lib/web3/extension-dapp";
+import { mintAchievementBadge } from "@/lib/web3/validity-contract";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 import { Coachmark } from "@/components/onboarding/coachmark";
 import type {
   AchievementPayload,
   AchievementRecord,
 } from "@/types/achievement";
+import { useWalletClient } from "wagmi";
 
 type AchievementFormProps = {
   disabled?: boolean;
@@ -35,6 +34,7 @@ export function AchievementForm({
   address,
   onCreated,
 }: AchievementFormProps) {
+  const { data: walletClient } = useWalletClient();
   const [form, setForm] = useState<AchievementPayload>(initialState);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +58,10 @@ export function AchievementForm({
       setError("Connect your wallet before minting.");
       return;
     }
+    if (!walletClient) {
+      setError("Wallet provider is unavailable. Reconnect and try again.");
+      return;
+    }
 
     setSubmitting(true);
     setStage("minting");
@@ -65,17 +69,9 @@ export function AchievementForm({
     setSuccess(null);
     setTxHash(null);
     try {
-      await cryptoWaitReady();
-      const { web3FromAddress } = await loadExtensionDapp();
-      const injector = await web3FromAddress(address);
-      const signer = injector?.signer;
-      if (!signer) {
-        throw new Error("Unable to access wallet signer.");
-      }
-
       const mintResult = await mintAchievementBadge({
-        ownerAddress: address,
-        signer,
+        walletClient,
+        to: address,
         payloadHash: previewHash,
       });
       setTxHash(mintResult.txHash);
