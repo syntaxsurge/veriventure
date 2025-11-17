@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
 import {
+  generateAchievementFieldSuggestion,
   generateBusinessPlanFieldSuggestion,
   generateResumeFieldSuggestion,
 } from "@/lib/server/openai";
@@ -22,6 +23,14 @@ const RESUME_FIELDS = [
   "focus",
 ] as const;
 
+const ACHIEVEMENT_FIELDS = [
+  "title",
+  "summary",
+  "metrics",
+  "evidenceUrl",
+  "impactArea",
+] as const;
+
 const businessPlanFormSchema = z.object({
   idea: z.string().optional(),
   market: z.string().optional(),
@@ -38,6 +47,14 @@ const resumeFormSchema = z.object({
   focus: z.string().optional(),
 });
 
+const achievementFormSchema = z.object({
+  title: z.string().optional(),
+  summary: z.string().optional(),
+  metrics: z.string().optional(),
+  evidenceUrl: z.string().optional(),
+  impactArea: z.string().optional(),
+});
+
 const requestSchema = z.discriminatedUnion("assistant", [
   z.object({
     assistant: z.literal("businessPlan"),
@@ -48,6 +65,11 @@ const requestSchema = z.discriminatedUnion("assistant", [
     assistant: z.literal("resume"),
     field: z.enum(RESUME_FIELDS),
     form: resumeFormSchema.partial(),
+  }),
+  z.object({
+    assistant: z.literal("achievement"),
+    field: z.enum(ACHIEVEMENT_FIELDS),
+    form: achievementFormSchema.partial(),
   }),
 ]);
 
@@ -83,6 +105,12 @@ export async function POST(request: NextRequest) {
         break;
       case "resume":
         suggestion = await generateResumeFieldSuggestion(
+          body.field,
+          body.form ?? {},
+        );
+        break;
+      case "achievement":
+        suggestion = await generateAchievementFieldSuggestion(
           body.field,
           body.form ?? {},
         );

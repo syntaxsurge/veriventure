@@ -29,6 +29,8 @@ const initialState: AchievementPayload = {
   impactArea: "",
 };
 
+type AchievementField = keyof AchievementPayload;
+
 export function AchievementForm({
   disabled,
   address,
@@ -41,6 +43,8 @@ export function AchievementForm({
   const [success, setSuccess] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [stage, setStage] = useState<"idle" | "minting" | "saving">("idle");
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState<Partial<Record<AchievementField, boolean>>>({});
   const { mark, progress } = useOnboardingProgress();
 
   const previewHash = useMemo(() => computeAchievementHash(form), [form]);
@@ -110,10 +114,52 @@ export function AchievementForm({
     }
   }
 
+  async function handleAssist(field: AchievementField) {
+    setAiBusy((prev) => ({ ...prev, [field]: true }));
+    setAiError(null);
+    try {
+      const response = await fetch("/api/ai/forms/assist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assistant: "achievement",
+          field,
+          form,
+        }),
+      });
+      const payload = (await response.json()) as {
+        suggestion?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.suggestion) {
+        throw new Error(payload.error ?? "Unable to suggest content.");
+      }
+      updateField(field, payload.suggestion);
+    } catch (err) {
+      const fallback =
+        err instanceof Error ? err.message : "Unable to suggest content.";
+      setAiError(fallback);
+    } finally {
+      setAiBusy((prev) => ({ ...prev, [field]: false }));
+    }
+  }
+
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="grid gap-3">
-        <Label htmlFor="title">Milestone title</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="title">Milestone title</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={() => handleAssist("title")}
+            disabled={disabled || submitting || aiBusy.title}
+          >
+            {aiBusy.title ? "Generating…" : "Use AI"}
+          </Button>
+        </div>
         <Input
           id="title"
           placeholder="Closed $85K ARR with 4 logos"
@@ -123,7 +169,19 @@ export function AchievementForm({
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="summary">Summary</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="summary">Summary</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={() => handleAssist("summary")}
+            disabled={disabled || submitting || aiBusy.summary}
+          >
+            {aiBusy.summary ? "Generating…" : "Use AI"}
+          </Button>
+        </div>
         <Textarea
           id="summary"
           rows={4}
@@ -134,7 +192,19 @@ export function AchievementForm({
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="metrics">KPIs or metrics</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="metrics">KPIs or metrics</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={() => handleAssist("metrics")}
+            disabled={disabled || submitting || aiBusy.metrics}
+          >
+            {aiBusy.metrics ? "Generating…" : "Use AI"}
+          </Button>
+        </div>
         <Textarea
           id="metrics"
           rows={3}
@@ -145,7 +215,19 @@ export function AchievementForm({
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="evidenceUrl">Evidence URL</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="evidenceUrl">Evidence URL</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={() => handleAssist("evidenceUrl")}
+            disabled={disabled || submitting || aiBusy.evidenceUrl}
+          >
+            {aiBusy.evidenceUrl ? "Generating…" : "Use AI"}
+          </Button>
+        </div>
         <Input
           id="evidenceUrl"
           type="url"
@@ -156,7 +238,19 @@ export function AchievementForm({
         />
       </div>
       <div className="grid gap-3">
-        <Label htmlFor="impactArea">Impact area</Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="impactArea">Impact area</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs"
+            onClick={() => handleAssist("impactArea")}
+            disabled={disabled || submitting || aiBusy.impactArea}
+          >
+            {aiBusy.impactArea ? "Generating…" : "Use AI"}
+          </Button>
+        </div>
         <Input
           id="impactArea"
           placeholder="SME climate financing"
@@ -179,6 +273,12 @@ export function AchievementForm({
             ? "Waiting for wallet signature and contract finalization…"
             : "Saving metadata to the local registry…"}
         </div>
+      )}
+
+      {aiError && (
+        <p className="text-xs text-destructive" role="alert">
+          {aiError}
+        </p>
       )}
 
       <Button

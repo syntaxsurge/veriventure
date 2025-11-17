@@ -11,6 +11,7 @@ import type {
   ResumeSection,
   SocialPostVariant,
 } from "@/types/document";
+import type { AchievementPayload } from "@/types/achievement";
 import type {
   ImageStrategy,
   PitchBrandKit,
@@ -808,6 +809,29 @@ const RESUME_LIMITS: Record<keyof ResumeInput, number> = {
   focus: 400,
 };
 
+type AchievementInput = AchievementPayload;
+
+const ACHIEVEMENT_HINTS = {
+  title:
+    "Write a milestone headline that pairs a concrete metric with the beneficiary (e.g. ARR, pilots, regions) in under 12 words.",
+  summary:
+    "Explain the milestone in 2 crisp sentences that reference the counterparties, proof sources, and why it matters.",
+  metrics:
+    "List 2-4 KPIs separated by commas (ARR, CAC, retention, carbon impact, etc.) with units.",
+  evidenceUrl:
+    "Return a single https:// link to a dashboard, press article, or notarized doc that substantiates the milestone.",
+  impactArea:
+    "Name the sector or impact theme in under 5 words (e.g. SME climate finance, agroforestry Kenya).",
+} satisfies Record<keyof AchievementInput, string>;
+
+const ACHIEVEMENT_LIMITS: Record<keyof AchievementInput, number> = {
+  title: 160,
+  summary: 800,
+  metrics: 400,
+  evidenceUrl: 400,
+  impactArea: 200,
+};
+
 type AssistOptions<Field extends string, Payload extends Record<string, unknown>> = {
   assistantName: string;
   field: Field;
@@ -966,5 +990,21 @@ export async function generateResumeFieldSuggestion(
     hint: RESUME_HINTS[field],
     maxLength: RESUME_LIMITS[field],
     temperature: 0.35,
+  });
+}
+
+type AchievementField = keyof AchievementInput;
+
+export async function generateAchievementFieldSuggestion(
+  field: AchievementField,
+  draft: Partial<AchievementInput>,
+) {
+  return requestAssistSuggestion({
+    assistantName: "Credentials Studio",
+    field,
+    payload: draft as Record<string, unknown>,
+    hint: ACHIEVEMENT_HINTS[field],
+    maxLength: ACHIEVEMENT_LIMITS[field],
+    temperature: field === "evidenceUrl" ? 0.2 : 0.35,
   });
 }
