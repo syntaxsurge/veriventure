@@ -107,8 +107,6 @@ export function ResumeBuilder() {
     event.preventDefault();
     setLoading(true);
     setError(null);
-    setPublishState(null);
-    setPublishError(null);
     try {
       const response = await fetch("/api/ai/resume", {
         method: "POST",

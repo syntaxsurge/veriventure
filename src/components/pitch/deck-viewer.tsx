@@ -1003,7 +1003,12 @@ function SlideSection({ slide, index, brandColors, tokens, team }: SlideSectionP
   );
 }
 
-function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectionProps) {
+function StandardSlideSection({
+  slide,
+  index,
+  brandColors,
+  tokens,
+}: Omit<SlideSectionProps, "team">) {
   const image = slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE;
   const caption = slide.images[0]?.caption || slide.title;
   const isFlipped = index % 2 === 1;

@@ -34,6 +34,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
     return null;
   }
 
+  const resolvedResume = resume as NonNullable<typeof resume>;
+
   const fullName =
     document.data.metadata?.fullName ||
     document.title.replace(/ resume draft$/i, "");
@@ -75,13 +77,13 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
   function copyResume() {
     const text = [
       fullName,
-      resume.headline,
-      resume.summary,
-      ...resume.sections.map(
+      resolvedResume.headline,
+      resolvedResume.summary,
+      ...resolvedResume.sections.map(
         (section) => `${section.heading}\n- ${section.bullets.join("\n- ")}`,
       ),
-      resume.skills.length
-        ? `Skills: ${resume.skills.join(", ")}`
+      resolvedResume.skills.length
+        ? `Skills: ${resolvedResume.skills.join(", ")}`
         : "",
     ]
       .filter(Boolean)
@@ -90,7 +92,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
   }
 
   async function handlePublishToDkg() {
-    if (!resume) return;
+    if (!resolvedResume) return;
     setPublishing(true);
     setPublishError(null);
     setPublishState(null);
@@ -100,13 +102,13 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "resume",
-          title: document.title || resume.headline,
-          summary: resume.summary || document.summary,
+          title: document.title || resolvedResume.headline,
+          summary: resolvedResume.summary || document.summary,
           references: [],
           payload: {
             documentId: document.id,
             checksum: document.checksum,
-            resume,
+            resume: resolvedResume,
           },
         }),
       });
@@ -265,7 +267,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
               <header className="flex items-start justify-between gap-6 border-b border-slate-200 pb-3">
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                    {resume.headline || "Resume"}
+                    {resolvedResume.headline || "Resume"}
                   </p>
                   <h2 className="text-[22px] font-semibold tracking-tight">
                     {fullName || "Full name"}
@@ -294,16 +296,16 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                       Profile
                     </h3>
                     <p className="mt-1 text-[11px] text-slate-800 md:text-xs">
-                      {resume.summary}
+                      {resolvedResume.summary}
                     </p>
                   </div>
-                  {resume.skills.length > 0 && (
+                  {resolvedResume.skills.length > 0 && (
                     <div>
                       <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Key skills
                       </h3>
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        {resume.skills.map((skill) => (
+                        {resolvedResume.skills.map((skill) => (
                           <span
                             key={skill}
                             className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-800"
@@ -316,7 +318,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                   )}
                 </section>
                 <section className="space-y-4">
-                  {resume.sections.map((section) => (
+                  {resolvedResume.sections.map((section) => (
                     <div key={section.heading}>
                       <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         {section.heading}

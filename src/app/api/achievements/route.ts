@@ -71,13 +71,16 @@ export async function POST(request: NextRequest) {
 
 function formatValidationError(error: z.ZodError) {
   const flattened = error.flatten();
-  for (const [field, messages] of Object.entries(flattened.fieldErrors)) {
-    if (messages && messages.length) {
-      return `${field}: ${messages[0]}`;
+  const fieldErrors = flattened.fieldErrors as Record<
+    string,
+    string[] | undefined
+  >;
+  for (const [field, messages] of Object.entries(fieldErrors)) {
+    const message = messages?.[0];
+    if (message) {
+      return `${field}: ${message}`;
     }
   }
-  if (flattened.formErrors && flattened.formErrors.length) {
-    return flattened.formErrors[0];
-  }
-  return "Invalid achievement payload.";
+  const formError = flattened.formErrors?.[0];
+  return formError ?? "Invalid achievement payload.";
 }

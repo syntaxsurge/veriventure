@@ -49,6 +49,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const fallback =
       error instanceof Error ? error.message : "Signature verification failed";
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    return NextResponse.json({ error: fallback }, { status: 401 });
   }
 }
