@@ -98,10 +98,57 @@ export type PublishedCommunityNote = {
   result: AssetCreateResult;
 };
 
+type PublishOptions = {
+  epochsNum?: number;
+  minimumNumberOfFinalizationConfirmations?: number;
+  minimumNumberOfNodeReplications?: number;
+  minimumBlockConfirmations?: number;
+};
+
+function normalizeOptions(
+  options?: PublishOptions,
+): Required<PublishOptions> {
+  return {
+    epochsNum: options?.epochsNum ?? 6,
+    minimumNumberOfFinalizationConfirmations:
+      options?.minimumNumberOfFinalizationConfirmations ?? 2,
+    minimumNumberOfNodeReplications:
+      options?.minimumNumberOfNodeReplications ?? 1,
+    minimumBlockConfirmations: options?.minimumBlockConfirmations ?? 1,
+  };
+}
+
+async function publishDataset(
+  dataset: unknown,
+  options?: PublishOptions,
+) {
+  const client = getClient();
+  const normalized = normalizeOptions(options);
+  const result = await client.asset.create(dataset, normalized);
+
+  const rawUal =
+    (typeof result.UAL === "string" && result.UAL) ||
+    (typeof result.ual === "string" && result.ual);
+  if (!rawUal) {
+    throw new Error("DKG publish succeeded but no UAL was returned.");
+  }
+
+  const txHash =
+    typeof result.operation?.mintKnowledgeCollection?.transactionHash ===
+    "string"
+      ? result.operation?.mintKnowledgeCollection?.transactionHash
+      : undefined;
+
+  return {
+    ual: rawUal,
+    txHash,
+    result,
+  };
+}
+
 export async function publishCommunityNote(
   note: CommunityNoteInput,
 ): Promise<PublishedCommunityNote> {
-  const client = getClient();
   const referenceList = note.references.filter(Boolean);
   const slug = note.topic
     .toLowerCase()
@@ -128,31 +175,14 @@ export async function publishCommunityNote(
     },
   };
 
-  const result = await client.asset.create(dataset, {
-    epochsNum: 6,
-    minimumNumberOfFinalizationConfirmations: 2,
-    minimumNumberOfNodeReplications: 1,
-    minimumBlockConfirmations: 1,
-  });
+  return publishDataset(dataset);
+}
 
-  const rawUal =
-    (typeof result.UAL === "string" && result.UAL) ||
-    (typeof result.ual === "string" && result.ual);
-  if (!rawUal) {
-    throw new Error("DKG publish succeeded but no UAL was returned.");
-  }
-
-  const txHash =
-    typeof result.operation?.mintKnowledgeCollection?.transactionHash ===
-    "string"
-      ? result.operation?.mintKnowledgeCollection?.transactionHash
-      : undefined;
-
-  return {
-    ual: rawUal,
-    txHash,
-    result,
-  };
+export async function publishKnowledgeAsset(
+  dataset: unknown,
+  options?: PublishOptions,
+) {
+  return publishDataset(dataset, options);
 }
 
 export async function fetchDkgNodeInfo() {

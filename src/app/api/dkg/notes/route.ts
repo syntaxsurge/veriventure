@@ -3,7 +3,7 @@ import { z } from "zod";
 import { publishCommunityNote } from "@/lib/server/dkg-client";
 import { getAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { createCommunityNote } from "@/lib/server/community-note-store";
-import { clientEnv } from "@/env/client";
+import { buildDkgExplorerUrl, buildDkgTxUrl } from "@/lib/dkg/links";
 
 const noteSchema = z.object({
   topic: z.string().min(3).max(240),
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
       txHash: published.txHash,
       dkgResponse: published.result,
     });
-    const explorer = buildExplorerUrl(published.ual);
-    const subscan = buildSubscanUrl(published.txHash);
+    const explorer = buildDkgExplorerUrl(published.ual);
+    const subscan = buildDkgTxUrl(published.txHash);
     return NextResponse.json({
       ok: true,
       ual: published.ual,
@@ -57,16 +57,4 @@ export async function POST(request: NextRequest) {
     const status = message.includes("DKG_") ? 503 : 500;
     return NextResponse.json({ ok: false, error: message }, { status });
   }
-}
-
-function buildExplorerUrl(ual: string) {
-  return clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace(
-    "{ual}",
-    encodeURIComponent(ual),
-  );
-}
-
-function buildSubscanUrl(txHash?: string) {
-  if (!txHash) return null;
-  return clientEnv.NEXT_PUBLIC_DKG_TX_TEMPLATE.replace("{tx}", txHash);
 }

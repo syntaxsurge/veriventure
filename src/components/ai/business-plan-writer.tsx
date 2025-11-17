@@ -15,6 +15,12 @@ type ApiResponse = {
   error?: string;
 };
 
+type PublishState = {
+  ual: string;
+  explorer: string | null;
+  subscan: string | null;
+};
+
 const initialForm = {
   idea: "",
   market: "",
@@ -36,6 +42,9 @@ export function BusinessPlanWriter() {
   const [documentRecord, setDocumentRecord] = useState<DocumentRecord | null>(
     null,
   );
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishState, setPublishState] = useState<PublishState | null>(null);
 
   function updateField<K extends keyof typeof form>(
     key: K,
@@ -51,6 +60,8 @@ export function BusinessPlanWriter() {
     setSections(null);
     setBody(null);
     setDocumentRecord(null);
+    setPublishState(null);
+    setPublishError(null);
     try {
       const response = await fetch("/api/ai/business-plan", {
         method: "POST",
@@ -107,6 +118,51 @@ export function BusinessPlanWriter() {
       setAiError(message);
     } finally {
       setAiBusy((prev) => ({ ...prev, [field]: false }));
+    }
+  }
+
+  async function handlePublishToDkg() {
+    if (!documentRecord || !sections) return;
+    setPublishing(true);
+    setPublishError(null);
+    setPublishState(null);
+    try {
+      const response = await fetch("/api/dkg/assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "business_plan",
+          title: documentRecord.title || "Business Plan",
+          summary: documentRecord.summary || sections[0]?.content || "",
+          references: [],
+          payload: {
+            documentId: documentRecord.id,
+            checksum: documentRecord.checksum,
+            sections,
+          },
+        }),
+      });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        ual?: string;
+        explorer?: string | null;
+        subscan?: string | null;
+        error?: string;
+      };
+      if (!response.ok || !payload.ok || !payload.ual) {
+        throw new Error(payload.error ?? "Unable to publish to the DKG.");
+      }
+      setPublishState({
+        ual: payload.ual,
+        explorer: payload.explorer ?? null,
+        subscan: payload.subscan ?? null,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to publish to the DKG.";
+      setPublishError(message);
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -288,6 +344,64 @@ export function BusinessPlanWriter() {
                   </p>
                 </div>
               ))}
+            </div>
+            <div className="space-y-3 rounded-2xl border bg-muted/20 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold">
+                    Publish this plan to the OriginTrail DKG
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Creates a verifiable Knowledge Asset with shareable explorer
+                    and Subscan links.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePublishToDkg}
+                  disabled={publishing}
+                >
+                  {publishing ? "Publishing…" : "Publish to DKG"}
+                </Button>
+              </div>
+              {publishState && (
+                <div className="space-y-1 text-xs">
+                  <p className="font-semibold text-foreground">
+                    UAL:{" "}
+                    <span className="break-all font-mono text-muted-foreground">
+                      {publishState.ual}
+                    </span>
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    {publishState.explorer && (
+                      <a
+                        href={publishState.explorer}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary underline-offset-4 hover:underline"
+                      >
+                        View on DKG Explorer
+                      </a>
+                    )}
+                    {publishState.subscan && (
+                      <a
+                        href={publishState.subscan}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary underline-offset-4 hover:underline"
+                      >
+                        View tx on Subscan
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+              {publishError && (
+                <p className="text-xs text-destructive" role="alert">
+                  {publishError}
+                </p>
+              )}
             </div>
           </div>
         )}

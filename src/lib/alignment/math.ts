@@ -1,5 +1,3 @@
-"use server";
-
 export function cosineSimilarity(a: number[], b: number[]) {
   if (!a.length || !b.length || a.length !== b.length) {
     return 0;

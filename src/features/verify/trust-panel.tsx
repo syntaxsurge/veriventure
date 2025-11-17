@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Copy, ExternalLink } from "lucide-react";
-import { clientEnv } from "@/env/client";
 import { AchievementList } from "@/components/credentials/achievement-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PublicProfile } from "@/lib/server/profile-store";
+import { buildDkgExplorerUrl, buildDkgTxUrl } from "@/lib/dkg/links";
 
 type TrustPanelProps = {
   profile: PublicProfile;
@@ -165,7 +165,7 @@ export function TrustPanel({ profile }: TrustPanelProps) {
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {profile.notes.map((note) => {
-              const noteUrl = buildDkgViewerUrl(note.ual);
+              const noteUrl = buildDkgExplorerUrl(note.ual);
               const txUrl = buildDkgTxUrl(note.txHash);
               return (
                 <Card key={note.id}>
@@ -231,16 +231,4 @@ export function TrustPanel({ profile }: TrustPanelProps) {
       </section>
     </div>
   );
-}
-
-function buildDkgViewerUrl(ual?: string | null) {
-  if (!ual) return null;
-  const template = clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE;
-  return template.replace("{ual}", encodeURIComponent(ual));
-}
-
-function buildDkgTxUrl(txHash?: string | null) {
-  if (!txHash) return null;
-  const template = clientEnv.NEXT_PUBLIC_DKG_TX_TEMPLATE;
-  return template.replace("{tx}", txHash);
 }

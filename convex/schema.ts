@@ -60,6 +60,21 @@ export default defineSchema({
     .index("by_owner", ["ownerAddress"])
     .index("by_ual", ["ual"]),
 
+  dkgAssets: defineTable({
+    dkgAssetId: v.string(),
+    ownerAddress: v.string(),
+    type: v.string(),
+    title: v.string(),
+    summary: v.string(),
+    references: v.array(v.string()),
+    ual: v.string(),
+    txHash: v.optional(v.string()),
+    metadataJson: v.optional(v.string()),
+    createdAt: v.string(),
+  })
+    .index("by_owner", ["ownerAddress"])
+    .index("by_ual", ["ual"]),
+
   pitchDecks: defineTable({
     deckId: v.string(),
     ownerAddress: v.string(),

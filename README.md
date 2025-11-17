@@ -44,11 +44,12 @@ Real-world pain points and the hackathon alignment matrix are documented in `doc
 ## Key workflows
 
 - **Notes** – `/notes` stores research, diligence calls, and operational to-dos via `/api/notes`. Entries live in the Convex `notes` table so every session stays in sync instantly.
-- **Pitch decks & business plans** – `/api/ai/pitch-deck` and `/api/ai/business-plan` ask OpenAI for slide decks or plan sections, then persist them as documents with deterministic checksums.
-- **Resume builder** – `/api/ai/resume` leverages OpenAI to package headline, summary, bullet sections, and skill tags. Results are saved as `DocumentRecord` entries of type `resume`.
+- **Pitch decks & business plans** – `/api/ai/pitch-deck` and `/api/ai/business-plan` ask OpenAI for slide decks or plan sections, persist them with deterministic checksums, and expose “Publish to DKG” actions (business plans call `/api/dkg/assets` so narratives inherit a UAL + Subscan tx).
+- **Resume builder** – `/api/ai/resume` leverages OpenAI to package headline, summary, bullet sections, and skill tags, then optionally ships the output to `/api/dkg/assets` so recruiters receive the verifiable UAL alongside the checksum.
 - **Social autopost studio** – `/api/ai/social-posts` drafts multi-channel campaigns (LinkedIn, Twitter, etc.) and exports CSV schedules while storing the generated posts as documents.
 - **Truth Alignment Lab** – `/api/alignment/analyze` calls Wikipedia and Grokipedia, runs embeddings for cosine similarities, and `/api/dkg/notes` publishes Community Notes onto the OriginTrail DKG with instant “View on DKG Explorer/Subscan” proof links.
 - **Documents vault** – `/documents` lists every AI artifact with metadata, checksum copy actions, and JSON downloads regardless of type (`pitch_deck`, `business_plan`, `resume`, `social_post`). All entries live in Convex `documents`.
+- **DKG Activity** – `/ai-assistant/dkg-test` is now a production history surface listing every Knowledge Asset tied to the wallet (Truth Alignment notes, plans, resumes, future copilots) with UAL, DKG Explorer, and NeuroWeb Subscan links.
 - **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (resolved server-side from the wallet session) so authenticated users land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, OriginTrail UAL links, and NeuroWeb Subscan tx links sourced from the env templates, and never 404s when a wallet has zero achievements.
 
 ## Contracts
@@ -100,7 +101,7 @@ npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
   !fundme_neuroweb_trac 0xYourWallet
   ```
 
-- Sanity-check connectivity with `curl http://localhost:3000/api/dkg/health` and publish a note through `/api/dkg/notes` (the Mission Control DKG tester hits the same routes).
+- Sanity-check connectivity with `curl http://localhost:3000/api/dkg/health` and publish from Truth Alignment Lab (`/api/dkg/notes`) or any copilot hooked to `/api/dkg/assets`—the DKG Activity page will display the resulting UALs immediately.
 
 ### Convex quickstart
 

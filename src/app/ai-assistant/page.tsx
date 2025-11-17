@@ -41,11 +41,11 @@ const assistantPages = [
     badge: "Trust layer",
   },
   {
-    title: "DKG Note Tester",
+    title: "DKG Activity",
     href: "/ai-assistant/dkg-test",
     blurb:
-      "Smoketest your Edge Node credentials by pushing a lightweight note before running production flows.",
-    badge: "Edge node",
+      "Review every Knowledge Asset you’ve published—Truth Alignment notes, business plans, resumes—with instant explorer links.",
+    badge: "Proofs",
   },
 ];
 
