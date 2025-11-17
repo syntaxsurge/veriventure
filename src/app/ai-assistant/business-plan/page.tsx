@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { BusinessPlanWriter } from "@/components/ai/business-plan-writer";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -20,11 +19,7 @@ export default function BusinessPlanPage() {
           <Badge variant="secondary">Documents</Badge>
         </PageHeader>
 
-        <Card className="border-2 shadow-md">
-          <CardContent className="p-6 md:p-8">
-            <BusinessPlanWriter />
-          </CardContent>
-        </Card>
+        <BusinessPlanWriter />
       </div>
     </AppShell>
   );
