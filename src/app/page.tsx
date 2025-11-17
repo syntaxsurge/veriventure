@@ -79,7 +79,7 @@ export default function Home() {
               variant="secondary"
               className="border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium"
             >
-              GEF2025 • Polkadot Cloud • OriginTrail "Truth Alignment"
+              Powered by OriginTrail DKG • Built on Polkadot
             </Badge>
 
             <h1 className="text-5xl font-bold tracking-tight md:text-6xl lg:text-7xl">
