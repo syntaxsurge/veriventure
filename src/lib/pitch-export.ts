@@ -123,18 +123,18 @@ function lightenHex(hex: string, intensity: number) {
 }
 
 function buildTeamCards(slide: PitchSlideRecord, deck: PitchDeckRecord): TeamCard[] {
-  if (slide.images.length) {
-    return slide.images.map((member, index) => ({
-      title: member.caption || `Team member ${index + 1}`,
-      role: slide.bullets[index] || "Core operator",
-      image: member.url || DECK_PLACEHOLDER_IMAGE,
-    }));
-  }
   if (deck.team?.length) {
     return deck.team.map((member, index) => ({
       title: member.name || `Team member ${index + 1}`,
-      role: member.role || member.expertise || "Operator",
-      image: DECK_PLACEHOLDER_IMAGE,
+      role: member.role || "Operator",
+      image: slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE,
+    }));
+  }
+  if (slide.images.length) {
+    return slide.images.map((member, index) => ({
+      title: member.caption || `Team member ${index + 1}`,
+      role: "Operator",
+      image: member.url || DECK_PLACEHOLDER_IMAGE,
     }));
   }
   return [

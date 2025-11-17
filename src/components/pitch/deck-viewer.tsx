@@ -357,6 +357,7 @@ export function PitchDeckViewer({ deck }: ViewerProps) {
               activeIndex={activeIndex}
               slideRefs={slideRefs}
               onSlideVisible={handleSlideVisible}
+              team={deck.team}
             />
           </section>
 
@@ -912,9 +913,17 @@ type SlideStackProps = {
   activeIndex: number;
   slideRefs: MutableRefObject<Array<HTMLDivElement | null>>;
   onSlideVisible: (index: number) => void;
+  team: PitchDeckRecord["team"];
 };
 
-function SlideStack({ slides, brandColors, activeIndex, slideRefs, onSlideVisible }: SlideStackProps) {
+function SlideStack({
+  slides,
+  brandColors,
+  activeIndex,
+  slideRefs,
+  onSlideVisible,
+  team,
+}: SlideStackProps) {
   useSlideObserver(slides, slideRefs, onSlideVisible);
 
   return (
@@ -937,7 +946,13 @@ function SlideStack({ slides, brandColors, activeIndex, slideRefs, onSlideVisibl
               backgroundImage: tokens.overlay,
             }}
           >
-            <SlideSection slide={slide} index={index} brandColors={brandColors} tokens={tokens} />
+            <SlideSection
+              slide={slide}
+              index={index}
+              brandColors={brandColors}
+              tokens={tokens}
+              team={team}
+            />
           </article>
         );
       })}
@@ -963,9 +978,10 @@ type SlideSectionProps = {
   index: number;
   brandColors: BrandColors;
   tokens: StageTokens;
+  team: PitchDeckRecord["team"];
 };
 
-function SlideSection({ slide, index, brandColors, tokens }: SlideSectionProps) {
+function SlideSection({ slide, index, brandColors, tokens, team }: SlideSectionProps) {
   if (slide.slideType === "team") {
     return (
       <TeamSlideSection
@@ -973,6 +989,7 @@ function SlideSection({ slide, index, brandColors, tokens }: SlideSectionProps) 
         index={index}
         brandColors={brandColors}
         tokens={tokens}
+        team={team}
       />
     );
   }
@@ -1092,97 +1109,85 @@ function StandardSlideSection({ slide, index, brandColors, tokens }: SlideSectio
   );
 }
 
-function TeamSlideSection({ slide, brandColors, tokens }: SlideSectionProps) {
-  const members = slide.images.length
-    ? slide.images
-    : [{ url: DECK_PLACEHOLDER_IMAGE, caption: "Team member" }];
+function TeamSlideSection({ slide, brandColors, tokens, team }: SlideSectionProps) {
+  const teamMembers = (team ?? []).filter(
+    (member) => member.name && member.name.trim().length > 0,
+  );
+  const hasTeam = teamMembers.length > 0;
+  const cardImage = slide.images[0]?.url || DECK_PLACEHOLDER_IMAGE;
   const titleSize = slide.textStyles?.titleSize ?? TEXT_SIZE_DEFAULTS.title;
   const subtitleSize = slide.textStyles?.subtitleSize ?? TEXT_SIZE_DEFAULTS.subtitle;
-  const bulletSize = slide.textStyles?.bulletSize ?? TEXT_SIZE_DEFAULTS.bullet;
   const noteSize = slide.textStyles?.noteSize ?? TEXT_SIZE_DEFAULTS.note;
   const titleColor = slide.textStyles?.titleColor || brandColors.title;
   const subtitleColor = slide.textStyles?.subtitleColor || brandColors.note;
-  const bulletColor = slide.textStyles?.bulletColor || brandColors.bullets;
   const noteColor = slide.textStyles?.noteColor || brandColors.note;
   const memberNameSize = Math.max(subtitleSize, 20);
   const memberRoleSize = Math.max(12, Math.round(subtitleSize * 0.6));
 
   return (
     <div className="space-y-10 px-6 py-12">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <p
+          className="text-xs uppercase tracking-[0.4em]"
+          style={{ color: tokens.textSoft }}
+        >
+          Leadership collective
+        </p>
+        <h2
+          className="font-semibold leading-tight"
+          style={{ color: titleColor, fontSize: titleSize }}
+        >
+          {slide.title}
+        </h2>
+        {slide.notes && (
           <p
-            className="text-xs uppercase tracking-[0.4em]"
-            style={{ color: tokens.textSoft }}
+            className="max-w-[70ch] leading-relaxed"
+            style={{ color: noteColor, fontSize: noteSize }}
           >
-            Leadership collective
+            {slide.notes}
           </p>
-          <h2
-            className="font-semibold leading-tight"
-            style={{ color: titleColor, fontSize: titleSize }}
-          >
-            {slide.title}
-          </h2>
-          {slide.notes && (
-            <p
-              className="leading-relaxed"
-              style={{ color: noteColor, fontSize: noteSize, maxWidth: "70ch" }}
-            >
-              {slide.notes}
-            </p>
-          )}
-        </div>
-        {slide.bullets.length > 0 && (
-          <div
-            className="rounded-3xl border px-5 py-4 text-sm"
-            style={{
-              borderColor: tokens.border,
-              backgroundColor: tokens.panelAccent,
-              color: bulletColor,
-            }}
-          >
-            {slide.bullets.map((bullet, idx) => (
-              <p
-                key={`${slide.id}-note-${idx}`}
-                className="mb-2 last:mb-0"
-                style={{ fontSize: bulletSize, lineHeight: 1.5 }}
-              >
-                • {bullet}
-              </p>
-            ))}
-          </div>
         )}
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {members.map((member, index) => (
+        {(hasTeam
+          ? teamMembers
+          : [
+              {
+                id: "placeholder",
+                name: slide.images[0]?.caption || "Team member",
+                role: "Core operator",
+                expertise: "",
+              },
+            ]
+        ).map((member, index) => (
           <div
-            key={`${slide.id}-${index}`}
-            className="group rounded-4xl border p-1"
+            key={`${slide.id}-${member.id ?? index}`}
+            className="group rounded-4xl border p-1 transition-transform duration-200 hover:-translate-y-1"
             style={{
               borderColor: tokens.border,
               backgroundImage: tokens.overlay,
             }}
           >
             <div className="rounded-[28px] bg-black/30 p-4 text-white">
-              <div className="mb-4 h-40 overflow-hidden rounded-2xl bg-black/30">
+              <div className="mb-4 h-36 overflow-hidden rounded-2xl bg-black/30 sm:h-40">
                 <img
-                  src={member.url || DECK_PLACEHOLDER_IMAGE}
-                  alt={member.caption || `Team member ${index + 1}`}
-                  className="h-full w-full object-cover"
+                  src={cardImage}
+                  alt={member.name || `Team member ${index + 1}`}
+                  className="h-full w-full object-cover object-center"
                 />
               </div>
               <p
                 className="text-xl font-semibold"
                 style={{ color: titleColor, fontSize: memberNameSize }}
               >
-                {member.caption || `Team member ${index + 1}`}
+                {member.name || `Team member ${index + 1}`}
               </p>
               <p
                 className="mt-1 text-sm"
                 style={{ color: subtitleColor, fontSize: memberRoleSize }}
               >
-                {slide.subtitle || "Core operator"}
+                {member.role || "Core operator"}
               </p>
             </div>
           </div>
