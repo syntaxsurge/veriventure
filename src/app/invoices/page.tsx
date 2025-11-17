@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 import { clientEnv } from "@/env/client";
+import { AppShell } from "@/components/layout/app-shell";
 
 type Invoice = {
   invoiceId: string;
@@ -215,22 +216,25 @@ export default function InvoicesPage() {
 
   if (!address) {
     return (
-      <div className="container mx-auto max-w-6xl px-4 py-8">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Connect Your Wallet</h3>
-            <p className="text-sm text-muted-foreground text-center max-w-md">
-              Connect your wallet to create and manage invoices
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <AppShell sidebar maxWidth="6xl">
+        <div className="section-spacing animate-in">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Connect Your Wallet</h3>
+              <p className="text-sm text-muted-foreground text-center max-w-md">
+                Connect your wallet to create and manage invoices
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-8">
+    <AppShell sidebar maxWidth="6xl">
+      <div className="section-spacing animate-in">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div className="space-y-1">
@@ -381,6 +385,7 @@ export default function InvoicesPage() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AppShell>
   );
 }

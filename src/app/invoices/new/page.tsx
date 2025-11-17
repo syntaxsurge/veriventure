@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { createNativeInvoice } from "@/lib/web3/invoice-contract";
+import { AppShell } from "@/components/layout/app-shell";
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -60,6 +61,36 @@ export default function NewInvoicePage() {
     setIsCreating(true);
 
     try {
+      // Publish to DKG if enabled
+      let dkgUAL = "";
+      if (publishToDKG) {
+        try {
+          toast.info("Publishing proof to DKG...");
+          const dkgResponse = await fetch("/api/dkg/notes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic: `Invoice: ${memo.slice(0, 100)}`,
+              summary: `Invoice from ${address} to ${payerAddress}. Amount: ${amount} DEV. Due: ${new Date(dueDate).toLocaleDateString()}. Description: ${memo}`,
+              references: [],
+            }),
+          });
+
+          if (dkgResponse.ok) {
+            const dkgData = await dkgResponse.json();
+            dkgUAL = dkgData.ual;
+            toast.success("Proof published to DKG!", {
+              description: `UAL: ${dkgUAL.slice(0, 20)}...`,
+            });
+          } else {
+            toast.warning("Failed to publish to DKG, continuing without proof");
+          }
+        } catch (dkgError) {
+          console.error("DKG publishing error:", dkgError);
+          toast.warning("Failed to publish to DKG, continuing without proof");
+        }
+      }
+
       // Create invoice on-chain
       const result = await createNativeInvoice({
         walletClient,
@@ -67,7 +98,7 @@ export default function NewInvoicePage() {
         amountDEV: amount,
         dueDate: new Date(dueDate),
         memo,
-        dkgUAL: "", // TODO: Implement DKG publishing if enabled
+        dkgUAL,
       });
 
       // Save invoice to Convex
@@ -83,6 +114,7 @@ export default function NewInvoicePage() {
           dueAt: new Date(dueDate).toISOString(),
           status: "Pending",
           memo,
+          dkgUAL: dkgUAL || undefined,
           txHash: result.txHash,
           network: result.network,
           contractAddress: result.contractAddress,
@@ -112,7 +144,8 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <AppShell sidebar maxWidth="3xl">
+      <div className="section-spacing animate-in">
       {/* Header */}
       <div className="mb-8 space-y-4">
         <Link
@@ -232,7 +265,6 @@ export default function NewInvoicePage() {
               id="dkg"
               checked={publishToDKG}
               onCheckedChange={setPublishToDKG}
-              disabled // TODO: Implement DKG integration
             />
           </div>
 
@@ -293,6 +325,7 @@ export default function NewInvoicePage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AppShell>
   );
 }

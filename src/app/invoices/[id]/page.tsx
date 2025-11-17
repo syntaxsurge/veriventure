@@ -18,6 +18,7 @@ import {
   FileText,
   Copy,
   Check,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -31,6 +32,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { toast } from "sonner";
 import { payNativeInvoice, cancelInvoice } from "@/lib/web3/invoice-contract";
 import { clientEnv } from "@/env/client";
+import { AppShell } from "@/components/layout/app-shell";
 
 type Invoice = {
   invoiceId: string;
@@ -42,6 +44,7 @@ type Invoice = {
   dueAt: string;
   status: string;
   memo: string;
+  dkgUAL?: string;
   txHash?: string;
   network?: string;
   contractAddress?: string;
@@ -196,20 +199,22 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
 
   if (!invoice) {
     return (
-      <div className="container mx-auto max-w-3xl px-4 py-8">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Invoice Not Found</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              The invoice you're looking for doesn't exist
-            </p>
-            <Button asChild>
-              <Link href="/invoices">Back to Invoices</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <AppShell sidebar maxWidth="3xl">
+        <div className="section-spacing animate-in">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Invoice Not Found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                The invoice you're looking for doesn't exist
+              </p>
+              <Button asChild>
+                <Link href="/invoices">Back to Invoices</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppShell>
     );
   }
 
@@ -222,7 +227,8 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   const canCancel = isIssuer && invoice.status === "Pending";
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
+    <AppShell sidebar maxWidth="3xl">
+      <div className="section-spacing animate-in">
       {/* Header */}
       <div className="mb-8 space-y-4">
         <Link
@@ -376,6 +382,41 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
             </>
           )}
 
+          {/* DKG Proof */}
+          {invoice.dkgUAL && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4" />
+                  DKG Proof
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded flex-1 overflow-hidden text-ellipsis">
+                    {invoice.dkgUAL}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 flex-shrink-0"
+                    onClick={() => copyToClipboard(invoice.dkgUAL!)}
+                  >
+                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  </Button>
+                </div>
+                <a
+                  href={`https://dkg.origintrail.io/explore?ual=${invoice.dkgUAL}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  View on DKG Explorer
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </>
+          )}
+
           {/* Payment Info */}
           {invoice.paidAt && (
             <>
@@ -475,6 +516,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AppShell>
   );
 }
