@@ -1,1 +1,1 @@
-export const DECK_PLACEHOLDER_IMAGE = "/pitch-placeholder.png";
+export const DECK_PLACEHOLDER_IMAGE = "/images/pitch-placeholder.png";

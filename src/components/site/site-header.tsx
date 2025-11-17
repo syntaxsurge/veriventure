@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { MainNav } from "@/components/site/main-nav";
@@ -10,9 +11,20 @@ export function SiteHeader() {
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-3 rounded-full border border-transparent px-3 py-1.5 transition hover:border-border/80 hover:bg-muted/50"
+          aria-label="VeriVenture home"
+          className="group inline-flex items-center gap-3 rounded-full border border-transparent px-3 py-1.5 transition hover:border-border/80 hover:bg-muted/50"
         >
-          <div>
+          <div className="relative h-10 w-10 shrink-0 rounded-full bg-background/80 p-1 ring-1 ring-border/60 transition group-hover:bg-background sm:h-12 sm:w-12">
+            <Image
+              src="/images/veriventure-logo.png"
+              alt="VeriVenture logo"
+              fill
+              sizes="(min-width: 640px) 3rem, 2.5rem"
+              className="rounded-full object-contain"
+              priority
+            />
+          </div>
+          <div className="text-left">
             <span className="block text-lg font-semibold tracking-tight">VeriVenture</span>
             <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Agent Trust OS</span>
           </div>

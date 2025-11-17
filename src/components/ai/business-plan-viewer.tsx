@@ -9,15 +9,15 @@ import { toast } from "sonner";
 import type { DocumentRecord, BusinessPlanSection } from "@/types/document";
 
 type BusinessPlanViewerProps = {
-  document: DocumentRecord;
+  planDocument: DocumentRecord;
 };
 
-export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
+export function BusinessPlanViewer({ planDocument }: BusinessPlanViewerProps) {
   const [copied, setCopied] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
 
-  const sections = (document.data.sections || []) as BusinessPlanSection[];
-  const body = (document.data.body || "") as string;
+  const sections = (planDocument.data.sections || []) as BusinessPlanSection[];
+  const body = (planDocument.data.body || "") as string;
 
   const toggleSection = (index: number) => {
     setExpandedSections((prev) => {
@@ -40,27 +40,27 @@ export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
   };
 
   async function copyChecksum() {
-    await navigator.clipboard.writeText(document.checksum);
+    await navigator.clipboard.writeText(planDocument.checksum);
     setCopied(true);
     toast.success("Checksum copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   }
 
   function downloadJSON() {
-    const blob = new Blob([JSON.stringify(document, null, 2)], {
+    const blob = new Blob([JSON.stringify(planDocument, null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = window.document.createElement("a");
     link.href = url;
-    const slug = document.title
+    const slug = window.document.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
     link.download = `${slug || "business-plan"}.json`;
-    document.body.appendChild(link);
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
     URL.revokeObjectURL(url);
     toast.success("Business plan downloaded");
   }
@@ -70,16 +70,16 @@ export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
       type: "text/markdown",
     });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = window.document.createElement("a");
     link.href = url;
-    const slug = document.title
+    const slug = window.document.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
     link.download = `${slug || "business-plan"}.md`;
-    document.body.appendChild(link);
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
     URL.revokeObjectURL(url);
     toast.success("Business plan downloaded as Markdown");
   }
@@ -95,9 +95,9 @@ export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">{document.title}</h3>
+                <h3 className="font-semibold text-lg">{planDocument.title}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Created {new Date(document.createdAt).toLocaleDateString()}
+                  Created {new Date(planDocument.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -129,7 +129,7 @@ export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground leading-relaxed">{document.summary}</p>
+          <p className="text-muted-foreground leading-relaxed">{planDocument.summary}</p>
         </CardContent>
       </Card>
 
@@ -164,7 +164,7 @@ export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
                       <span className="text-sm font-bold text-primary">{index + 1}</span>
                     </div>
-                    <CardTitle className="text-lg">{section.title}</CardTitle>
+                    <CardTitle className="text-lg">{section.heading}</CardTitle>
                   </div>
                   <ChevronRight
                     className={`h-5 w-5 text-muted-foreground transition-transform ${
@@ -214,7 +214,7 @@ export function BusinessPlanViewer({ document }: BusinessPlanViewerProps) {
             <div>
               <p className="text-sm font-medium mb-1">Document Checksum</p>
               <code className="text-xs text-muted-foreground font-mono break-all">
-                {document.checksum}
+                {planDocument.checksum}
               </code>
             </div>
             <Button variant="ghost" size="sm" onClick={copyChecksum} className="flex-shrink-0">

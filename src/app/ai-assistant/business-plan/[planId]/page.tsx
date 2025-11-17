@@ -58,7 +58,7 @@ export default async function BusinessPlanDetailPage({ params }: RouteParams) {
         </div>
 
         {/* Business Plan Viewer */}
-        <BusinessPlanViewer document={document} />
+        <BusinessPlanViewer planDocument={document} />
       </div>
     </AppShell>
   );

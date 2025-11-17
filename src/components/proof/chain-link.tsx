@@ -11,8 +11,8 @@ import {
   type NetworkType,
 } from "@/lib/explorer-utils";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface ChainLinkProps {
   txHash: string;
@@ -35,15 +35,13 @@ export function ChainLink({
   className,
   variant = "link",
 }: ChainLinkProps) {
-  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     const success = await copyToClipboard(txHash);
     if (success) {
       setCopied(true);
-      toast({
-        title: "Copied!",
+      toast.success("Copied!", {
         description: "Transaction hash copied to clipboard",
       });
       setTimeout(() => setCopied(false), 2000);

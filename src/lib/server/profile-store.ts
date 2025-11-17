@@ -6,7 +6,7 @@ import { computeAchievementHash } from "@/lib/achievement-hash";
 import type { AchievementRecord } from "@/types/achievement";
 import type { CommunityNoteRecord } from "@/types/community-note";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 export type PublicProfile = {
   handle: string;

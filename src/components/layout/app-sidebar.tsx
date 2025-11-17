@@ -34,6 +34,7 @@ export type SidebarNavItem = {
   description?: string;
   children?: SidebarNavItem[];
   dataTour?: string;
+  isActive?: (pathname: string) => boolean;
 };
 
 const aiAssistantItems: SidebarNavItem[] = [

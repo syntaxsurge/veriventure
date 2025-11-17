@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { useAccount } from "wagmi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export function OnboardingChecklist() {
       description: "Send a payment link and get a verifiable receipt",
       cta: "Create invoice",
       href: "/invoices/new",
-      checkComplete: () => (invoices && invoices.length > 0) || false,
+      checkComplete: () => (invoices?.length ?? 0) > 0,
     },
     {
       id: "claim-handle",
@@ -66,7 +66,7 @@ export function OnboardingChecklist() {
       description: "Get a human-readable link for your Public Trust Profile",
       cta: "Claim handle",
       href: "#claim-handle",
-      checkComplete: () => !!handle,
+      checkComplete: () => Boolean(handle),
     },
     {
       id: "generate-deck",
@@ -74,7 +74,7 @@ export function OnboardingChecklist() {
       description: "Create investor-ready materials with AI",
       cta: "Generate deck",
       href: "/ai-assistant/pitch-deck",
-      checkComplete: () => (pitchDecks && pitchDecks.length > 0) || false,
+      checkComplete: () => (pitchDecks?.length ?? 0) > 0,
     },
     {
       id: "publish-truth-note",
@@ -82,7 +82,7 @@ export function OnboardingChecklist() {
       description: "Verify a sensitive claim and publish to DKG",
       cta: "Check a claim",
       href: "/ai-assistant/truth",
-      checkComplete: () => (communityNotes && communityNotes.length > 0) || false,
+      checkComplete: () => (communityNotes?.length ?? 0) > 0,
     },
     {
       id: "share-verify-link",
@@ -91,8 +91,9 @@ export function OnboardingChecklist() {
       cta: "View proofs",
       href: "/proofs",
       checkComplete: () =>
-        ((invoices && invoices.length > 0) || (communityNotes && communityNotes.length > 0)) &&
-        !!handle,
+        Boolean(
+          ((invoices?.length ?? 0) > 0 || (communityNotes?.length ?? 0) > 0) && handle
+        ),
     },
   ];
 

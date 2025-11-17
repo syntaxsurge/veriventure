@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShellClient } from "@/components/layout/app-shell.client";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DKGLink } from "@/components/proof/dkg-link";
 import { ChainLink } from "@/components/proof/chain-link";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { useAccount } from "wagmi";
 import { FileText, Receipt, Award, CheckCircle2, Star, Info } from "lucide-react";
 import { toast } from "sonner";
@@ -209,7 +209,7 @@ export default function ProofsPage() {
   );
 
   return (
-    <AppShell sidebar maxWidth="7xl">
+    <AppShellClient sidebar maxWidth="7xl">
       <div className="section-spacing animate-in space-y-8">
         <PageHeader
           title="Proofs & Audit Log"
@@ -292,6 +292,6 @@ export default function ProofsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppShell>
+    </AppShellClient>
   );
 }

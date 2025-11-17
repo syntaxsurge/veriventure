@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, Copy, Check } from "lucide-react";
 import { getDKGExplorerUrl, truncateUAL, copyToClipboard } from "@/lib/explorer-utils";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface DKGLinkProps {
   ual: string;
@@ -24,15 +24,13 @@ export function DKGLink({
   className,
   variant = "link",
 }: DKGLinkProps) {
-  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     const success = await copyToClipboard(ual);
     if (success) {
       setCopied(true);
-      toast({
-        title: "Copied!",
+      toast.success("Copied!", {
         description: "UAL copied to clipboard",
       });
       setTimeout(() => setCopied(false), 2000);

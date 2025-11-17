@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { useAccount } from "wagmi";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShellClient } from "@/components/layout/app-shell.client";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,7 +77,7 @@ export default function PassportPage() {
 
   if (!address) {
     return (
-      <AppShell sidebar maxWidth="5xl">
+      <AppShellClient sidebar maxWidth="5xl">
         <div className="section-spacing animate-in">
           <PageHeader
             title="Supplier Passport"
@@ -97,13 +97,13 @@ export default function PassportPage() {
             </AlertDescription>
           </Alert>
         </div>
-      </AppShell>
+      </AppShellClient>
     );
   }
 
   return (
     <>
-      <AppShell sidebar maxWidth="5xl">
+      <AppShellClient sidebar maxWidth="5xl">
         <div className="section-spacing animate-in space-y-8">
           <PageHeader
             title="Supplier Passport"
@@ -252,7 +252,7 @@ export default function PassportPage() {
             </Card>
           )}
         </div>
-      </AppShell>
+      </AppShellClient>
 
       <ClaimHandleDialog
         open={claimHandleOpen}

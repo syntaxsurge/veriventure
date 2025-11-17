@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { useAccount } from "wagmi";
 
 const TOUR_STEPS: Step[] = [

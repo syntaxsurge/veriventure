@@ -27,7 +27,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["dkg.js"],
   output: "standalone",
-  // Turbopack enabled by default in Next.js 16
   turbopack: {},
   // Webpack config for fallback (when --webpack flag is used)
   webpack: (config, { isServer }) => {
@@ -39,7 +38,6 @@ const nextConfig: NextConfig = {
       tls: false,
     };
 
-    // Exclude test files and helpers from being bundled
     config.module = config.module || {};
     config.module.rules = config.module.rules || [];
     config.module.rules.push({

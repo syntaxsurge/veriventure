@@ -4,15 +4,19 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
+type EmptyStateAction =
+  | {
+      label: string;
+      onClick: () => void;
+      icon?: LucideIcon;
+    }
+  | ReactNode;
+
 export type EmptyStateProps = {
   icon?: LucideIcon;
   title: string;
   description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-    icon?: LucideIcon;
-  };
+  action?: EmptyStateAction;
   children?: ReactNode;
   className?: string;
 };
@@ -36,11 +40,13 @@ export function EmptyState({
         <h3 className="text-xl font-semibold">{title}</h3>
         {description && <p className="text-muted max-w-md">{description}</p>}
       </div>
-      {action && (
+      {action && typeof action === "object" && "label" in action ? (
         <Button onClick={action.onClick} className="mt-4">
           {action.icon && <action.icon className="mr-2 h-4 w-4" />}
           {action.label}
         </Button>
+      ) : (
+        action
       )}
       {children}
     </Card>

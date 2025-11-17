@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { useAccount } from "wagmi";
 import {
   Dialog,
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2, Check, X, AtSign } from "lucide-react";
 
 interface ClaimHandleDialogProps {
@@ -31,7 +31,6 @@ export function ClaimHandleDialog({
   onSuccess,
 }: ClaimHandleDialogProps) {
   const { address } = useAccount();
-  const { toast } = useToast();
 
   const [handle, setHandle] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -57,20 +56,12 @@ export function ClaimHandleDialog({
 
   const handleClaim = async () => {
     if (!address) {
-      toast({
-        title: "Error",
-        description: "Please connect your wallet first",
-        variant: "destructive",
-      });
+      toast.error("Please connect your wallet first");
       return;
     }
 
     if (!handle || handle.length < 3) {
-      toast({
-        title: "Error",
-        description: "Handle must be at least 3 characters long",
-        variant: "destructive",
-      });
+      toast.error("Handle must be at least 3 characters long");
       return;
     }
 
@@ -84,8 +75,7 @@ export function ClaimHandleDialog({
         website: website || undefined,
       });
 
-      toast({
-        title: "Success!",
+      toast.success("Success!", {
         description: `@${result.handle} claimed successfully. Your public link is /verify/${result.handle}`,
       });
 
@@ -99,10 +89,8 @@ export function ClaimHandleDialog({
       setBio("");
       setWebsite("");
     } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to claim handle",
-        variant: "destructive",
+      toast.error("Failed to claim handle", {
+        description: error instanceof Error ? error.message : undefined,
       });
     } finally {
       setIsChecking(false);
