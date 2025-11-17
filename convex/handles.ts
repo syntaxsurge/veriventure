@@ -147,6 +147,50 @@ export const updateHandle = mutation({
   },
 });
 
+// Change handle slug for an existing owner
+export const changeHandle = mutation({
+  args: {
+    ownerAddress: v.string(),
+    newHandle: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userHandle = await ctx.db
+      .query("handles")
+      .withIndex("by_owner", (q) => q.eq("ownerAddress", args.ownerAddress))
+      .first();
+
+    if (!userHandle) {
+      throw new Error("No handle found for this address");
+    }
+
+    const normalized = args.newHandle.toLowerCase().trim();
+    if (normalized === userHandle.handle) {
+      throw new Error("You're already using this handle");
+    }
+
+    const validation = isValidHandle(normalized);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    const handleConflict = await ctx.db
+      .query("handles")
+      .withIndex("by_handle", (q) => q.eq("handle", normalized))
+      .first();
+
+    if (handleConflict) {
+      throw new Error("Handle is already taken");
+    }
+
+    await ctx.db.patch(userHandle._id, {
+      handle: normalized,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return { success: true, handle: normalized };
+  },
+});
+
 // Get handle by address
 export const getHandleByAddress = query({
   args: { ownerAddress: v.string() },

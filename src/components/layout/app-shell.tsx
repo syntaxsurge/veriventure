@@ -1,9 +1,15 @@
-import { getSession } from "@/lib/server/session-cookie";
+import { getSessionIdentity } from "@/lib/server/session-identity";
 import { AppShellLayout, type AppShellBaseProps } from "./app-shell.client";
 
 export type AppShellProps = AppShellBaseProps;
 
 export async function AppShell(props: AppShellProps) {
-  const session = await getSession();
-  return <AppShellLayout {...props} address={session?.address ?? null} />;
+  const session = await getSessionIdentity();
+  return (
+    <AppShellLayout
+      {...props}
+      address={session.address}
+      handle={session.handle}
+    />
+  );
 }

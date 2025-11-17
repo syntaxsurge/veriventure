@@ -45,13 +45,16 @@ const baseNavItems: NavItem[] = [
 
 export type MainNavClientProps = {
   address?: string | null;
+  handle?: string | null;
 };
 
-export function MainNavClient({ address }: MainNavClientProps) {
+export function MainNavClient({ address, handle }: MainNavClientProps) {
   const pathname = usePathname();
+  const normalizedHandle = handle?.trim();
   const normalizedAddress = address?.trim();
-  const verifyHref = normalizedAddress
-    ? `/verify/${encodeURIComponent(normalizedAddress)}`
+  const slug = normalizedHandle || normalizedAddress;
+  const verifyHref = slug
+    ? `/verify/${encodeURIComponent(slug)}`
     : null;
   const verifyActive = verifyHref
     ? pathname?.startsWith("/verify") ?? false

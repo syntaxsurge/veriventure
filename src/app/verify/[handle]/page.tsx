@@ -1,11 +1,14 @@
-import { notFound } from "next/navigation";
-import { ShieldCheck, Wallet, Globe, AtSign, Info } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { ShieldCheck, Globe, AtSign, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { TrustPanel } from "@/features/verify/trust-panel";
 import { fetchPublicProfile } from "@/lib/server/profile-store";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@convex/_generated/api";
+import { getAddress, isAddress } from "viem";
 
 type VerifyPageProps = {
   params: Promise<{
@@ -21,10 +24,46 @@ export default async function VerifyHandlePage({ params }: VerifyPageProps) {
     notFound();
   }
 
-  const profile = await fetchPublicProfile(handle);
+  const normalizedHandle = handle.trim();
+  const slug = normalizedHandle.toLowerCase();
+
+  try {
+    const candidateAddresses = new Set<string>();
+    candidateAddresses.add(normalizedHandle);
+    if (isAddress(normalizedHandle)) {
+      const checksummed = getAddress(normalizedHandle);
+      candidateAddresses.add(checksummed);
+    }
+
+    const handleRecord = await fetchQuery(api.handles.getHandleByHandle, {
+      handle: slug,
+    });
+
+    if (!handleRecord) {
+      let ownerHandle = null;
+      for (const ownerAddress of candidateAddresses) {
+        ownerHandle = await fetchQuery(api.handles.getHandleByAddress, {
+          ownerAddress,
+        });
+        if (ownerHandle) {
+          break;
+        }
+      }
+
+      if (ownerHandle && ownerHandle.handle !== slug) {
+        redirect(`/verify/${ownerHandle.handle}`);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to resolve handle redirect", error);
+  }
+
+  const profile = await fetchPublicProfile(normalizedHandle);
   if (!profile.handle && !profile.isDemo && !profile.address) {
     notFound();
   }
+
+  const resolvedHandle = profile.handle || normalizedHandle;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background">
@@ -38,10 +77,10 @@ export default async function VerifyHandlePage({ params }: VerifyPageProps) {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             {profile.display}
           </h1>
-          {handle && (
+          {resolvedHandle && (
             <p className="text-lg text-muted-foreground flex items-center justify-center gap-2">
               <AtSign className="h-4 w-4" />
-              {handle}
+              {resolvedHandle}
             </p>
           )}
         </div>
@@ -96,9 +135,9 @@ export default async function VerifyHandlePage({ params }: VerifyPageProps) {
         <Card className="mt-8 border-dashed">
           <CardContent className="pt-6 text-center text-sm text-muted-foreground">
             <p>
-              This page is not a social profile—it's a procurement-friendly dossier with clickable
-              proofs. Buyers and investors can verify claims by clicking "View on DKG" or "View
-              transaction" buttons above.
+              This page is not a social profile—it&rsquo;s a procurement-friendly dossier with clickable
+              proofs. Buyers and investors can verify claims by clicking &ldquo;View on DKG&rdquo; or &ldquo;View
+              transaction&rdquo; buttons above.
             </p>
           </CardContent>
         </Card>

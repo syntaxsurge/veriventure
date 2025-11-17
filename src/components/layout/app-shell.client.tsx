@@ -15,6 +15,7 @@ export type AppShellBaseProps = {
 
 type AppShellLayoutProps = AppShellBaseProps & {
   address?: string | null;
+  handle?: string | null;
 };
 
 export function AppShellLayout({
@@ -23,12 +24,13 @@ export function AppShellLayout({
   maxWidth = "7xl",
   className,
   address = null,
+  handle = null,
 }: AppShellLayoutProps) {
   if (sidebar) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)]">
         <aside className="hidden lg:block">
-          <AppSidebar address={address} />
+          <AppSidebar address={address} handle={handle} />
         </aside>
         <div className="flex-1">
           <div
@@ -67,6 +69,6 @@ export function AppShellLayout({
 }
 
 export function AppShellClient(props: AppShellBaseProps) {
-  const { address } = useSessionAddress();
-  return <AppShellLayout {...props} address={address} />;
+  const { address, handle } = useSessionAddress();
+  return <AppShellLayout {...props} address={address} handle={handle} />;
 }

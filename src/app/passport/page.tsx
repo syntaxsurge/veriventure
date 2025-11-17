@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { useAccount } from "wagmi";
@@ -13,20 +12,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ClaimHandleDialog } from "@/components/profile/claim-handle-dialog";
-import { ShieldCheck, ExternalLink, Info, Sparkles } from "lucide-react";
+import { ChangeHandleDialog } from "@/components/profile/change-handle-dialog";
+import { ShieldCheck, ExternalLink, Info, Sparkles, TriangleAlert, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function PassportPage() {
   const { address } = useAccount();
-  const router = useRouter();
 
   const [claimHandleOpen, setClaimHandleOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [website, setWebsite] = useState("");
+  const [changeHandleOpen, setChangeHandleOpen] = useState(false);
+  const [profileEditing, setProfileEditing] = useState(false);
 
   const userHandle = useQuery(
     api.handles.getHandleByAddress,
@@ -35,14 +36,25 @@ export default function PassportPage() {
 
   const updateHandle = useMutation(api.handles.updateHandle);
 
-  // Pre-fill form if handle exists
-  useState(() => {
-    if (userHandle) {
+  useEffect(() => {
+    if (!userHandle) {
+      return;
+    }
+    const timeout = window.setTimeout(() => {
       setDisplayName(userHandle.displayName || "");
       setBio(userHandle.bio || "");
       setWebsite(userHandle.website || "");
-    }
-  });
+      if (
+        !userHandle.displayName &&
+        !userHandle.bio &&
+        !userHandle.website
+      ) {
+        setProfileEditing(true);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [userHandle]);
 
   const handleSave = async () => {
     if (!address) {
@@ -65,6 +77,7 @@ export default function PassportPage() {
       });
 
       toast.success("Supplier Passport updated successfully!");
+      setProfileEditing(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update passport");
     }
@@ -73,6 +86,29 @@ export default function PassportPage() {
   const handleClaimSuccess = (handle: string) => {
     toast.success(`Handle @${handle} claimed! Now complete your passport.`);
     setClaimHandleOpen(false);
+    setProfileEditing(true);
+  };
+
+  const hasProfileDetails = Boolean(
+    userHandle?.displayName || userHandle?.bio || userHandle?.website,
+  );
+
+  const showProfileForm = Boolean(userHandle && (!hasProfileDetails || profileEditing));
+
+  const publicProfileHref = userHandle ? `/verify/${userHandle.handle}` : null;
+
+  const resetProfileFields = () => {
+    if (!userHandle) {
+      return;
+    }
+    setDisplayName(userHandle.displayName || "");
+    setBio(userHandle.bio || "");
+    setWebsite(userHandle.website || "");
+  };
+
+  const handleCancelEdit = () => {
+    resetProfileFields();
+    setProfileEditing(false);
   };
 
   if (!address) {
@@ -122,7 +158,7 @@ export default function PassportPage() {
             <AlertDescription>
               <strong>Why a Supplier Passport matters:</strong> Buyers and investors need a single,
               verifiable page to check your claims. This profile shows featured proofs with clickable
-              "View on DKG" buttons—so partners trust you instantly.
+              &ldquo;View on DKG&rdquo; buttons—so partners trust you instantly.
             </AlertDescription>
           </Alert>
 
@@ -143,84 +179,171 @@ export default function PassportPage() {
             </Card>
           ) : (
             <Card className="border-2 border-green-200 bg-green-50/50 dark:border-green-900/50 dark:bg-green-900/10">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      Handle Claimed
-                    </CardTitle>
-                    <CardDescription className="mt-2">
-                      Your public link: <code className="text-sm">@{userHandle.handle}</code>
-                    </CardDescription>
-                  </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/verify/${userHandle.handle}`} target="_blank">
+              <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    Step 1 complete: Handle claimed
+                  </CardTitle>
+                  <CardDescription className="mt-2">
+                    Your public link: <code className="text-sm">/verify/{userHandle.handle}</code>
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="gap-1 capitalize">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  Linked
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <Alert variant="destructive">
+                  <TriangleAlert className="h-4 w-4" />
+                  <AlertTitle>Changing this handle breaks existing links</AlertTitle>
+                  <AlertDescription>
+                    Updating your handle immediately invalidates any shared /verify URLs. If another
+                    founder claims your previous handle, those links will resolve to their profile.
+                    Only change handles when you&apos;re ready to notify partners.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+              <CardFooter className="flex flex-wrap gap-3">
+                <Button variant="outline" onClick={() => setChangeHandleOpen(true)}>
+                  Edit @handle
+                </Button>
+                {publicProfileHref && (
+                  <Button asChild variant="secondary">
+                    <Link href={publicProfileHref} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View public profile
                     </Link>
                   </Button>
-                </div>
-              </CardHeader>
+                )}
+              </CardFooter>
             </Card>
           )}
 
           {/* Profile Form */}
           {userHandle && (
             <Card>
-              <CardHeader>
-                <CardTitle>Step 2: Complete Your Profile</CardTitle>
-                <CardDescription>
-                  Add details to help buyers and investors understand who you are
-                </CardDescription>
+              <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    Step 2: Complete Your Profile
+                    {hasProfileDetails && !showProfileForm && (
+                      <Badge variant="outline" className="gap-1">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        Complete
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    Add details to help buyers and investors understand who you are
+                  </CardDescription>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="displayName">Display Name (optional)</Label>
-                  <Input
-                    id="displayName"
-                    placeholder="Acme Inc."
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Your company or personal name as it should appear publicly
-                  </p>
-                </div>
+              {showProfileForm ? (
+                <>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="displayName">Display Name (optional)</Label>
+                      <Input
+                        id="displayName"
+                        placeholder="Acme Inc."
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your company or personal name as it should appear publicly
+                      </p>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio / Tagline (optional)</Label>
-                  <Textarea
-                    id="bio"
-                    placeholder="We build sustainable solar solutions for emerging markets"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    rows={4}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    A brief description of your business or work
-                  </p>
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio / Tagline (optional)</Label>
+                      <Textarea
+                        id="bio"
+                        placeholder="We build sustainable solar solutions for emerging markets"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        rows={4}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        A brief description of your business or work
+                      </p>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website (optional)</Label>
-                  <Input
-                    id="website"
-                    type="url"
-                    placeholder="https://acme.com"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Your company website or portfolio
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={handleSave} size="lg">
-                  Save Passport
-                </Button>
-              </CardFooter>
+                    <div className="space-y-2">
+                      <Label htmlFor="website">Website (optional)</Label>
+                      <Input
+                        id="website"
+                        type="url"
+                        placeholder="https://acme.com"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your company website or portfolio
+                      </p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-wrap gap-3">
+                    <Button onClick={handleSave} size="lg">
+                      Save Passport
+                    </Button>
+                    {hasProfileDetails && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="lg"
+                        onClick={handleCancelEdit}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </CardFooter>
+                </>
+              ) : (
+                <>
+                  <CardContent className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Display name
+                      </p>
+                      <p className="text-base font-medium">
+                        {userHandle.displayName || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Bio / Tagline
+                      </p>
+                      <p className="text-base">
+                        {userHandle.bio || "Not provided"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Website
+                      </p>
+                      {userHandle.website ? (
+                        <Link
+                          href={userHandle.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary underline-offset-4 hover:underline"
+                        >
+                          {userHandle.website}
+                        </Link>
+                      ) : (
+                        <p className="text-base">Not provided</p>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" onClick={() => setProfileEditing(true)}>
+                      Edit profile details
+                    </Button>
+                  </CardFooter>
+                </>
+              )}
             </Card>
           )}
 
@@ -259,6 +382,13 @@ export default function PassportPage() {
         onOpenChange={setClaimHandleOpen}
         onSuccess={handleClaimSuccess}
       />
+      {userHandle && (
+        <ChangeHandleDialog
+          open={changeHandleOpen}
+          onOpenChange={setChangeHandleOpen}
+          currentHandle={userHandle.handle}
+        />
+      )}
     </>
   );
 }

@@ -6,17 +6,17 @@ import { ThemeToggle } from "@/components/site/theme-toggle";
 import { WalletConnectButton } from "@/components/web3/wallet-connect-button";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "./mobile-nav";
-import { getSession } from "@/lib/server/session-cookie";
+import { getSessionIdentity } from "@/lib/server/session-identity";
 
 export async function AppHeader() {
-  const session = await getSession();
+  const session = await getSessionIdentity();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container-app flex h-16 items-center justify-between gap-4">
         {/* Logo and Navigation */}
         <div className="flex items-center gap-4">
-          <MobileNav address={session?.address ?? null} />
+          <MobileNav address={session.address} handle={session.handle} />
           <Link
             href="/"
             className="flex items-center gap-3 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"

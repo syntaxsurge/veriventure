@@ -13,14 +13,17 @@ import { sidebarNavItems } from "./app-sidebar";
 
 export type MobileNavProps = {
   address?: string | null;
+  handle?: string | null;
 };
 
-export function MobileNav({ address }: MobileNavProps) {
+export function MobileNav({ address, handle }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const normalizedHandle = handle?.trim();
   const normalizedAddress = address?.trim();
-  const verifyHref = normalizedAddress
-    ? `/verify/${encodeURIComponent(normalizedAddress)}`
+  const slug = normalizedHandle || normalizedAddress;
+  const verifyHref = slug
+    ? `/verify/${encodeURIComponent(slug)}`
     : null;
 
   return (

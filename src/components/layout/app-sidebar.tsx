@@ -144,9 +144,10 @@ export const sidebarNavItems: SidebarNavItem[] = buildSidebarNavItems();
 
 export type AppSidebarProps = {
   address?: string | null;
+  handle?: string | null;
 };
 
-export function AppSidebar({ address }: AppSidebarProps) {
+export function AppSidebar({ address, handle }: AppSidebarProps) {
   const pathname = usePathname();
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
 
@@ -157,9 +158,11 @@ export function AppSidebar({ address }: AppSidebarProps) {
     }
   }, [pathname]);
 
+  const normalizedHandle = handle?.trim();
   const normalizedAddress = address?.trim();
-  const verifyHref = normalizedAddress
-    ? `/verify/${encodeURIComponent(normalizedAddress)}`
+  const slug = normalizedHandle || normalizedAddress;
+  const verifyHref = slug
+    ? `/verify/${encodeURIComponent(slug)}`
     : null;
 
   return (
