@@ -98,6 +98,9 @@ export default function PassportPage() {
 
   const publicProfileHref = userHandle ? `/verify/${userHandle.handle}` : null;
 
+  // Check if user handle is loading
+  const isLoading = userHandle === undefined && address;
+
   const resetProfileFields = () => {
     if (!userHandle) {
       return;
@@ -164,7 +167,17 @@ export default function PassportPage() {
           </Alert>
 
           {/* Handle Status */}
-          {!userHandle ? (
+          {isLoading ? (
+            <Card className="border-2">
+              <CardHeader>
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-64" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-10 w-32" />
+              </CardContent>
+            </Card>
+          ) : !userHandle ? (
             <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
               <CardHeader>
                 <CardTitle>Step 1: Claim Your @handle</CardTitle>
@@ -223,7 +236,28 @@ export default function PassportPage() {
           )}
 
           {/* Profile Form */}
-          {userHandle && (
+          {isLoading ? (
+            <Card className="border-2">
+              <CardHeader>
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-64" />
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ) : userHandle && (
             <Card>
               <CardHeader className="flex flex-wrap items-start justify-between gap-3">
                 <div>
