@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import type { ComponentProps } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { formatEther, zeroAddress } from "viem";
 import {
@@ -19,6 +20,7 @@ import {
   Copy,
   Check,
   Sparkles,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -60,11 +62,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const [isCancelling, setIsCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    loadInvoice();
-  }, [invoiceId]);
-
-  const loadInvoice = async () => {
+  const loadInvoice = useCallback(async () => {
     try {
       const res = await fetch(`/api/invoices/${invoiceId}`);
       if (!res.ok) throw new Error("Invoice not found");
@@ -76,7 +74,11 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [invoiceId]);
+
+  useEffect(() => {
+    void loadInvoice();
+  }, [loadInvoice]);
 
   const handlePay = async () => {
     if (!invoice || !walletClient || !address) {
@@ -171,8 +173,11 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  type BadgeVariant = ComponentProps<typeof Badge>["variant"];
+  type StatusConfig = { variant: BadgeVariant; icon: LucideIcon; label: string; color: string };
+
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; icon: any; label: string; color: string }> = {
+    const variants: Record<string, StatusConfig> = {
       Pending: { variant: "default", icon: Clock, label: "Pending", color: "text-yellow-500" },
       Paid: { variant: "default", icon: CheckCircle2, label: "Paid", color: "text-green-500" },
       Cancelled: { variant: "destructive", icon: XCircle, label: "Cancelled", color: "text-red-500" },
@@ -203,7 +208,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
           <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Invoice Not Found</h3>
           <p className="text-sm text-muted-foreground mb-4">
-            The invoice you're looking for doesn't exist
+            The invoice you&rsquo;re looking for doesn&rsquo;t exist
           </p>
           <Button asChild>
             <Link href="/invoices">Back to Invoices</Link>

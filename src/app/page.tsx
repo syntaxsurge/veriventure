@@ -9,7 +9,6 @@ import {
   Sparkles,
   CheckCircle2,
   Rocket,
-  Users,
   TrendingUp,
   Lock,
   Database,

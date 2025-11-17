@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { AppShellClient } from "@/components/layout/app-shell.client";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DKGLink } from "@/components/proof/dkg-link";
 import { ChainLink } from "@/components/proof/chain-link";
 import { useQuery, useMutation } from "convex/react";
@@ -154,10 +155,10 @@ function EmptyState({ type }: { type?: string }) {
           </p>
           <div className="flex gap-2">
             <Button asChild size="sm">
-              <a href="/invoices/new">Create Invoice</a>
+              <Link href="/invoices/new">Create Invoice</Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <a href="/ai-assistant/truth">Publish Truth Note</a>
+              <Link href="/ai-assistant/truth">Publish Truth Note</Link>
             </Button>
           </div>
         </CardContent>
@@ -259,6 +260,49 @@ export default function ProofsPage() {
 
   const filterByType = (type: ProofType) => allProofs.filter((p) => p.type === type);
 
+  // Check if any query is still loading
+  const isLoading = invoices === undefined || communityNotes === undefined || achievements === undefined || dkgAssets === undefined;
+
+  // Loading skeleton for stats cards
+  const StatsCardSkeleton = () => (
+    <Card className="border-2">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-8 w-12" />
+          </div>
+          <Skeleton className="h-12 w-12 rounded-xl" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Loading skeleton for proof cards
+  const ProofCardSkeleton = () => (
+    <Card className="border-2">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+        <div className="flex items-start gap-4 flex-1">
+          <Skeleton className="h-12 w-12 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2 p-3 rounded-lg bg-muted/50">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+      </CardContent>
+      <CardFooter className="border-t bg-muted/20">
+        <Skeleton className="h-9 w-40" />
+      </CardFooter>
+    </Card>
+  );
+
   return (
     <AppShellClient sidebar maxWidth="7xl">
       <div className="section-spacing animate-in space-y-8">
@@ -277,7 +321,13 @@ export default function ProofsPage() {
         </PageHeader>
 
         {/* Stats Overview */}
-        {allProofs.length > 0 && (
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <StatsCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : allProofs.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -362,7 +412,13 @@ export default function ProofsPage() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4 mt-6">
-            {allProofs.length === 0 ? (
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[1, 2, 3].map((i) => (
+                  <ProofCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : allProofs.length === 0 ? (
               <EmptyState />
             ) : (
               <div className="grid gap-4">
@@ -378,7 +434,13 @@ export default function ProofsPage() {
           </TabsContent>
 
           <TabsContent value="invoices" className="space-y-4 mt-6">
-            {filterByType("invoice").length === 0 ? (
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[1, 2].map((i) => (
+                  <ProofCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filterByType("invoice").length === 0 ? (
               <EmptyState type="invoices" />
             ) : (
               <div className="grid gap-4">
@@ -394,7 +456,13 @@ export default function ProofsPage() {
           </TabsContent>
 
           <TabsContent value="milestones" className="space-y-4 mt-6">
-            {filterByType("milestone").length === 0 ? (
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[1, 2].map((i) => (
+                  <ProofCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filterByType("milestone").length === 0 ? (
               <EmptyState type="milestones" />
             ) : (
               <div className="grid gap-4">
@@ -410,7 +478,13 @@ export default function ProofsPage() {
           </TabsContent>
 
           <TabsContent value="truth-notes" className="space-y-4 mt-6">
-            {filterByType("truth-note").length === 0 ? (
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[1, 2].map((i) => (
+                  <ProofCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filterByType("truth-note").length === 0 ? (
               <EmptyState type="truth notes" />
             ) : (
               <div className="grid gap-4">
@@ -426,7 +500,13 @@ export default function ProofsPage() {
           </TabsContent>
 
           <TabsContent value="credentials" className="space-y-4 mt-6">
-            {filterByType("credential").length === 0 ? (
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[1, 2].map((i) => (
+                  <ProofCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filterByType("credential").length === 0 ? (
               <EmptyState type="credentials" />
             ) : (
               <div className="grid gap-4">

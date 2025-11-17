@@ -147,6 +147,10 @@
     @apply leading-7;
   }
 
+  .cmdk-group-heading {
+    @apply px-2 text-xs font-medium text-muted-foreground;
+  }
+
   /* Focus Visible */
   *:focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;

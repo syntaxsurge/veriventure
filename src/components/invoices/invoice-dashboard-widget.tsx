@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { Receipt, ArrowUpRight, Clock, TrendingUp, Plus } from "lucide-react";
@@ -31,13 +31,7 @@ export function InvoiceDashboardWidget() {
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (address) {
-      loadStats();
-    }
-  }, [address]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!address) return;
 
     try {
@@ -49,7 +43,13 @@ export function InvoiceDashboardWidget() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [address]);
+
+  useEffect(() => {
+    if (address) {
+      void loadStats();
+    }
+  }, [address, loadStats]);
 
   if (!address) return null;
 

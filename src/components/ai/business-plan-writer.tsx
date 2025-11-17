@@ -20,12 +20,6 @@ type ApiResponse = {
   error?: string;
 };
 
-type PublishState = {
-  ual: string;
-  explorer: string | null;
-  subscan: string | null;
-};
-
 const initialForm = {
   idea: "",
   market: "",
@@ -196,7 +190,7 @@ export function BusinessPlanWriter() {
               <CardTitle className="text-2xl font-bold mb-2">Business Plan Generator</CardTitle>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Transform your vision into a comprehensive business plan. Answer strategic questions
-                below, and we'll generate a professional narrative ready for investors, lenders, and
+                below, and we&rsquo;ll generate a professional narrative ready for investors, lenders, and
                 accelerators.
               </p>
             </div>

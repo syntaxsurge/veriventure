@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Award,
@@ -143,14 +143,9 @@ export type AppSidebarProps = {
 
 export function AppSidebar({ address, handle }: AppSidebarProps) {
   const pathname = usePathname();
-  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
-
-  // Auto-expand AI Assistant if we're on any AI Assistant page
-  useEffect(() => {
-    if (pathname.startsWith("/ai-assistant")) {
-      setAiAssistantOpen(true);
-    }
-  }, [pathname]);
+  const [aiAssistantOpenState, setAiAssistantOpenState] = useState(false);
+  const forcedAiAssistantOpen = pathname.startsWith("/ai-assistant");
+  const aiAssistantOpen = forcedAiAssistantOpen || aiAssistantOpenState;
 
   const normalizedHandle = handle?.trim();
   const normalizedAddress = address?.trim();
@@ -173,7 +168,12 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                 <Collapsible
                   key={item.href}
                   open={aiAssistantOpen}
-                  onOpenChange={setAiAssistantOpen}
+                  onOpenChange={(open) => {
+                    if (forcedAiAssistantOpen) {
+                      return;
+                    }
+                    setAiAssistantOpenState(open);
+                  }}
                 >
                   <CollapsibleTrigger
                     className={cn(

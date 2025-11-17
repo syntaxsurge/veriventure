@@ -8,6 +8,7 @@ import { RainbowKitWalletProvider } from "@/providers/rainbowkit-provider";
 import { ConvexClientProvider } from "@/providers/convex-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { HelpBeacon } from "@/components/help/help-beacon";
+import { TopLoader } from "@/components/ui/top-loader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}>
+        <TopLoader />
         <ConvexClientProvider>
           <RainbowKitWalletProvider>
             <ThemeProvider>

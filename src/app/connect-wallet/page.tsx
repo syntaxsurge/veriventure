@@ -319,7 +319,7 @@ export default function ConnectWalletPage() {
                     <div>
                       <p className="font-medium text-foreground mb-1">Safe & Secure</p>
                       <p className="text-xs leading-relaxed">
-                        We'll never ask for your private keys or seed phrase. Your wallet signature
+                        We&rsquo;ll never ask for your private keys or seed phrase. Your wallet signature
                         is only used to verify ownership and create a secure session.
                       </p>
                     </div>

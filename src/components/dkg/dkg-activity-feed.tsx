@@ -49,7 +49,8 @@ export function DkgActivityFeed({ notes, assets }: Props) {
         description: "UAL copied successfully",
       });
       setTimeout(() => setCopiedUal(null), 2000);
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to copy proof link:", error);
       toast.error("Failed to copy", {
         description: "Please try again",
       });

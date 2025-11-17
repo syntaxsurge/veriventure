@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, Copy, Upload, Check, ExternalLink, Image as ImageIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Download, Copy, Upload, Check, ExternalLink, Image as ImageIcon, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -225,7 +224,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
 
                     {/* Right Column - Experience & Sections */}
                     <section className="space-y-6">
-                      {resolvedResume.sections.map((section, idx) => (
+                      {resolvedResume.sections.map((section) => (
                         <div key={section.heading}>
                           <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800 border-b-2 border-primary/30 pb-2">
                             <div className="h-1.5 w-1.5 rounded-full bg-primary" />

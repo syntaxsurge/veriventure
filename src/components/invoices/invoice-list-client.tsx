@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import type { ComponentProps } from "react";
 import { useAccount } from "wagmi";
 import { formatEther, zeroAddress } from "viem";
 import {
@@ -13,6 +14,7 @@ import {
   ExternalLink,
   ArrowUpRight,
   ArrowDownLeft,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -67,14 +69,7 @@ export function InvoiceListClient() {
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (address) {
-      loadInvoices();
-      loadStats();
-    }
-  }, [address]);
-
-  const loadInvoices = async () => {
+  const loadInvoices = useCallback(async () => {
     if (!address) return;
 
     try {
@@ -96,9 +91,9 @@ export function InvoiceListClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [address]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!address) return;
 
     try {
@@ -108,10 +103,20 @@ export function InvoiceListClient() {
     } catch (error) {
       console.error("Error loading stats:", error);
     }
-  };
+  }, [address]);
+
+  useEffect(() => {
+    if (address) {
+      void loadInvoices();
+      void loadStats();
+    }
+  }, [address, loadInvoices, loadStats]);
+
+  type BadgeVariant = ComponentProps<typeof Badge>["variant"];
+  type StatusConfig = { variant: BadgeVariant; icon: LucideIcon; label: string };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; icon: any; label: string }> = {
+    const variants: Record<string, StatusConfig> = {
       Pending: { variant: "default", icon: Clock, label: "Pending" },
       Paid: { variant: "default", icon: CheckCircle2, label: "Paid" },
       Cancelled: { variant: "destructive", icon: XCircle, label: "Cancelled" },

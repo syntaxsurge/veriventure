@@ -21,7 +21,12 @@ type ChecklistItem = {
 
 export function QuickStartChecklist() {
   const { address } = useAccount();
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return localStorage.getItem("vv_checklist_dismissed") === "true";
+  });
 
   const userProfile = useQuery(
     api.userProfiles.getUserProfile,
@@ -117,15 +122,6 @@ export function QuickStartChecklist() {
       return () => clearTimeout(timer);
     }
   }, [completedItems.length, dismissed]);
-
-  // Show "Resume checklist" button if dismissed but not complete
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const savedDismissed = localStorage.getItem("vv_checklist_dismissed");
-    if (savedDismissed === "true") {
-      setDismissed(true);
-    }
-  }, []);
 
   const handleDismiss = () => {
     setDismissed(true);

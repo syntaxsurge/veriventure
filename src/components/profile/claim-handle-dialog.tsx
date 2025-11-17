@@ -37,10 +37,6 @@ export function ClaimHandleDialog({
   const [bio, setBio] = useState("");
   const [website, setWebsite] = useState("");
   const [isChecking, setIsChecking] = useState(false);
-  const [availability, setAvailability] = useState<{
-    available: boolean;
-    error?: string;
-  } | null>(null);
 
   const checkAvailability = useQuery(
     api.handles.checkAvailability,
@@ -51,7 +47,6 @@ export function ClaimHandleDialog({
 
   const handleChange = (value: string) => {
     setHandle(value);
-    setAvailability(null);
   };
 
   const handleClaim = async () => {

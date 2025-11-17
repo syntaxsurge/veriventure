@@ -7,7 +7,6 @@ import { BusinessPlanViewer } from "@/components/ai/business-plan-viewer";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { getDocument } from "@/lib/server/document-store";
 import { AppShell } from "@/components/layout/app-shell";
-import { PageHeader } from "@/components/layout/page-header";
 
 type RouteParams = {
   params: Promise<{

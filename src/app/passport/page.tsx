@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ClaimHandleDialog } from "@/components/profile/claim-handle-dialog";
 import { ChangeHandleDialog } from "@/components/profile/change-handle-dialog";
 import { ShieldCheck, ExternalLink, Info, Sparkles, TriangleAlert, CheckCircle2 } from "lucide-react";
