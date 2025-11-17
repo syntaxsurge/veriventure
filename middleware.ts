@@ -26,14 +26,14 @@ export async function middleware(request: NextRequest) {
 
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/connect-wallet", request.url));
   }
 
   let payload;
   try {
     payload = await verifySession(sessionCookie.value);
   } catch {
-    const res = NextResponse.redirect(new URL("/", request.url));
+    const res = NextResponse.redirect(new URL("/connect-wallet", request.url));
     res.cookies.delete(SESSION_COOKIE_NAME);
     return res;
   }

@@ -140,11 +140,17 @@ export function FirstRunTour() {
       callback={handleJoyrideCallback}
       styles={{
         options: {
+          arrowColor: "hsl(var(--popover))",
+          backgroundColor: "hsl(var(--popover))",
           primaryColor: "hsl(var(--primary))",
+          textColor: "hsl(var(--popover-foreground))",
           zIndex: 10000,
         },
         tooltip: {
+          backgroundColor: "hsl(var(--popover))",
           borderRadius: "8px",
+          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.35)",
+          color: "hsl(var(--popover-foreground))",
           padding: "16px",
         },
         tooltipContainer: {
