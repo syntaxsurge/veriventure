@@ -4,7 +4,8 @@ import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import type { DialogProps } from "@radix-ui/react-dialog";
 
 const Command = React.forwardRef<
@@ -26,6 +27,9 @@ export function CommandDialog({ children, ...props }: DialogProps) {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
+        <VisuallyHidden.Root>
+          <DialogTitle>Command Menu</DialogTitle>
+        </VisuallyHidden.Root>
         <Command className="border-border">{children}</Command>
       </DialogContent>
     </Dialog>
