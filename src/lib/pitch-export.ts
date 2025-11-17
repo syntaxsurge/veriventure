@@ -52,7 +52,7 @@ const PPT_LAYOUT = {
   name: "VERIVENTURE_WIDE",
   width: SLIDE_BASE_WIDTH / 96,
   height: SLIDE_BASE_HEIGHT / 96,
-} as const;
+} as const; // width/height in inches for 1280x720 at 96 DPI
 
 type PresentationLayout = {
   width: number;
@@ -61,17 +61,11 @@ type PresentationLayout = {
 
 function ensurePptLayout(pptx: PptxGenJS): PresentationLayout {
   const { name, width, height } = PPT_LAYOUT;
-  const current = pptx.presLayout;
-  if (
-    current &&
-    Math.abs(current.width - width) < 0.001 &&
-    Math.abs(current.height - height) < 0.001
-  ) {
-    return current;
+  if (pptx.layout !== name) {
+    pptx.defineLayout({ name, width, height });
+    pptx.layout = name;
   }
-  pptx.defineLayout({ name, width, height });
-  pptx.layout = name;
-  return pptx.presLayout ?? { width, height };
+  return { width, height };
 }
 
 function resolveHeroSource(slide: PitchSlideRecord) {
