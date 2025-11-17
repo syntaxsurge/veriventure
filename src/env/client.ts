@@ -32,6 +32,12 @@ const clientSchema = z.object({
       /\{ual\}/,
       "NEXT_PUBLIC_DKG_VIEWER_TEMPLATE must include a {ual} placeholder.",
     ),
+  NEXT_PUBLIC_DKG_TX_TEMPLATE: z
+    .string()
+    .regex(
+      /\{tx\}/,
+      "NEXT_PUBLIC_DKG_TX_TEMPLATE must include a {tx} placeholder.",
+    ),
   NEXT_PUBLIC_SOCIAL_AUTOMATION_READY: z
     .enum(["true", "false"])
     .default("false")
@@ -48,6 +54,7 @@ const parsed = clientSchema.safeParse({
     process.env.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE,
   NEXT_PUBLIC_DKG_VIEWER_TEMPLATE:
     process.env.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE,
+  NEXT_PUBLIC_DKG_TX_TEMPLATE: process.env.NEXT_PUBLIC_DKG_TX_TEMPLATE,
   NEXT_PUBLIC_SOCIAL_AUTOMATION_READY:
     process.env.NEXT_PUBLIC_SOCIAL_AUTOMATION_READY ?? "false",
 });

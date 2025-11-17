@@ -6,6 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+type PublishResponse = {
+  ok: boolean;
+  ual?: string;
+  txHash?: string | null;
+  explorer?: string | null;
+  subscan?: string | null;
+  error?: string;
+};
+
 export function DkgNoteTester() {
   const [topic, setTopic] = useState("Climate resilience playbook");
   const [summary, setSummary] = useState(
@@ -17,12 +26,17 @@ export function DkgNoteTester() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ual, setUal] = useState<string | null>(null);
+  const [links, setLinks] = useState<{
+    explorer: string | null;
+    subscan: string | null;
+  } | null>(null);
 
   async function handlePublish(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError(null);
     setUal(null);
+     setLinks(null);
     try {
       const response = await fetch("/api/dkg/notes", {
         method: "POST",
@@ -33,15 +47,17 @@ export function DkgNoteTester() {
           references: reference ? [reference] : [],
         }),
       });
-      const payload = (await response.json()) as { note?: { UAL?: string } };
-      if (!response.ok) {
-        const message =
-          typeof payload === "object" && "error" in payload
-            ? (payload as { error: string }).error
-            : "Unable to publish Community Note.";
-        throw new Error(message);
+      const payload = (await response.json()) as PublishResponse;
+      if (!response.ok || !payload.ok || !payload.ual) {
+        throw new Error(
+          payload.error ?? "Unable to publish Community Note.",
+        );
       }
-      setUal(payload.note?.UAL ?? "UAL unavailable in response.");
+      setUal(payload.ual);
+      setLinks({
+        explorer: payload.explorer ?? null,
+        subscan: payload.subscan ?? null,
+      });
     } catch (err) {
       const fallback = err instanceof Error ? err.message : "Unexpected error.";
       setError(fallback);
@@ -92,7 +108,34 @@ export function DkgNoteTester() {
         </p>
       )}
       {ual && (
-        <p className="text-xs text-muted-foreground break-all">UAL: {ual}</p>
+        <div className="space-y-2 rounded-xl border bg-background/60 p-3 text-xs text-foreground">
+          <p className="font-semibold">UAL</p>
+          <code className="block break-all font-mono text-[11px] text-muted-foreground">
+            {ual}
+          </code>
+          <div className="flex flex-wrap gap-3">
+            {links?.explorer && (
+              <a
+                href={links.explorer}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-4"
+              >
+                View on DKG Explorer
+              </a>
+            )}
+            {links?.subscan && (
+              <a
+                href={links.subscan}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-4"
+              >
+                View tx on Subscan
+              </a>
+            )}
+          </div>
+        </div>
       )}
     </form>
   );

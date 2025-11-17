@@ -37,8 +37,14 @@ const serverSchema = z.object({
     .string()
     .url("DKG_NODE_ENDPOINT must be a valid URL."),
   DKG_NODE_PORT: z.coerce.number().int().positive().default(8900),
+  DKG_ENV: z.enum(["development", "testnet", "mainnet"]).default("testnet"),
   DKG_BLOCKCHAIN_NAME: z.string().min(1),
+  DKG_BLOCKCHAIN_RPC: z
+    .string()
+    .url("DKG_BLOCKCHAIN_RPC must be a valid URL.")
+    .default("https://lofar-testnet.origin-trail.network"),
   DKG_BLOCKCHAIN_PRIVATE_KEY: z.string().min(1),
+  DKG_NODE_AUTH_TOKEN: z.string().optional(),
   DKG_MAX_RETRIES: z.coerce.number().int().positive().default(180),
   DKG_POLL_FREQUENCY: z.coerce.number().int().positive().default(2),
   CONVEX_URL: z.string().url().optional(),

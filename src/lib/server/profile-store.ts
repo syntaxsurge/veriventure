@@ -78,6 +78,8 @@ function buildDemoNotes(): CommunityNoteRecord[] {
         "https://grokipedia.ai/climate-finance",
       ],
       ual: "did:dkg:demo:climate-proof",
+      txHash:
+        "0xb78f5d08412577f1d34a57244955a65fd0e8fa76c5fbc45c093ce9c1cd65c3f1",
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
     },
     {
@@ -91,6 +93,8 @@ function buildDemoNotes(): CommunityNoteRecord[] {
         "https://origintrail.io/",
       ],
       ual: "did:dkg:demo:automation",
+      txHash:
+        "0x43fd8ff1f545d20b1b5c5b13d0e51bd1edd1563b90fd9a1b268491991f10d3ff",
       createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
     },
   ];

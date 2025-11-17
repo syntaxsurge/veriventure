@@ -27,6 +27,7 @@ export const insert = mutation({
     summary: v.string(),
     references: v.array(v.string()),
     ual: v.string(),
+    txHash: v.optional(v.string()),
     dkgResponseJson: v.optional(v.string()),
     createdAt: v.string(),
   },

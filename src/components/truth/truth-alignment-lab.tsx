@@ -16,6 +16,15 @@ type ApiResponse = {
   error?: string;
 };
 
+type PublishResponse = {
+  ok: boolean;
+  ual?: string;
+  txHash?: string | null;
+  explorer?: string | null;
+  subscan?: string | null;
+  error?: string;
+};
+
 const riskColors: Record<string, string> = {
   low: "bg-emerald-100 text-emerald-900",
   medium: "bg-amber-100 text-amber-900",
@@ -27,6 +36,11 @@ export function TruthAlignmentLab() {
   const [analysis, setAnalysis] = useState<AlignmentReport | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [ual, setUal] = useState<string | null>(null);
+  const [ualLinks, setUalLinks] = useState<{
+    explorer: string | null;
+    subscan: string | null;
+    txHash: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +84,7 @@ export function TruthAlignmentLab() {
     setPublishing(true);
     setNoteError(null);
     setUal(null);
+    setUalLinks(null);
     try {
       const references = analysis.references.filter(Boolean);
       const response = await fetch("/api/dkg/notes", {
@@ -81,14 +96,18 @@ export function TruthAlignmentLab() {
           references,
         }),
       });
-      const payload = (await response.json()) as { note?: { UAL?: string } };
-      if (!response.ok) {
+      const payload = (await response.json()) as PublishResponse;
+      if (!response.ok || !payload.ok || !payload.ual) {
         throw new Error(
-          (payload as { error?: string }).error ??
-            "Unable to publish Community Note.",
+          payload.error ?? "Unable to publish Community Note.",
         );
       }
-      setUal(payload.note?.UAL ?? "UAL missing in response.");
+      setUal(payload.ual);
+      setUalLinks({
+        explorer: payload.explorer ?? null,
+        subscan: payload.subscan ?? null,
+        txHash: payload.txHash ?? null,
+      });
       mark("firstNotePublished");
     } catch (err) {
       const message =
@@ -270,11 +289,6 @@ export function TruthAlignmentLab() {
                   ? analysis.references.join(" | ")
                   : "Wikipedia + Grokipedia"}
               </div>
-              {ual && (
-                <p className="text-xs text-emerald-600 break-all">
-                  Published UAL: {ual}
-                </p>
-              )}
             </div>
             <Button
               id="publish-community-note-button"
@@ -284,6 +298,36 @@ export function TruthAlignmentLab() {
             >
               {publishing ? "Publishing…" : "Publish Community Note"}
             </Button>
+            {ual && (
+              <div className="space-y-2 rounded-2xl border bg-background/80 p-3 text-xs text-foreground">
+                <p className="font-semibold">Published UAL</p>
+                <code className="block break-all font-mono text-[11px] text-muted-foreground">
+                  {ual}
+                </code>
+                <div className="flex flex-wrap gap-3">
+                  {ualLinks?.explorer && (
+                    <a
+                      href={ualLinks.explorer}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      View on DKG Explorer
+                    </a>
+                  )}
+                  {ualLinks?.subscan && (
+                    <a
+                      href={ualLinks.subscan}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      View tx on Subscan
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
             <Coachmark
               id="community-note"
               targetId="publish-community-note-button"

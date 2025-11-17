@@ -5,6 +5,7 @@ export type CommunityNoteRecord = {
   summary: string;
   references: string[];
   ual: string;
+  txHash?: string | null;
   createdAt: string;
   dkgResponse?: unknown;
 };

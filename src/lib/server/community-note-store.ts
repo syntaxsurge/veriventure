@@ -11,6 +11,7 @@ type CommunityNoteDoc = {
   summary: string;
   references: string[];
   ual: string;
+  txHash?: string | null;
   dkgResponseJson?: string;
   createdAt: string;
 };
@@ -32,6 +33,7 @@ function deserialize(doc: CommunityNoteDoc): CommunityNoteRecord {
     summary: doc.summary,
     references: doc.references,
     ual: doc.ual,
+    txHash: doc.txHash,
     createdAt: doc.createdAt,
     dkgResponse: parsed,
   };
@@ -50,6 +52,7 @@ type CreateInput = {
   summary: string;
   references: string[];
   ual: string;
+  txHash?: string | null;
   dkgResponse?: unknown;
 };
 
@@ -69,6 +72,7 @@ export async function createCommunityNote(
     summary: input.summary.trim(),
     references: input.references.map((ref) => ref.trim()).filter(Boolean),
     ual: input.ual.trim(),
+    txHash: input.txHash,
     createdAt: new Date().toISOString(),
     dkgResponse: input.dkgResponse,
   };
@@ -81,6 +85,7 @@ export async function createCommunityNote(
     summary: record.summary,
     references: record.references,
     ual: record.ual,
+    txHash: record.txHash ?? undefined,
     createdAt: record.createdAt,
     dkgResponseJson:
       typeof record.dkgResponse !== "undefined"

@@ -6,13 +6,18 @@ import { serverEnv } from "@/env/server";
 type DkgConfig = {
   endpoint: string;
   port: string;
+  environment: "development" | "testnet" | "mainnet";
   blockchain: {
     name: string;
+    rpc?: string;
     privateKey: string;
   };
   maxNumberOfRetries: number;
   frequency: number;
   communicationType: string;
+  auth?: {
+    token?: string | null;
+  };
 };
 
 type DkgClientInstance = {
@@ -23,12 +28,26 @@ type DkgClientInstance = {
         epochsNum?: number;
         minimumNumberOfFinalizationConfirmations?: number;
         minimumNumberOfNodeReplications?: number;
+        minimumBlockConfirmations?: number;
       },
-    ) => Promise<unknown>;
+    ) => Promise<AssetCreateResult>;
   };
   node: {
     info: () => Promise<unknown>;
   };
+};
+
+type AssetCreateResult = {
+  UAL?: string;
+  ual?: string;
+  operation?: {
+    mintKnowledgeCollection?: {
+      transactionHash?: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
 };
 
 let cachedClient: DkgClientInstance | null = null;
@@ -42,13 +61,18 @@ function buildConfig(): DkgConfig {
   cachedConfig = {
     endpoint: serverEnv.DKG_NODE_ENDPOINT,
     port: String(serverEnv.DKG_NODE_PORT),
+    environment: serverEnv.DKG_ENV,
     blockchain: {
       name: serverEnv.DKG_BLOCKCHAIN_NAME,
+      rpc: serverEnv.DKG_BLOCKCHAIN_RPC,
       privateKey: serverEnv.DKG_BLOCKCHAIN_PRIVATE_KEY,
     },
     maxNumberOfRetries: serverEnv.DKG_MAX_RETRIES,
     frequency: serverEnv.DKG_POLL_FREQUENCY,
     communicationType: "Http",
+    auth: serverEnv.DKG_NODE_AUTH_TOKEN
+      ? { token: serverEnv.DKG_NODE_AUTH_TOKEN }
+      : undefined,
   };
   return cachedConfig;
 }
@@ -68,7 +92,15 @@ export type CommunityNoteInput = {
   references: string[];
 };
 
-export async function publishCommunityNote(note: CommunityNoteInput) {
+export type PublishedCommunityNote = {
+  ual: string;
+  txHash?: string;
+  result: AssetCreateResult;
+};
+
+export async function publishCommunityNote(
+  note: CommunityNoteInput,
+): Promise<PublishedCommunityNote> {
   const client = getClient();
   const referenceList = note.references.filter(Boolean);
   const slug = note.topic
@@ -88,15 +120,39 @@ export async function publishCommunityNote(note: CommunityNoteInput) {
       citation: referenceList,
       dateCreated: new Date().toISOString(),
     },
+    private: {
+      "@context": "https://schema.org",
+      "@type": "Conversation",
+      text: note.summary,
+      url: referenceList[0] ?? "",
+    },
   };
 
   const result = await client.asset.create(dataset, {
-    epochsNum: 2,
-    minimumNumberOfFinalizationConfirmations: 1,
+    epochsNum: 6,
+    minimumNumberOfFinalizationConfirmations: 2,
     minimumNumberOfNodeReplications: 1,
+    minimumBlockConfirmations: 1,
   });
 
-  return result;
+  const rawUal =
+    (typeof result.UAL === "string" && result.UAL) ||
+    (typeof result.ual === "string" && result.ual);
+  if (!rawUal) {
+    throw new Error("DKG publish succeeded but no UAL was returned.");
+  }
+
+  const txHash =
+    typeof result.operation?.mintKnowledgeCollection?.transactionHash ===
+    "string"
+      ? result.operation?.mintKnowledgeCollection?.transactionHash
+      : undefined;
+
+  return {
+    ual: rawUal,
+    txHash,
+    result,
+  };
 }
 
 export async function fetchDkgNodeInfo() {

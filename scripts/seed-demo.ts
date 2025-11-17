@@ -91,6 +91,8 @@ function buildCommunityNotes() {
         "https://grokipedia.ai/climate-finance",
       ],
       ual: "did:dkg:demo:climate-proof",
+      txHash:
+        "0xb78f5d08412577f1d34a57244955a65fd0e8fa76c5fbc45c093ce9c1cd65c3f1",
       offsetHours: 20,
     },
     {
@@ -102,6 +104,8 @@ function buildCommunityNotes() {
         "https://origintrail.io/",
       ],
       ual: "did:dkg:demo:automation",
+      txHash:
+        "0x43fd8ff1f545d20b1b5c5b13d0e51bd1edd1563b90fd9a1b268491991f10d3ff",
       offsetHours: 3,
     },
   ];
@@ -162,6 +166,7 @@ async function seedDemo() {
         summary: note.summary,
         references: note.references,
         ual: note.ual,
+        txHash: note.txHash,
         createdAt: new Date(
           Date.now() - note.offsetHours * 60 * 60 * 1000,
         ).toISOString(),

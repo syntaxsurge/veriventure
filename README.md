@@ -24,7 +24,7 @@ cp .env.example .env.local
 
 Key sections:
 
-- **Public web config** (`NEXT_PUBLIC_*`): Moonbase Alpha RPC endpoint, deployed ValidityRegistry address, and the explorer/DKG viewer templates (`NEXT_PUBLIC_EXPLORER_TX_TEMPLATE`, `NEXT_PUBLIC_DKG_VIEWER_TEMPLATE`) used by the Verify screen’s outbound links.
+- **Public web config** (`NEXT_PUBLIC_*`): Moonbase Alpha RPC endpoint, deployed ValidityRegistry address, and the explorer/DKG viewer templates (`NEXT_PUBLIC_EXPLORER_TX_TEMPLATE`, `NEXT_PUBLIC_DKG_VIEWER_TEMPLATE`, `NEXT_PUBLIC_DKG_TX_TEMPLATE`) used by the Verify screen’s outbound links.
 - **Convex** – `NEXT_PUBLIC_CONVEX_URL` points to your Convex deployment (e.g. `https://veriventure.convex.cloud`). Optionally set `CONVEX_DEPLOYMENT_URL`/`CONVEX_DEPLOYMENT` for CLI tasks and `CONVEX_RESET_TOKEN` for `npm run convex:reset`.
 - **OpenAI**: API key plus completion + embedding model overrides for the copilots/embeddings pipeline.
 - **Grokipedia**: Optional base URL + user agent for live HTML scraping before falling back to AI synthesis.
@@ -47,9 +47,9 @@ Real-world pain points and the hackathon alignment matrix are documented in `doc
 - **Pitch decks & business plans** – `/api/ai/pitch-deck` and `/api/ai/business-plan` ask OpenAI for slide decks or plan sections, then persist them as documents with deterministic checksums.
 - **Resume builder** – `/api/ai/resume` leverages OpenAI to package headline, summary, bullet sections, and skill tags. Results are saved as `DocumentRecord` entries of type `resume`.
 - **Social autopost studio** – `/api/ai/social-posts` drafts multi-channel campaigns (LinkedIn, Twitter, etc.) and exports CSV schedules while storing the generated posts as documents.
-- **Truth Alignment Lab** – `/api/alignment/analyze` calls Wikipedia and Grokipedia, runs embeddings for cosine similarities, and `/api/dkg/notes` publishes Community Notes onto the OriginTrail DKG.
+- **Truth Alignment Lab** – `/api/alignment/analyze` calls Wikipedia and Grokipedia, runs embeddings for cosine similarities, and `/api/dkg/notes` publishes Community Notes onto the OriginTrail DKG with instant “View on DKG Explorer/Subscan” proof links.
 - **Documents vault** – `/documents` lists every AI artifact with metadata, checksum copy actions, and JSON downloads regardless of type (`pitch_deck`, `business_plan`, `resume`, `social_post`). All entries live in Convex `documents`.
-- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (resolved server-side from the wallet session) so authenticated users land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, explorer + OriginTrail links sourced from the env templates, and never 404s when a wallet has zero achievements.
+- **Verify** – `/verify/[handle]` is wired to the “My Verify” header link (resolved server-side from the wallet session) so authenticated users land on their live trust surface, while `/verify/demo` stays available through Mission Control. The page exposes share/copy actions, recompute buttons, OriginTrail UAL links, and NeuroWeb Subscan tx links sourced from the env templates, and never 404s when a wallet has zero achievements.
 
 ## Contracts
 
@@ -84,8 +84,13 @@ npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
   ```bash
   DKG_NODE_ENDPOINT=https://v6-pegasus-node-02.origin-trail.network
   DKG_NODE_PORT=8900
+  DKG_ENV=testnet
   DKG_BLOCKCHAIN_NAME=otp:20430
+  DKG_BLOCKCHAIN_RPC=https://lofar-testnet.origin-trail.network
   DKG_BLOCKCHAIN_PRIVATE_KEY=0x<your_neuroweb_private_key>
+  DKG_NODE_AUTH_TOKEN=
+  NEXT_PUBLIC_DKG_VIEWER_TEMPLATE=https://dkg-testnet.origintrail.io/explore?ual={ual}
+  NEXT_PUBLIC_DKG_TX_TEMPLATE=https://neuroweb-testnet.subscan.io/tx/{tx}
   ```
 
 - Request **MNEURO** and **TRAC** for that wallet through the [official faucet](https://docs.origintrail.io/dkg-knowledge-hub/useful-resources/test-token-faucet):
