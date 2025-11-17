@@ -735,7 +735,7 @@ function SlideToolbar({
               <Badge variant="outline" className="border-white/30 text-white">
                 {strategy} visuals
               </Badge>
-              <Badge variant="outline" className="border-emerald-400/40 text-emerald-200">
+              <Badge variant="outline" className="border-green-500/40 bg-green-500/10 text-green-700 dark:border-green-400/40 dark:bg-green-400/10 dark:text-green-200">
                 {status}
               </Badge>
             </div>

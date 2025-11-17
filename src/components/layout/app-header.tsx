@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
 
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { WalletConnectButton } from "@/components/web3/wallet-connect-button";
+import { Button } from "@/components/ui/button";
 import { MobileNav } from "./mobile-nav";
 import { getSession } from "@/lib/server/session-cookie";
 
@@ -27,6 +29,14 @@ export async function AppHeader() {
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-3">
+          {session?.address && (
+            <Button variant="ghost" size="sm" asChild className="hidden gap-2 md:inline-flex">
+              <Link href="/dashboard">
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                <span>Dashboard</span>
+              </Link>
+            </Button>
+          )}
           <ThemeToggle />
           <WalletConnectButton />
         </div>

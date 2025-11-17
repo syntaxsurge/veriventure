@@ -4,6 +4,8 @@ import { DkgActivityFeed } from "@/components/dkg/dkg-activity-feed";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listCommunityNotes } from "@/lib/server/community-note-store";
 import { listDkgAssets } from "@/lib/server/dkg-asset-store";
+import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -15,23 +17,26 @@ export default async function DkgActivityPage() {
   ]);
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-3">
-        <Badge variant="outline">DKG</Badge>
-        <h1 className="text-3xl font-semibold">Knowledge Asset Activity</h1>
-        <p className="text-muted-foreground">
-          Every Community Note and AI copilot publish tied to your wallet lives
-          here with a Universal Asset Locator (UAL), DKG Explorer link, and
-          NeuroWeb Subscan transaction hash. Share these entries directly, or
-          direct diligence teams to your `/verify` profile for a consolidated
-          view.
-        </p>
-      </section>
-      <Card>
-        <CardContent className="pt-6">
-          <DkgActivityFeed notes={notes} assets={assets} />
-        </CardContent>
-      </Card>
-    </div>
+    <AppShell sidebar maxWidth="7xl">
+      <div className="section-spacing animate-in">
+        <PageHeader
+          title="Knowledge Asset Activity"
+          description="Every Community Note and AI copilot publish tied to your wallet lives here with a Universal Asset Locator (UAL), DKG Explorer link, and NeuroWeb Subscan transaction hash. Share these entries directly, or direct diligence teams to your /verify profile for a consolidated view."
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "DKG Activity" },
+          ]}
+        >
+          <Badge variant="secondary">DKG</Badge>
+        </PageHeader>
+
+        <Card className="border-2 shadow-md">
+          <CardContent className="p-6 md:p-8">
+            <DkgActivityFeed notes={notes} assets={assets} />
+          </CardContent>
+        </Card>
+      </div>
+    </AppShell>
   );
 }

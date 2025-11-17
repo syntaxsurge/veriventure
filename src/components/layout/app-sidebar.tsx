@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Award,
@@ -9,57 +10,88 @@ import {
   FileText,
   StickyNote,
   Check,
+  ChevronRight,
+  Presentation,
+  Briefcase,
+  FileUser,
+  Share2,
+  FlaskConical,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export type SidebarNavItem = {
   title: string;
   href: string;
   icon: LucideIcon;
   description?: string;
-  isActive?: (pathname: string) => boolean;
+  children?: SidebarNavItem[];
 };
+
+const aiAssistantItems: SidebarNavItem[] = [
+  {
+    title: "Pitch Deck",
+    href: "/ai-assistant/pitch-deck",
+    icon: Presentation,
+  },
+  {
+    title: "Business Plan",
+    href: "/ai-assistant/business-plan",
+    icon: Briefcase,
+  },
+  {
+    title: "Resume Builder",
+    href: "/ai-assistant/resume",
+    icon: FileUser,
+  },
+  {
+    title: "Social Autopost",
+    href: "/ai-assistant/social",
+    icon: Share2,
+  },
+  {
+    title: "Truth Alignment",
+    href: "/ai-assistant/truth",
+    icon: FlaskConical,
+  },
+  {
+    title: "DKG Activity",
+    href: "/ai-assistant/dkg-test",
+    icon: Activity,
+  },
+];
 
 export const sidebarNavItems: SidebarNavItem[] = [
   {
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    description: "Overview and mission control",
-    isActive: (pathname) => pathname === "/dashboard",
   },
   {
     title: "Credentials",
     href: "/credentials",
     icon: Award,
-    description: "Mint achievement badges",
-    isActive: (pathname) => pathname.startsWith("/credentials"),
   },
   {
     title: "AI Assistant",
     href: "/ai-assistant",
     icon: Bot,
-    description: "AI-powered copilots",
-    isActive: (pathname) => pathname.startsWith("/ai-assistant"),
+    children: aiAssistantItems,
   },
   {
     title: "Documents",
     href: "/documents",
     icon: FileText,
-    description: "Generated artifacts vault",
-    isActive: (pathname) => pathname.startsWith("/documents"),
   },
   {
     title: "Notes",
     href: "/notes",
     icon: StickyNote,
-    description: "Research workspace",
-    isActive: (pathname) => pathname.startsWith("/notes"),
   },
 ];
 
@@ -69,6 +101,15 @@ export type AppSidebarProps = {
 
 export function AppSidebar({ address }: AppSidebarProps) {
   const pathname = usePathname();
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+
+  // Auto-expand AI Assistant if we're on any AI Assistant page
+  useEffect(() => {
+    if (pathname.startsWith("/ai-assistant")) {
+      setAiAssistantOpen(true);
+    }
+  }, [pathname]);
+
   const normalizedAddress = address?.trim();
   const verifyHref = normalizedAddress
     ? `/verify/${encodeURIComponent(normalizedAddress)}`
@@ -79,8 +120,79 @@ export function AppSidebar({ address }: AppSidebarProps) {
       <ScrollArea className="flex-1 px-3 py-4">
         <nav className="space-y-1" role="navigation" aria-label="Sidebar navigation">
           {sidebarNavItems.map((item) => {
-            const isActive = item.isActive?.(pathname) ?? pathname === item.href;
             const Icon = item.icon;
+            const isActive = pathname === item.href;
+            const hasChildren = item.children && item.children.length > 0;
+
+            if (hasChildren) {
+              return (
+                <Collapsible
+                  key={item.href}
+                  open={aiAssistantOpen}
+                  onOpenChange={setAiAssistantOpen}
+                >
+                  <CollapsibleTrigger
+                    className={cn(
+                      "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      isActive || pathname.startsWith(item.href)
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 flex-shrink-0 transition-colors",
+                        isActive || pathname.startsWith(item.href)
+                          ? "text-sidebar-primary"
+                          : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="flex-1 text-left">{item.title}</span>
+                    <ChevronRight
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        aiAssistantOpen && "rotate-90"
+                      )}
+                      aria-hidden="true"
+                    />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-1 space-y-1 pl-4">
+                    {item.children?.map((child) => {
+                      const ChildIcon = child.icon;
+                      const isChildActive = pathname === child.href;
+
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            isChildActive
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                              : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                          )}
+                          aria-current={isChildActive ? "page" : undefined}
+                        >
+                          <ChildIcon
+                            className={cn(
+                              "h-4 w-4 flex-shrink-0 transition-colors",
+                              isChildActive
+                                ? "text-sidebar-primary"
+                                : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
+                            )}
+                            aria-hidden="true"
+                          />
+                          <span>{child.title}</span>
+                        </Link>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            }
 
             return (
               <Link
@@ -98,16 +210,13 @@ export function AppSidebar({ address }: AppSidebarProps) {
                 <Icon
                   className={cn(
                     "h-5 w-5 flex-shrink-0 transition-colors",
-                    isActive ? "text-sidebar-primary" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
+                    isActive
+                      ? "text-sidebar-primary"
+                      : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
                   )}
                   aria-hidden="true"
                 />
-                <div className="flex flex-col">
-                  <span>{item.title}</span>
-                  {item.description && (
-                    <span className="text-xs text-muted-foreground">{item.description}</span>
-                  )}
-                </div>
+                <span>{item.title}</span>
               </Link>
             );
           })}
@@ -129,14 +238,13 @@ export function AppSidebar({ address }: AppSidebarProps) {
                 <Check
                   className={cn(
                     "h-5 w-5 flex-shrink-0 transition-colors",
-                    pathname.startsWith("/verify") ? "text-sidebar-primary" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
+                    pathname.startsWith("/verify")
+                      ? "text-sidebar-primary"
+                      : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
                   )}
                   aria-hidden="true"
                 />
-                <div className="flex flex-col">
-                  <span>My Verify</span>
-                  <span className="text-xs text-muted-foreground">Public trust panel</span>
-                </div>
+                <span>My Verify</span>
               </Link>
             </>
           )}

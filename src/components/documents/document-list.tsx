@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { FileText, Download, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import type { DocumentRecord } from "@/types/document";
 
 type DocumentListProps = {
@@ -14,69 +15,16 @@ type DocumentListProps = {
 function formatType(type: DocumentRecord["type"]) {
   switch (type) {
     case "pitch_deck":
-      return "Pitch deck";
+      return "Pitch Deck";
     case "business_plan":
-      return "Business plan";
+      return "Business Plan";
     case "resume":
       return "Resume";
     case "social_post":
-      return "Social media";
+      return "Social Post";
     default:
       return type;
   }
-}
-
-function renderTypeDetails(record: DocumentRecord) {
-  if (record.type === "resume" && record.data.resume) {
-    const resume = record.data.resume;
-    return (
-      <div className="space-y-2">
-        <p className="text-sm font-semibold text-foreground">
-          {resume.headline}
-        </p>
-        <p className="text-xs text-muted-foreground">{resume.summary}</p>
-        {resume.skills.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {resume.skills.slice(0, 6).map((skill) => (
-              <Badge key={skill} variant="secondary">
-                {skill}
-              </Badge>
-            ))}
-            {resume.skills.length > 6 && (
-              <Badge variant="outline">+{resume.skills.length - 6}</Badge>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (record.type === "social_post" && record.data.socialPosts) {
-    const posts = record.data.socialPosts;
-    return (
-      <div className="space-y-2 text-sm text-muted-foreground">
-        {posts.slice(0, 3).map((post, index) => (
-          <div
-            key={`${post.channel}-${index}`}
-            className="rounded-lg border bg-background/60 p-2"
-          >
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {post.channel} · {post.cadence ?? "One off"}
-            </p>
-            <p className="font-medium text-foreground">{post.hook}</p>
-            <p>{post.copy}</p>
-          </div>
-        ))}
-        {posts.length > 3 && (
-          <p className="text-xs text-muted-foreground">
-            +{posts.length - 3} more posts saved
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  return null;
 }
 
 export function DocumentList({ documents }: DocumentListProps) {
@@ -108,48 +56,47 @@ export function DocumentList({ documents }: DocumentListProps) {
 
   if (!documents.length) {
     return (
-      <div className="rounded-2xl border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-        No generated documents yet. Use the AI Assistant to generate a pitch
-        deck or business plan — we&apos;ll log it here automatically with a
-        checksum for tamper checks.
-      </div>
+      <Card className="border-2 border-dashed bg-muted/30">
+        <CardContent className="py-12 text-center">
+          <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            No documents yet. Use AI Assistant to create your first document.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {documents.map((record) => (
-        <Card key={record.id}>
-          <CardHeader className="flex flex-row items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-xl">{record.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {new Date(record.createdAt).toLocaleString()}
-              </p>
+        <Card key={record.id} className="group border-2 transition-all hover:shadow-lg">
+          <CardContent className="p-6 space-y-4">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold truncate">{record.title}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(record.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <Badge variant="secondary" className="flex-shrink-0">
+                {formatType(record.type)}
+              </Badge>
             </div>
-            <Badge variant="outline">{formatType(record.type)}</Badge>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>{record.summary}</p>
-            {renderTypeDetails(record)}
-            {record.data?.metadata && (
-              <dl className="grid gap-2 md:grid-cols-2">
-                {Object.entries(record.data.metadata).map(([key, value]) => (
-                  <div key={key}>
-                    <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {key}
-                    </dt>
-                    <dd className="font-medium text-foreground">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-            <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
-              <span className="truncate">Checksum: {record.checksum}</span>
+
+            {/* Summary - single line only */}
+            <p className="text-sm text-muted-foreground line-clamp-1">
+              {record.summary}
+            </p>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2">
               {record.type === "resume" && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" className="flex-1" asChild>
                   <Link href={`/ai-assistant/resume/${record.id}`}>
-                    Open resume
+                    <FileText className="h-3 w-3 mr-1" />
+                    Open
                   </Link>
                 </Button>
               )}
@@ -157,15 +104,28 @@ export function DocumentList({ documents }: DocumentListProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => copyChecksum(record)}
+                className="flex-1"
               >
-                {copiedChecksum === record.id ? "Copied" : "Copy checksum"}
+                {copiedChecksum === record.id ? (
+                  <>
+                    <Check className="h-3 w-3 mr-1" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3 mr-1" />
+                    Hash
+                  </>
+                )}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => download(record)}
+                className="flex-1"
               >
-                Download JSON
+                <Download className="h-3 w-3 mr-1" />
+                JSON
               </Button>
             </div>
           </CardContent>

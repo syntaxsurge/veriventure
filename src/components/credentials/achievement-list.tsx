@@ -214,9 +214,9 @@ export function AchievementList({
                   <p
                     className={
                       verificationStatus[achievement.id].state === "valid"
-                        ? "text-xs text-emerald-600"
+                        ? "text-xs text-green-700 dark:text-green-300"
                         : verificationStatus[achievement.id].state === "invalid"
-                          ? "text-xs text-amber-600"
+                          ? "text-xs text-amber-700 dark:text-amber-300"
                           : "text-xs text-destructive"
                     }
                   >

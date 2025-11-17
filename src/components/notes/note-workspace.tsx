@@ -259,7 +259,7 @@ export function NoteWorkspace({ initialNotes }: NoteWorkspaceProps) {
             </p>
           )}
           {status && (
-            <p className="mt-3 text-sm text-emerald-600" role="status">
+            <p className="mt-3 text-sm text-green-700 dark:text-green-300" role="status">
               {status}
             </p>
           )}

@@ -1,11 +1,15 @@
 export const dynamic = "force-dynamic";
 
+import { FileUser } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResumeBuilder } from "@/components/ai/resume-builder";
 import { DocumentList } from "@/components/documents/document-list";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listDocuments } from "@/lib/server/document-store";
+import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function ResumePage() {
   const address = await requireAuthenticatedAddress();
@@ -13,40 +17,52 @@ export default async function ResumePage() {
   const resumes = documents.filter((document) => document.type === "resume");
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-3">
-        <Badge variant="outline">Talent ops</Badge>
-        <h1 className="text-3xl font-semibold">Resume & Bio Builder</h1>
-        <p className="text-muted-foreground">
-          Convert badge-backed accomplishments into resumes, bios, and thought-leadership snippets tuned for venture
-          partners, boards, or grant committees. Each output is stored in the Documents vault and linked to your wallet
-          session.
-        </p>
-      </section>
+    <AppShell sidebar maxWidth="7xl">
+      <div className="section-spacing animate-in">
+        <PageHeader
+          title="Resume Builder"
+          description="Generate professional resumes from your verified achievements"
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "Resume Builder" },
+          ]}
+        >
+          <Badge variant="secondary">AI-Powered</Badge>
+        </PageHeader>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Your resumes</h2>
-          {resumes.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Browse previous drafts below; full metadata and checksums live in Documents.
-            </p>
-          )}
-        </div>
-        {resumes.length === 0 ? (
-          <div className="rounded-2xl border border-dashed bg-muted/20 p-6 text-sm text-muted-foreground">
-            No resumes yet. Generate a resume below and it will appear in this list.
-          </div>
-        ) : (
-          <DocumentList documents={resumes} />
+        {/* Previous Resumes - Only show if there are any */}
+        {resumes.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Your Resumes</h2>
+            <DocumentList documents={resumes} />
+          </section>
         )}
-      </section>
 
-      <Card>
-        <CardContent className="pt-6">
-          <ResumeBuilder />
-        </CardContent>
-      </Card>
-    </div>
+        {/* Resume Builder */}
+        <Card className="border-2 shadow-md">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <FileUser className="h-5 w-5 text-primary" aria-hidden="true" />
+              </div>
+              <CardTitle>Generate Resume</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {resumes.length === 0 && (
+              <div className="mb-6">
+                <EmptyState
+                  icon={FileUser}
+                  title="No resumes yet"
+                  description="Create your first resume below"
+                />
+              </div>
+            )}
+            <ResumeBuilder />
+          </CardContent>
+        </Card>
+      </div>
+    </AppShell>
   );
 }

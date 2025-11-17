@@ -26,9 +26,9 @@ type PublishResponse = {
 };
 
 const riskColors: Record<string, string> = {
-  low: "bg-emerald-100 text-emerald-900",
-  medium: "bg-amber-100 text-amber-900",
-  high: "bg-red-100 text-red-900",
+  low: "bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-100",
+  medium: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-100",
+  high: "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-100",
 };
 
 export function TruthAlignmentLab() {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Download, Copy, Upload, Check, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { exportResumeAsPdf } from "@/lib/resume-export";
@@ -24,6 +25,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
     explorer: string | null;
     subscan: string | null;
   } | null>(null);
+  const [copied, setCopied] = useState(false);
+
   const resume = document.data.resume;
   const pdfResume = useMemo(
     () => buildPreviewResume(resume ?? null),
@@ -89,6 +92,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
       .filter(Boolean)
       .join("\n\n");
     void navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   async function handlePublishToDkg() {
@@ -137,213 +142,269 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{document.title}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Created on{" "}
-              {new Date(document.createdAt).toLocaleString(undefined, {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
-            </p>
-            <p className="max-w-3xl text-sm text-muted-foreground">
-              {document.summary}
-            </p>
-          </div>
-          <Badge variant="outline">Resume</Badge>
-        </CardHeader>
-        <CardContent className="space-y-3 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
-            <span className="truncate">
-              Checksum: {document.checksum}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button type="button" variant="outline" size="sm" onClick={copyResume}>
-              Copy summary text
-            </Button>
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      {/* Main Resume Preview */}
+      <div className="space-y-6">
+        {/* Resume Paper */}
+        <Card className="border-2 shadow-xl">
+          <CardContent className="p-8">
+            <div
+              className="relative mx-auto w-full overflow-hidden rounded-lg border-2 bg-white shadow-2xl"
+              style={{ aspectRatio: "8.5 / 11" }}
+            >
+              <div className="flex h-full flex-col overflow-y-auto bg-white px-8 py-8 text-slate-900">
+                {/* Header */}
+                <header className="flex items-start justify-between gap-6 border-b-2 border-slate-200 pb-4">
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+                      {fullName || "Full Name"}
+                    </h2>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                      {resolvedResume.headline || "Professional Title"}
+                    </p>
+                    {focus && (
+                      <p className="text-xs uppercase tracking-wider text-slate-400">
+                        {focus}
+                      </p>
+                    )}
+                  </div>
+                  {photoDataUrl && (
+                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl border-2 border-slate-200 bg-slate-50 shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoDataUrl}
+                        alt={fullName ? `${fullName} headshot` : "Headshot"}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                </header>
+
+                {/* Content */}
+                <main className="mt-6 grid flex-1 gap-6 text-xs leading-relaxed md:grid-cols-[1fr,1.5fr]">
+                  {/* Left Column */}
+                  <section className="space-y-5">
+                    {/* Profile */}
+                    <div>
+                      <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
+                        Profile
+                      </h3>
+                      <p className="text-xs text-slate-700">
+                        {resolvedResume.summary}
+                      </p>
+                    </div>
+
+                    {/* Skills */}
+                    {resolvedResume.skills.length > 0 && (
+                      <div>
+                        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
+                          Key Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {resolvedResume.skills.map((skill) => (
+                            <span
+                              key={skill}
+                              className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-700"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  {/* Right Column */}
+                  <section className="space-y-5">
+                    {resolvedResume.sections.map((section) => (
+                      <div key={section.heading}>
+                        <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
+                          {section.heading}
+                        </h3>
+                        <ul className="space-y-2">
+                          {section.bullets.map((bullet, index) => (
+                            <li
+                              key={`${section.heading}-${index.toString()}`}
+                              className="flex gap-2"
+                            >
+                              <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
+                              <p className="flex-1 text-xs text-slate-700">
+                                {bullet}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </section>
+                </main>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sidebar Actions */}
+      <div className="space-y-6">
+        {/* Photo Upload */}
+        <Card className="border-2">
+          <CardContent className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="resume-photo" className="flex items-center gap-2 text-sm font-semibold">
+                <ImageIcon className="h-4 w-4" />
+                Profile Photo
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Upload a square headshot for the PDF
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex aspect-square h-20 w-20 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted">
+                {photoDataUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={photoDataUrl}
+                    alt={fullName ? `${fullName} headshot` : "Headshot"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1">
+                <Input
+                  id="resume-photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="text-xs"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Actions */}
+        <Card className="border-2">
+          <CardContent className="p-6 space-y-3">
+            <h3 className="text-sm font-semibold">Actions</h3>
+
             <Button
               type="button"
-              size="sm"
+              className="w-full gap-2"
               onClick={handleExportPdf}
               disabled={exportingPdf}
             >
-              {exportingPdf ? "Exporting…" : "Export PDF"}
+              <Download className="h-4 w-4" />
+              {exportingPdf ? "Exporting..." : "Export PDF"}
             </Button>
+
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              className="w-full gap-2"
+              onClick={copyResume}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  Copy Text
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full gap-2"
               onClick={handlePublishToDkg}
               disabled={publishing}
             >
-              {publishing ? "Publishing…" : "Publish to DKG"}
+              <Upload className="h-4 w-4" />
+              {publishing ? "Publishing..." : "Publish to DKG"}
             </Button>
-          </div>
-          {publishState && (
-            <div className="space-y-1 text-[11px]">
-              <p className="font-semibold text-foreground">
-                UAL:{" "}
-                <span className="break-all font-mono text-muted-foreground">
-                  {publishState.ual}
-                </span>
+
+            {publishError && (
+              <p className="text-xs text-destructive" role="alert">
+                {publishError}
               </p>
-              <div className="flex flex-wrap gap-4">
-                {publishState.explorer && (
-                  <a
-                    href={publishState.explorer}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    View on DKG Explorer
-                  </a>
-                )}
-                {publishState.subscan && (
-                  <a
-                    href={publishState.subscan}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    View tx on Subscan
-                  </a>
-                )}
+            )}
+          </CardContent>
+        </Card>
+
+        {/* DKG Info */}
+        {publishState && (
+          <Card className="border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-green-700 dark:text-green-300" />
+                <h3 className="text-sm font-semibold text-green-900 dark:text-green-100">
+                  Published Successfully
+                </h3>
               </div>
-            </div>
-          )}
-          {publishError && (
-            <p className="text-[11px] text-destructive" role="alert">
-              {publishError}
-            </p>
-          )}
-        </CardContent>
-      </Card>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="resume-photo">Profile photo (optional)</Label>
-          <div className="flex items-center gap-4">
-            <div className="flex aspect-square h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-muted">
-              {photoDataUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={photoDataUrl}
-                  alt={fullName ? `${fullName} headshot` : "Headshot"}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="px-2 text-center text-[10px] text-muted-foreground">
-                  1x1 headshot
-                  <br />
-                  (square photo)
-                </span>
-              )}
-            </div>
-            <div className="flex flex-1 flex-col gap-2 text-xs text-muted-foreground">
-              <Input
-                id="resume-photo"
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-              />
-              <p>
-                Upload a square headshot to appear in the resume preview and exported PDF.
-              </p>
-            </div>
-          </div>
-        </div>
+              <div className="space-y-2 text-xs">
+                <p className="font-mono text-green-800 dark:text-green-200 break-all">
+                  {publishState.ual}
+                </p>
 
-        <div className="flex items-start justify-center">
-        <div className="w-full max-w-[720px] rounded-2xl border bg-muted/30 p-4 shadow-sm">
-          <div
-            className="relative mx-auto w-full overflow-hidden rounded-2xl border bg-background shadow-lg"
-            style={{ aspectRatio: "8.5 / 11" }}
-          >
-            <div className="flex h-full flex-col overflow-y-auto bg-white px-8 py-8 text-slate-900">
-              <header className="flex items-start justify-between gap-6 border-b border-slate-200 pb-3">
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                    {resolvedResume.headline || "Resume"}
-                  </p>
-                  <h2 className="text-[22px] font-semibold tracking-tight">
-                    {fullName || "Full name"}
-                  </h2>
-                  {focus && (
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-500">
-                      {focus}
-                    </p>
+                <div className="flex flex-col gap-2">
+                  {publishState.explorer && (
+                    <a
+                      href={publishState.explorer}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 text-green-700 dark:text-green-300 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      DKG Explorer
+                    </a>
+                  )}
+                  {publishState.subscan && (
+                    <a
+                      href={publishState.subscan}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 text-green-700 dark:text-green-300 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Subscan
+                    </a>
                   )}
                 </div>
-                {photoDataUrl && (
-                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photoDataUrl}
-                      alt={fullName ? `${fullName} headshot` : "Headshot"}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                )}
-              </header>
-              <main className="mt-4 grid flex-1 gap-5 text-[11px] leading-relaxed md:grid-cols-[0.95fr,1.4fr] md:text-xs">
-                <section className="space-y-4">
-                  <div>
-                    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      Profile
-                    </h3>
-                    <p className="mt-1 text-[11px] text-slate-800 md:text-xs">
-                      {resolvedResume.summary}
-                    </p>
-                  </div>
-                  {resolvedResume.skills.length > 0 && (
-                    <div>
-                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Key skills
-                      </h3>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {resolvedResume.skills.map((skill) => (
-                          <span
-                            key={skill}
-                            className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-800"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </section>
-                <section className="space-y-4">
-                  {resolvedResume.sections.map((section) => (
-                    <div key={section.heading}>
-                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        {section.heading}
-                      </h3>
-                      <ul className="mt-1 space-y-1.5">
-                        {section.bullets.map((bullet, index) => (
-                          <li
-                            key={`${section.heading}-${index.toString()}`}
-                            className="flex gap-2"
-                          >
-                            <span className="mt-[6px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-slate-400" />
-                            <p className="flex-1 text-[11px] text-slate-800 md:text-xs">
-                              {bullet}
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </section>
-              </main>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Metadata */}
+        <Card className="border-2 bg-muted/30">
+          <CardContent className="p-6 space-y-3">
+            <h3 className="text-sm font-semibold">Document Info</h3>
+
+            <div className="space-y-2 text-xs">
+              <div>
+                <p className="text-muted-foreground">Created</p>
+                <p className="font-medium">
+                  {new Date(document.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-muted-foreground">Checksum</p>
+                <p className="font-mono text-[10px] break-all">
+                  {document.checksum.slice(0, 16)}...
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -395,7 +395,7 @@ export function AchievementForm({
         </p>
       )}
       {success && (
-        <p className="text-sm text-emerald-600" role="status">
+        <p className="text-sm text-green-700 dark:text-green-300" role="status">
           {success}
         </p>
       )}

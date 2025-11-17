@@ -1,72 +1,99 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { Presentation, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PitchDeckStudio } from "@/components/pitch/pitch-deck-studio";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listPitchDecks } from "@/lib/server/pitch-deck-store";
+import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function PitchDeckPage() {
   const address = await requireAuthenticatedAddress();
   const decks = await listPitchDecks(address);
 
   return (
-    <div className="space-y-10">
-      <section className="space-y-3">
-        <Badge variant="outline">Slides + MCP</Badge>
-        <h1 className="text-3xl font-semibold">Pitch Deck Studio</h1>
-        <p className="text-muted-foreground">
-          Assemble a structured brief, pick the slides that matter for your sector, and let the AI copilot craft a
-          branded, verifiable deck. Every run is saved to Convex, linked to your wallet, and can be edited slide-by-slide
-          from the workspace view.
-        </p>
-      </section>
+    <AppShell sidebar maxWidth="7xl">
+      <div className="section-spacing animate-in">
+        <PageHeader
+          title="Pitch Deck Studio"
+          description="Create professional pitch decks with AI assistance"
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "Pitch Deck Studio" },
+          ]}
+        >
+          <Badge variant="secondary">AI-Powered</Badge>
+        </PageHeader>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your decks</h2>
-          {decks.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              View or edit decks anytime via the links below.
-            </p>
-          )}
-        </div>
-        {decks.length === 0 ? (
-          <div className="rounded-2xl border border-dashed bg-muted/20 p-6 text-sm text-muted-foreground">
-            No decks yet. Start a draft below and you&apos;ll see it here once the AI run completes.
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {decks.map((deck) => (
-              <Card key={deck.deckId}>
-                <CardContent className="flex flex-col gap-3 pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(deck.createdAt).toLocaleString()}
-                      </p>
-                      <h3 className="text-lg font-semibold">{deck.startupName}</h3>
+        {/* Your Decks - Only show if there are any */}
+        {decks.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold">Your Decks</h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {decks.map((deck) => (
+                <Card key={deck.deckId} className="group border-2 transition-all hover:shadow-lg">
+                  <CardHeader>
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                        <Presentation className="h-5 w-5 text-primary" aria-hidden="true" />
+                      </div>
+                      <Badge variant="secondary">{deck.status}</Badge>
                     </div>
-                    <Badge variant="secondary">{deck.status}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {deck.summary}
-                  </p>
-                  <Link
-                    href={`/ai-assistant/pitch-deck/${deck.deckId}`}
-                    className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
-                  >
-                    Open deck
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <CardTitle className="line-clamp-1">{deck.startupName}</CardTitle>
+                    <CardDescription className="text-xs">
+                      {new Date(deck.createdAt).toLocaleString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {deck.summary}
+                    </p>
+                    <Button variant="ghost" className="w-full justify-start gap-2" asChild>
+                      <Link href={`/ai-assistant/pitch-deck/${deck.deckId}`}>
+                        <span>Open deck</span>
+                        <ArrowRight
+                          className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
         )}
-      </section>
 
-      <PitchDeckStudio />
-    </div>
+        {/* Pitch Deck Studio */}
+        <Card className="border-2 shadow-md">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Presentation className="h-5 w-5 text-primary" aria-hidden="true" />
+              </div>
+              <CardTitle>Create New Deck</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {decks.length === 0 && (
+              <div className="mb-6">
+                <EmptyState
+                  icon={Presentation}
+                  title="No decks yet"
+                  description="Create your first pitch deck below"
+                />
+              </div>
+            )}
+            <PitchDeckStudio />
+          </CardContent>
+        </Card>
+      </div>
+    </AppShell>
   );
 }

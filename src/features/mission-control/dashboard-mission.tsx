@@ -114,7 +114,7 @@ export function DashboardMission({ address }: DashboardMissionProps) {
               className={cn(
                 "flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                 step.complete
-                  ? "border-emerald-200 text-emerald-700"
+                  ? "border-green-500 bg-green-500/10 text-green-700 dark:border-green-400 dark:bg-green-400/10 dark:text-green-300"
                   : "border-border text-muted-foreground",
                 step.disabled
                   ? "cursor-not-allowed opacity-60"
@@ -134,7 +134,7 @@ export function DashboardMission({ address }: DashboardMissionProps) {
         </div>
         <div className="flex items-center gap-2">
           {shareStatus === "copied" && (
-            <span className="text-xs font-semibold text-emerald-600">
+            <span className="text-xs font-semibold text-green-700 dark:text-green-300">
               Link copied
             </span>
           )}

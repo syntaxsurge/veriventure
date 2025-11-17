@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { PitchDeckViewer } from "@/components/pitch/deck-viewer";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { getPitchDeck } from "@/lib/server/pitch-deck-store";
@@ -20,22 +22,28 @@ export default async function PitchDeckDetailPage({ params }: RouteParams) {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <Badge variant="outline">Deck workspace</Badge>
-          <h1 className="text-3xl font-semibold">{deck.startupName}</h1>
-          <p className="text-sm text-muted-foreground">
-            Last updated {new Date(deck.updatedAt).toLocaleString()}
-          </p>
+    <div className="section-spacing animate-in py-8">
+      {/* Header */}
+      <section className="container-app">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="space-y-3">
+            <Badge variant="secondary">Deck Workspace</Badge>
+            <h1>{deck.startupName}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" aria-hidden="true" />
+              <span>Last updated {new Date(deck.updatedAt).toLocaleString()}</span>
+            </div>
+          </div>
+          <Button variant="outline" asChild className="gap-2">
+            <Link href="/ai-assistant/pitch-deck">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              <span>Back to Studio</span>
+            </Link>
+          </Button>
         </div>
-        <Link
-          href="/ai-assistant/pitch-deck"
-          className="text-sm text-primary underline-offset-4 hover:underline"
-        >
-          Back to studio
-        </Link>
       </section>
+
+      {/* Deck Viewer */}
       <PitchDeckViewer deck={deck} />
     </div>
   );

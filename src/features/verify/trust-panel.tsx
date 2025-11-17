@@ -122,7 +122,7 @@ export function TrustPanel({ profile }: TrustPanelProps) {
                   className={
                     copied === "error"
                       ? "text-xs text-destructive"
-                      : "text-xs text-emerald-600"
+                      : "text-xs text-green-700 dark:text-green-300"
                   }
                 >
                   {shareHelper}

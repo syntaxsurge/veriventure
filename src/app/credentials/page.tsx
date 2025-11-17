@@ -1,23 +1,26 @@
+import { FileCheck, Wallet, Share2 } from "lucide-react";
 import { CredentialsManager } from "@/components/credentials/credentials-manager";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listAchievements } from "@/lib/server/achievement-store";
+import { AppShell } from "@/components/layout/app-shell";
+import { PageHeader } from "@/components/layout/page-header";
 
 const credentialSteps = [
   {
-    title: "Capture context",
-    detail:
-      "Summarize the milestone, add KPIs or URLs, and compute a content hash that becomes the badge fingerprint.",
+    title: "Capture",
+    icon: FileCheck,
+    detail: "Document milestones and compute verifiable hashes",
   },
   {
-    title: "Sign & mint",
-    detail:
-      "Submit the hash to the Moonbase Alpha ValidityRegistry. Your wallet signature proves authorship forever.",
+    title: "Sign & Mint",
+    icon: Wallet,
+    detail: "Submit to Moonbase Alpha with wallet signature",
   },
   {
-    title: "Publish provenance",
-    detail:
-      "Generate a JSON-LD Community Note that links evidence, badge hash, and verifiable claims on the OriginTrail DKG.",
+    title: "Publish",
+    icon: Share2,
+    detail: "Create Community Notes on OriginTrail DKG",
   },
 ];
 
@@ -26,33 +29,42 @@ export default async function CredentialsPage() {
   const achievements = await listAchievements(address);
 
   return (
-    <div className="space-y-12">
-      <section className="space-y-4">
-        <h1 className="text-3xl font-semibold">Credentials</h1>
-        <p className="text-muted-foreground">
-          Every badge is non-transferable, wallet-native, and discoverable via
-          your public verification link. They are the foundation for pitch
-          decks, MCP prompts, and external diligence.
-        </p>
-      </section>
+    <AppShell sidebar maxWidth="7xl">
+      <div className="section-spacing animate-in">
+        <PageHeader
+          title="Credentials"
+          description="Create verifiable badges for your achievements"
+          breadcrumbs={[
+            { label: "Home", href: "/" },
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Credentials" },
+          ]}
+        />
 
-      <section className="grid gap-6 md:grid-cols-3">
-        {credentialSteps.map((step) => (
-          <Card key={step.title}>
-            <CardHeader>
-              <CardTitle>{step.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {step.detail}
-            </CardContent>
-          </Card>
-        ))}
-      </section>
+        {/* Process Steps */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {credentialSteps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <Card key={step.title} className="border-2 transition-all hover:shadow-lg">
+                <CardHeader className="text-center">
+                  <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+                    <Icon className="h-7 w-7 text-primary" aria-hidden="true" />
+                  </div>
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">
+                    Step {index + 1}
+                  </div>
+                  <CardTitle className="text-xl">{step.title}</CardTitle>
+                  <CardDescription className="text-base">{step.detail}</CardDescription>
+                </CardHeader>
+              </Card>
+            );
+          })}
+        </div>
 
-      <CredentialsManager
-        address={address}
-        initialAchievements={achievements}
-      />
-    </div>
+        {/* Credentials Manager */}
+        <CredentialsManager address={address} initialAchievements={achievements} />
+      </div>
+    </AppShell>
   );
 }
