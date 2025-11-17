@@ -14,6 +14,16 @@ npm run dev
 
 The web experience runs at [http://localhost:3000](http://localhost:3000). Wallet authentication relies on RainbowKit + WalletConnect (MetaMask, Rabby, Rainbow, Talisman EVM, …).
 
+### Docker quickstart
+
+```bash
+cp .env.example .env   # only if you need a fresh copy
+docker compose build
+VERIVENTURE_PORT=4000 docker compose up -d
+```
+
+The container bundles the production build (`next build`) and reads every server + public env var from `.env`, so the app behaves the same way on laptops and servers. See `docs/dkg-quickstart.md` for an end-to-end walkthrough.
+
 ### Environment variables
 
 Copy `.env.example` to `.env.local` and update the values per your environment:
@@ -79,9 +89,25 @@ npm run deploy:moonbase  # deploy via scripts/deployValidity.ts
 
 ### OriginTrail DKG quickstart
 
-1. Install and run an [OriginTrail Edge Node](https://github.com/OriginTrail/edge-node-installer) (default HTTP port `8900`).
-2. Set the `DKG_*` variables above, including a private key that can sign on your target chain (Hardhat, NeuroWeb testnet, etc.).
-3. Use the **AI Assistant → OriginTrail DKG connection test** card to publish a sample Community Note. Successful UAL output confirms the wiring is correct.
+- Point `.env`/`.env.example` at the public NeuroWeb testnet node:
+
+  ```bash
+  DKG_NODE_ENDPOINT=https://v6-pegasus-node-02.origin-trail.network
+  DKG_NODE_PORT=8900
+  DKG_BLOCKCHAIN_NAME=otp:20430
+  DKG_BLOCKCHAIN_PRIVATE_KEY=0x<your_neuroweb_private_key>
+  ```
+
+- Request **MNEURO** and **TRAC** for that wallet through the [official faucet](https://docs.origintrail.io/dkg-knowledge-hub/useful-resources/test-token-faucet):
+
+  ```text
+  !fundme_neuroweb 0xYourWallet
+  !fundme_neuroweb_trac 0xYourWallet
+  ```
+
+- Sanity-check connectivity with `curl http://localhost:3000/api/dkg/health` and publish a note through `/api/dkg/notes` (the Mission Control DKG tester hits the same routes).
+
+`docs/dkg-quickstart.md` expands on these steps and includes the official Edge Node installer commands if you later decide to self-host.
 
 ### Convex quickstart
 

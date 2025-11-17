@@ -26,6 +26,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["dkg.js"],
+  output: "standalone",
   turbopack: {},
   webpack: (config) => {
     config.resolve = config.resolve || {};

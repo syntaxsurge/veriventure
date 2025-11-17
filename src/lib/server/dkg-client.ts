@@ -28,6 +28,9 @@ type DkgClientInstance = {
       },
     ) => Promise<unknown>;
   };
+  node: {
+    info: () => Promise<unknown>;
+  };
 };
 
 let cachedClient: DkgClientInstance | null = null;
@@ -98,4 +101,9 @@ export async function publishCommunityNote(note: CommunityNoteInput) {
   });
 
   return result;
+}
+
+export async function fetchDkgNodeInfo() {
+  const client = getClient();
+  return client.node.info();
 }

@@ -125,6 +125,14 @@ function buildTeamCards(slide: PitchSlideRecord, deck: PitchDeckRecord): TeamCar
   ];
 }
 
+function scaleWidth(value: number, slideWidth: number) {
+  return (value / SLIDE_BASE_WIDTH) * slideWidth;
+}
+
+function scaleHeight(value: number, slideHeight: number) {
+  return (value / SLIDE_BASE_HEIGHT) * slideHeight;
+}
+
 async function resolveImageData(url?: string) {
   if (!url) return null;
   if (url.startsWith("data:")) return url;
@@ -376,12 +384,8 @@ export async function exportDeckAsPptx(
 ) {
   const pptx = new PptxGenJS();
   const baseTheme = buildDeckTheme(deck);
-  const slideWidth = pptx.presLayout.width;
-  const slideHeight = pptx.presLayout.height;
-  const horizontalPadding = Math.max(slideWidth * 0.05, 0.4);
-  const verticalPadding = Math.max(slideHeight * 0.08, 0.4);
-  const gutter = 0.4;
-
+  const layoutWidth = pptx.presLayout?.width ?? 10;
+  const layoutHeight = pptx.presLayout?.height ?? 5.625;
   for (let index = 0; index < slides.length; index += 1) {
     const slide = slides[index]!;
     const pptSlide = pptx.addSlide();
@@ -411,61 +415,89 @@ export async function exportDeckAsPptx(
       continue;
     }
 
-    const innerWidth = slideWidth - horizontalPadding * 2;
-    const innerHeight = slideHeight - verticalPadding * 2;
-    let textWidth = innerWidth * 0.56;
-    let imageWidth = innerWidth - textWidth - gutter;
-    if (imageWidth < innerWidth * 0.32) {
-      imageWidth = innerWidth * 0.32;
-      textWidth = innerWidth - imageWidth - gutter;
-    }
+    const outerPanel = {
+      x: scaleWidth(40, layoutWidth),
+      y: scaleHeight(40, layoutHeight),
+      w: scaleWidth(SLIDE_BASE_WIDTH - 80, layoutWidth),
+      h: scaleHeight(SLIDE_BASE_HEIGHT - 80, layoutHeight),
+    };
     const textPanel = {
-      x: horizontalPadding,
-      y: verticalPadding,
-      w: textWidth,
-      h: innerHeight,
+      x: scaleWidth(70, layoutWidth),
+      y: scaleHeight(80, layoutHeight),
+      w: scaleWidth(650, layoutWidth),
+      h: scaleHeight(520, layoutHeight),
     };
     const imagePanel = {
-      x: textPanel.x + textPanel.w + gutter,
-      y: verticalPadding,
-      w: innerWidth - textWidth - gutter,
-      h: innerHeight,
+      x: scaleWidth(760, layoutWidth),
+      y: scaleHeight(110, layoutHeight),
+      w: scaleWidth(420, layoutWidth),
+      h: scaleHeight(420, layoutHeight),
     };
+    const heroPaddingX = scaleWidth(24, layoutWidth);
+    const heroPaddingY = scaleHeight(24, layoutHeight);
+    const captionReserve = scaleHeight(50, layoutHeight);
+
+    pptSlide.addShape("roundRect", {
+      x: outerPanel.x,
+      y: outerPanel.y,
+      w: outerPanel.w,
+      h: outerPanel.h,
+      fill: { color: lightenHex(palette.base, 0.05) },
+      line: { color: lightenHex(palette.contrast, 0.28), width: 1.2 },
+      shadow: { type: "outer", blur: 16, color: lightenHex(palette.contrast, 0.2) },
+    });
+
+    pptSlide.addShape("roundRect", {
+      x: imagePanel.x,
+      y: imagePanel.y,
+      w: imagePanel.w,
+      h: imagePanel.h,
+      fill: { color: lightenHex(palette.base, 0.12) },
+      line: { color: lightenHex(palette.contrast, 0.35), width: 1.3 },
+      shadow: { type: "outer", blur: 14, color: lightenHex(palette.contrast, 0.2) },
+    });
 
     pptSlide.addText(slide.title, {
       x: textPanel.x,
       y: textPanel.y,
-      w: textPanel.w - 0.4,
+      w: textPanel.w,
+      h: scaleHeight(80, layoutHeight),
       fontSize: titleSize,
       bold: true,
       color: palette.contrast,
       fontFace: "Helvetica",
+      fit: "none",
+      valign: "top",
     });
 
-    let blockY = textPanel.y + 0.9;
+    let blockY = textPanel.y + scaleHeight(80, layoutHeight);
 
     if (slide.subtitle) {
+      const subtitleHeight = Math.max(scaleHeight(70, layoutHeight), subtitleSize / 36);
       pptSlide.addText(slide.subtitle, {
         x: textPanel.x,
         y: blockY,
-        w: textPanel.w - 0.4,
+        w: textPanel.w,
+        h: subtitleHeight,
         fontSize: subtitleSize,
         color: subtitleColor,
         fontFace: "Helvetica",
+        fit: "none",
+        valign: "top",
       });
-      blockY += subtitleSize / 72 + 0.4;
+      blockY += subtitleHeight + scaleHeight(16, layoutHeight);
     }
 
     const bulletEntries = slide.bullets
       .map((entry) => entry.trim())
       .filter((entry) => entry.length > 0);
-    const noteSlotHeight = slide.notes ? Math.min(1.1, textPanel.h * 0.25) : 0;
+    const noteSlotHeight = slide.notes ? scaleHeight(90, layoutHeight) : 0;
     const bulletAreaHeight = Math.max(
-      textPanel.h - (blockY - textPanel.y) - noteSlotHeight,
-      0.1,
+      textPanel.y + textPanel.h - blockY - noteSlotHeight,
+      scaleHeight(120, layoutHeight),
     );
 
-    if (bulletEntries.length && bulletAreaHeight > 0.1) {
+    if (bulletEntries.length) {
       const bulletRuns = bulletEntries.map((entry) => ({
         text: entry,
         options: {
@@ -482,8 +514,9 @@ export async function exportDeckAsPptx(
         y: blockY,
         w: textPanel.w,
         h: bulletAreaHeight,
-        fit: "shrink",
+        fit: "none",
         margin: 0,
+        valign: "top",
       });
     }
 
@@ -493,27 +526,29 @@ export async function exportDeckAsPptx(
         x: textPanel.x,
         y: noteY,
         w: textPanel.w,
-        h: Math.max(noteSlotHeight - 0.1, 0.6),
+        h: noteSlotHeight,
         fontSize: noteSize,
         color: noteColor,
         italic: true,
         fontFace: "Helvetica",
+        fit: "none",
+        valign: "top",
       });
     }
 
     const imageData = await resolveImageData(resolveHeroSource(slide));
-    const captionReserve = caption ? Math.min(0.5, imagePanel.h * 0.18) : 0;
-    const heroHeight = imagePanel.h - captionReserve;
     if (imageData) {
+      const heroWidth = Math.max(imagePanel.w - heroPaddingX * 2, 0.5);
+      const heroHeight = Math.max(imagePanel.h - heroPaddingY * 2 - captionReserve, 0.5);
       pptSlide.addImage({
         data: imageData,
-        x: imagePanel.x,
-        y: imagePanel.y,
-        w: imagePanel.w,
+        x: imagePanel.x + heroPaddingX,
+        y: imagePanel.y + heroPaddingY,
+        w: heroWidth,
         h: heroHeight,
         sizing: {
           type: "contain",
-          w: imagePanel.w,
+          w: heroWidth,
           h: heroHeight,
         },
       });
@@ -521,13 +556,17 @@ export async function exportDeckAsPptx(
 
     if (caption) {
       pptSlide.addText(caption, {
-        x: imagePanel.x,
-        y: imagePanel.y + heroHeight + 0.1,
-        w: imagePanel.w,
+        x: imagePanel.x + heroPaddingX / 2,
+        y: imagePanel.y + imagePanel.h - captionReserve,
+        w: imagePanel.w - heroPaddingX,
+        h: captionReserve - scaleHeight(10, layoutHeight),
         fontSize: captionSize,
         color: palette.contrast,
         bold: true,
+        align: "center",
         fontFace: "Helvetica",
+        fit: "none",
+        valign: "middle",
       });
     }
   }
