@@ -114,6 +114,11 @@ export function AchievementForm({
     }
   }
 
+  function extractEvidenceUrl(value: string) {
+    const match = value.match(/https?:\/\/[^\s"'<>]+/i);
+    return match?.[0]?.trim() ?? "";
+  }
+
   async function handleAssist(field: AchievementField) {
     setAiBusy((prev) => ({ ...prev, [field]: true }));
     setAiError(null);
@@ -131,10 +136,16 @@ export function AchievementForm({
         suggestion?: string;
         error?: string;
       };
-      if (!response.ok || !payload.suggestion) {
+      const suggestion = payload.suggestion?.trim();
+      if (!response.ok || !suggestion) {
         throw new Error(payload.error ?? "Unable to suggest content.");
       }
-      updateField(field, payload.suggestion);
+      const normalized =
+        field === "evidenceUrl" ? extractEvidenceUrl(suggestion) : suggestion;
+      if (field === "evidenceUrl" && !normalized) {
+        throw new Error("AI did not return a valid URL. Please try again.");
+      }
+      updateField(field, normalized);
     } catch (err) {
       const fallback =
         err instanceof Error ? err.message : "Unable to suggest content.";
