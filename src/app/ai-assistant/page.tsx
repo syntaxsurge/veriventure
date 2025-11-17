@@ -25,12 +25,6 @@ const assistantPages = [
     badge: "Talent",
   },
   {
-    title: "Social Autopost",
-    href: "/ai-assistant/social",
-    blurb: "Multi-channel campaigns with verified claims",
-    badge: "Marketing",
-  },
-  {
     title: "Truth Alignment Lab",
     href: "/ai-assistant/truth",
     blurb: "Compare sources and publish verified notes",

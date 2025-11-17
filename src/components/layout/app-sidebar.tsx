@@ -14,7 +14,6 @@ import {
   Presentation,
   Briefcase,
   FileUser,
-  Share2,
   FlaskConical,
   Activity,
   Receipt,
@@ -49,11 +48,6 @@ const aiAssistantItems: SidebarNavItem[] = [
     title: "Resume Builder",
     href: "/ai-assistant/resume",
     icon: FileUser,
-  },
-  {
-    title: "Social Autopost",
-    href: "/ai-assistant/social",
-    icon: Share2,
   },
   {
     title: "Truth Alignment",

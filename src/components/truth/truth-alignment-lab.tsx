@@ -119,11 +119,13 @@ export function TruthAlignmentLab() {
   }
 
   return (
-    <section className="space-y-6 rounded-3xl border bg-muted/30 p-6">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold">Truth Alignment Lab</h2>
-        <p className="text-sm text-muted-foreground">
-          Compare Grokipedia vs Wikipedia, quantify divergences, and push a
+    <section className="space-y-8">
+      <div className="rounded-2xl border-2 bg-gradient-to-br from-primary/5 via-background to-background p-8 shadow-sm">
+        <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+          Analysis Engine
+        </h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Compare Grokipedia vs Wikipedia, quantify divergences with embeddings, and publish a
           structured Community Note directly to the OriginTrail DKG.
         </p>
       </div>

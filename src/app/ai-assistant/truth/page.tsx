@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { TruthAlignmentLab } from "@/components/truth/truth-alignment-lab";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
@@ -20,11 +19,7 @@ export default function TruthAlignmentPage() {
           <Badge variant="secondary">Trust Layer</Badge>
         </PageHeader>
 
-        <Card className="border-2 shadow-md">
-          <CardContent className="p-6 md:p-8">
-            <TruthAlignmentLab />
-          </CardContent>
-        </Card>
+        <TruthAlignmentLab />
       </div>
     </AppShell>
   );

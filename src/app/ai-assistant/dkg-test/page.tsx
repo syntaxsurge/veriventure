@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { DkgActivityFeed } from "@/components/dkg/dkg-activity-feed";
 import { requireAuthenticatedAddress } from "@/lib/server/auth-utils";
 import { listCommunityNotes } from "@/lib/server/community-note-store";
@@ -31,11 +30,7 @@ export default async function DkgActivityPage() {
           <Badge variant="secondary">DKG</Badge>
         </PageHeader>
 
-        <Card className="border-2 shadow-md">
-          <CardContent className="p-6 md:p-8">
-            <DkgActivityFeed notes={notes} assets={assets} />
-          </CardContent>
-        </Card>
+        <DkgActivityFeed notes={notes} assets={assets} />
       </div>
     </AppShell>
   );
