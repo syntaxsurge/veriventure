@@ -5,11 +5,15 @@ import { listCommunityNotes } from "@/lib/server/community-note-store";
 import { computeAchievementHash } from "@/lib/achievement-hash";
 import type { AchievementRecord } from "@/types/achievement";
 import type { CommunityNoteRecord } from "@/types/community-note";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 
 export type PublicProfile = {
   handle: string;
   display: string;
   address: string;
+  bio?: string;
+  website?: string;
   achievements: AchievementRecord[];
   notes: CommunityNoteRecord[];
   isDemo: boolean;
@@ -105,6 +109,8 @@ function buildDemoProfile(): PublicProfile {
     handle: DEMO_HANDLE,
     display: "Amina (Demo Flight)",
     address: DEMO_ADDRESS,
+    bio: "Climate finance operator building trust infrastructure for SMEs",
+    website: "https://demo.veriventure.xyz",
     achievements: buildDemoAchievements(),
     notes: buildDemoNotes(),
     isDemo: true,
@@ -131,6 +137,34 @@ export async function fetchPublicProfile(
     return buildDemoProfile();
   }
 
+  // Try to fetch from Convex handles table first
+  try {
+    const handleData = await fetchQuery(api.handles.getHandleByHandle, {
+      handle: slug,
+    });
+
+    if (handleData) {
+      // Found a handle in Convex, use the ownerAddress to fetch proofs
+      const achievements = await listAchievements(handleData.ownerAddress);
+      const notes = await listCommunityNotes(handleData.ownerAddress);
+
+      return {
+        handle: handleData.handle,
+        display: handleData.displayName || handleData.handle,
+        address: handleData.ownerAddress,
+        bio: handleData.bio,
+        website: handleData.website,
+        achievements,
+        notes,
+        isDemo: false,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching handle from Convex:", error);
+    // Fall through to legacy behavior
+  }
+
+  // Fallback: treat input as wallet address (legacy behavior)
   const achievements = await listAchievements(normalized);
   const ownerAddress = achievements[0]?.ownerAddress ?? normalized;
   const notes = await listCommunityNotes(ownerAddress);

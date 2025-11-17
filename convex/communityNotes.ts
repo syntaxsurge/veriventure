@@ -19,6 +19,18 @@ export const list = query({
   },
 });
 
+// Alias for list with ownerAddress (for consistency)
+export const getByOwner = query({
+  args: { ownerAddress: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("communityNotes")
+      .withIndex("by_owner", (q) => q.eq("ownerAddress", args.ownerAddress))
+      .order("desc")
+      .collect();
+  },
+});
+
 export const insert = mutation({
   args: {
     communityNoteId: v.string(),

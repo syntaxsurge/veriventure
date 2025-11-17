@@ -8,6 +8,7 @@ import { DashboardMission } from "@/features/mission-control/dashboard-mission";
 import { InvoiceDashboardWidget } from "@/components/invoices/invoice-dashboard-widget";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
 
 export default async function DashboardPage() {
   const address = await requireAuthenticatedAddress();
@@ -20,9 +21,12 @@ export default async function DashboardPage() {
         {/* Page Header */}
         <PageHeader
           title="Dashboard"
-          description="Your mission control for verified credentials"
+          description="Your mission control for verifiable proofs and AI-powered tools"
           breadcrumbs={[{ label: "Home", href: "/" }, { label: "Dashboard" }]}
         />
+
+        {/* First-Run Tour and Onboarding Checklist */}
+        <DashboardClient />
 
         {/* Mission Control */}
         <DashboardMission address={address} />

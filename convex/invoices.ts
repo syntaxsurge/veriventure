@@ -180,6 +180,9 @@ export const getAllInvoices = query({
   },
 });
 
+// Alias for getIssuerInvoices (for consistency)
+export const getByIssuer = getIssuerInvoices;
+
 // Get invoice statistics for an address
 export const getInvoiceStats = query({
   args: { address: v.string() },

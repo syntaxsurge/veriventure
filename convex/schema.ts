@@ -124,4 +124,26 @@ export default defineSchema({
     .index("by_invoiceId", ["invoiceId"])
     .index("by_onChainId", ["onChainId"])
     .index("by_status", ["status"]),
+
+  handles: defineTable({
+    handle: v.string(), // lowercase, unique handle (e.g., "acme", "sorafoods")
+    ownerAddress: v.string(), // wallet address that owns this handle
+    displayName: v.optional(v.string()), // optional display name
+    bio: v.optional(v.string()), // optional bio/tagline
+    website: v.optional(v.string()), // optional website URL
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_handle", ["handle"])
+    .index("by_owner", ["ownerAddress"]),
+
+  userProfiles: defineTable({
+    ownerAddress: v.string(),
+    featuredProofs: v.array(v.string()), // array of proof IDs (UALs or invoice IDs)
+    firstRunComplete: v.boolean(), // track if user completed first-run tour
+    checklistComplete: v.array(v.string()), // array of completed checklist items
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_owner", ["ownerAddress"]),
 });

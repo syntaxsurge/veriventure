@@ -8,6 +8,7 @@ import {
   Loader2,
   Radio,
   StepForward,
+  Sparkles,
 } from "lucide-react";
 import { pitchSlideLibrary } from "@/data/pitch-industries";
 import type { SlideTemplate } from "@/data/pitch-industries";
@@ -17,6 +18,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 import type { ImageStrategy, PitchWizardDraft } from "@/types/pitch";
 import { cn } from "@/lib/utils";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
@@ -874,6 +878,8 @@ type ReviewProps = {
   errors: string[];
   setErrors: (messages: string[]) => void;
   showCoachmark?: boolean;
+  publishToDKG: boolean;
+  setPublishToDKG: (value: boolean) => void;
 };
 
 function ReviewStep({
@@ -884,6 +890,8 @@ function ReviewStep({
   errors,
   setErrors,
   showCoachmark,
+  publishToDKG,
+  setPublishToDKG,
 }: ReviewProps) {
   function validateBeforeSubmit() {
     const issues = validateFields([
@@ -978,6 +986,29 @@ function ReviewStep({
           </div>
         </dl>
       </div>
+
+      <Separator />
+
+      {/* DKG Publishing Toggle */}
+      <div className="flex items-center justify-between rounded-lg border p-4">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="dkg-pitch" className="text-base font-medium">
+              Publish Executive Summary to DKG
+            </Label>
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Create a verifiable proof of your pitch deck summary on OriginTrail DKG
+          </p>
+        </div>
+        <Switch
+          id="dkg-pitch"
+          checked={publishToDKG}
+          onCheckedChange={setPublishToDKG}
+        />
+      </div>
+
       {errors.length > 0 && (
         <p className="text-sm text-destructive">{errors.join(". ")}</p>
       )}
@@ -1039,6 +1070,7 @@ export function PitchDeckStudio() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState<Record<string, boolean>>({});
   const [aiError, setAiError] = useState<string | null>(null);
+  const [publishToDKG, setPublishToDKG] = useState(false);
 
   const activeStep = steps[stepIndex];
 
@@ -1081,10 +1113,34 @@ export function PitchDeckStudio() {
     setSubmitting(true);
     setGlobalError(null);
     try {
+      // Publish to DKG if enabled
+      let dkgUAL = "";
+      if (publishToDKG) {
+        try {
+          const response = await fetch("/api/dkg/notes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic: `Pitch Deck: ${draft.startupName}`,
+              summary: `Executive Summary for ${draft.startupName}. Mission: ${draft.missionStatement}. Focus: ${draft.focusRegion}. Traction: ${draft.tractionSummary}. Team: ${draft.team.map(m => `${m.name} (${m.role})`).join(", ")}.`,
+              references: [],
+            }),
+          });
+
+          if (response.ok) {
+            const dkgData = await response.json();
+            dkgUAL = dkgData.ual;
+          }
+        } catch (dkgError) {
+          console.error("DKG publishing error:", dkgError);
+          // Continue without DKG proof
+        }
+      }
+
       const response = await fetch("/api/pitch/decks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify({ ...draft, dkgUAL }),
       });
       if (!response.ok) {
         const payload = await response.json();
@@ -1154,6 +1210,8 @@ export function PitchDeckStudio() {
             showCoachmark={
               progress.firstNotePublished && !progress.firstDeckGenerated
             }
+            publishToDKG={publishToDKG}
+            setPublishToDKG={setPublishToDKG}
           />
         );
         break;

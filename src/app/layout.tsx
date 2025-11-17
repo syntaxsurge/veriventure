@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { OnboardingDialog } from "@/components/onboarding/onboarding-dialog";
 import { RainbowKitWalletProvider } from "@/providers/rainbowkit-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { HelpBeacon } from "@/components/help/help-beacon";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
                 <main className="flex-1">{children}</main>
               </div>
             </div>
+            <HelpBeacon />
             <Toaster />
           </ThemeProvider>
         </RainbowKitWalletProvider>

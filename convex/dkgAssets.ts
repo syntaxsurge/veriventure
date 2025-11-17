@@ -34,3 +34,6 @@ export const listByOwner = query({
       .collect();
   },
 });
+
+// Alias for consistency
+export const getByOwner = listByOwner;

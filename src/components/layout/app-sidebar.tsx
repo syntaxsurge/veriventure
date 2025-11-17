@@ -15,8 +15,9 @@ import {
   Briefcase,
   FileUser,
   FlaskConical,
-  Activity,
   Receipt,
+  Shield,
+  ListChecks,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { featureFlags } from "@/lib/feature-flags";
 
 export type SidebarNavItem = {
   title: string;
@@ -31,6 +33,7 @@ export type SidebarNavItem = {
   icon: LucideIcon;
   description?: string;
   children?: SidebarNavItem[];
+  dataTour?: string;
 };
 
 const aiAssistantItems: SidebarNavItem[] = [
@@ -38,63 +41,105 @@ const aiAssistantItems: SidebarNavItem[] = [
     title: "Pitch Deck",
     href: "/ai-assistant/pitch-deck",
     icon: Presentation,
+    description: "AI-powered investor materials",
   },
   {
     title: "Business Plan",
     href: "/ai-assistant/business-plan",
     icon: Briefcase,
+    description: "Generate lender-ready narratives",
   },
   {
     title: "Resume Builder",
     href: "/ai-assistant/resume",
     icon: FileUser,
+    description: "Build professional resumes",
   },
   {
-    title: "Truth Alignment",
+    title: "Claim Checker",
     href: "/ai-assistant/truth",
     icon: FlaskConical,
-  },
-  {
-    title: "DKG Activity",
-    href: "/ai-assistant/dkg-test",
-    icon: Activity,
+    description: "Turn claims into verifiable proofs",
+    dataTour: "claim-checker",
   },
 ];
 
-export const sidebarNavItems: SidebarNavItem[] = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Invoices",
-    href: "/invoices",
-    icon: Receipt,
-    description: "Create and manage on-chain invoices",
-  },
-  {
-    title: "Credentials",
-    href: "/credentials",
-    icon: Award,
-  },
-  {
-    title: "AI Assistant",
+// Build navigation items with feature flags
+const buildSidebarNavItems = (): SidebarNavItem[] => {
+  const items: SidebarNavItem[] = [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      description: "Your mission control",
+    },
+    {
+      title: "Invoices",
+      href: "/invoices",
+      icon: Receipt,
+      description: "Create and manage on-chain invoices",
+      dataTour: "create-invoice",
+    },
+    {
+      title: "Proofs",
+      href: "/proofs",
+      icon: ListChecks,
+      description: "Your verifiable proofs and audit log",
+      dataTour: "proofs",
+    },
+    {
+      title: "Passport",
+      href: "/passport",
+      icon: Shield,
+      description: "Your public Supplier Passport",
+      dataTour: "passport",
+    },
+  ];
+
+  // Conditionally add Credentials
+  if (featureFlags.enableCredentials) {
+    items.push({
+      title: "Credentials",
+      href: "/credentials",
+      icon: Award,
+      description: "Your badges and achievements",
+    });
+  }
+
+  // Always add AI Tools
+  items.push({
+    title: "AI Tools",
     href: "/ai-assistant",
     icon: Bot,
     children: aiAssistantItems,
-  },
-  {
-    title: "Documents",
-    href: "/documents",
-    icon: FileText,
-  },
-  {
-    title: "Notes",
-    href: "/notes",
-    icon: StickyNote,
-  },
-];
+    description: "AI-powered business tools",
+    dataTour: "ai-tools",
+  });
+
+  // Conditionally add Documents
+  if (featureFlags.enableDocuments) {
+    items.push({
+      title: "Documents",
+      href: "/documents",
+      icon: FileText,
+      description: "Your document vault",
+    });
+  }
+
+  // Conditionally add Notes (hidden by default)
+  if (featureFlags.enableNotes) {
+    items.push({
+      title: "Notes",
+      href: "/notes",
+      icon: StickyNote,
+      description: "Your private notes",
+    });
+  }
+
+  return items;
+};
+
+export const sidebarNavItems: SidebarNavItem[] = buildSidebarNavItems();
 
 export type AppSidebarProps = {
   address?: string | null;
@@ -140,6 +185,7 @@ export function AppSidebar({ address }: AppSidebarProps) {
                         ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                         : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                     )}
+                    {...(item.dataTour ? { "data-tour": item.dataTour } : {})}
                   >
                     <Icon
                       className={cn(
@@ -176,6 +222,7 @@ export function AppSidebar({ address }: AppSidebarProps) {
                               : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                           )}
                           aria-current={isChildActive ? "page" : undefined}
+                          {...(child.dataTour ? { "data-tour": child.dataTour } : {})}
                         >
                           <ChildIcon
                             className={cn(
@@ -207,6 +254,7 @@ export function AppSidebar({ address }: AppSidebarProps) {
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                 )}
                 aria-current={isActive ? "page" : undefined}
+                {...(item.dataTour ? { "data-tour": item.dataTour } : {})}
               >
                 <Icon
                   className={cn(

@@ -27,6 +27,19 @@ export const getByDeckId = query({
   },
 });
 
+// Alias for consistency with other queries
+export const getByOwner = query({
+  args: { ownerAddress: v.string() },
+  handler: async (ctx, args) => {
+    const docs = await ctx.db
+      .query("pitchDecks")
+      .withIndex("by_owner", (q) => q.eq("ownerAddress", args.ownerAddress))
+      .order("desc")
+      .collect();
+    return docs;
+  },
+});
+
 export const insert = mutation({
   args: {
     deckId: v.string(),

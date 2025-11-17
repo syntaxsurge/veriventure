@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Sparkles, Loader2, ArrowRight, FileText } from "lucide-react";
 import { toast } from "sonner";
 import type { BusinessPlanSection, DocumentRecord } from "@/types/document";
@@ -69,6 +70,7 @@ export function BusinessPlanWriter() {
   const [error, setError] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState<Partial<Record<BusinessPlanField, boolean>>>({});
+  const [publishToDKG, setPublishToDKG] = useState(false);
 
   function updateField<K extends keyof typeof form>(
     key: K,
@@ -82,10 +84,37 @@ export function BusinessPlanWriter() {
     setLoading(true);
     setError(null);
     try {
+      // Publish to DKG if enabled
+      let dkgUAL = "";
+      if (publishToDKG) {
+        try {
+          const dkgResponse = await fetch("/api/dkg/notes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic: `Business Plan Metrics: ${form.idea.slice(0, 50)}`,
+              summary: `Business Plan Overview. Market: ${form.market}. Strategy: ${form.goToMarket}. Differentiation: ${form.differentiation}. Impact: ${form.impact}`,
+              references: [],
+            }),
+          });
+
+          if (dkgResponse.ok) {
+            const dkgData = await dkgResponse.json();
+            dkgUAL = dkgData.ual;
+            toast.success("Metrics published to DKG!", {
+              description: `UAL: ${dkgUAL.slice(0, 20)}...`,
+            });
+          }
+        } catch (dkgError) {
+          console.error("DKG publishing error:", dkgError);
+          // Continue without DKG proof
+        }
+      }
+
       const response = await fetch("/api/ai/business-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, dkgUAL }),
       });
       const payload = (await response.json()) as ApiResponse;
       if (
@@ -390,6 +419,26 @@ export function BusinessPlanWriter() {
         )}
 
         <Separator />
+
+        {/* DKG Publishing Toggle */}
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="dkg-business" className="text-base font-medium">
+                Publish Business Metrics to DKG
+              </Label>
+              <Sparkles className="h-4 w-4 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Create a verifiable proof of your business plan metrics on OriginTrail DKG
+            </p>
+          </div>
+          <Switch
+            id="dkg-business"
+            checked={publishToDKG}
+            onCheckedChange={setPublishToDKG}
+          />
+        </div>
 
         {/* Generate Button */}
         <div className="flex justify-end">

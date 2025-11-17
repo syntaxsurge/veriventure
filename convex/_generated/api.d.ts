@@ -13,9 +13,11 @@ import type * as admin from "../admin.js";
 import type * as communityNotes from "../communityNotes.js";
 import type * as dkgAssets from "../dkgAssets.js";
 import type * as documents from "../documents.js";
+import type * as handles from "../handles.js";
 import type * as invoices from "../invoices.js";
 import type * as notes from "../notes.js";
 import type * as pitchDecks from "../pitchDecks.js";
+import type * as userProfiles from "../userProfiles.js";
 
 import type {
   ApiFromModules,
@@ -29,9 +31,11 @@ declare const fullApi: ApiFromModules<{
   communityNotes: typeof communityNotes;
   dkgAssets: typeof dkgAssets;
   documents: typeof documents;
+  handles: typeof handles;
   invoices: typeof invoices;
   notes: typeof notes;
   pitchDecks: typeof pitchDecks;
+  userProfiles: typeof userProfiles;
 }>;
 
 /**
