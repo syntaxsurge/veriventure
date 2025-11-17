@@ -8,50 +8,39 @@ import { api } from "@convex/_generated/api";
 
 const tourSteps: Step[] = [
   {
-    target: "body",
-    content: (
-      <div className="space-y-4 p-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold">Welcome to VeriVenture!</h2>
-        </div>
-        <p className="text-sm leading-relaxed">
-          Your B2B Trust & Revenue OS. Get paid, get trusted, and get funded — with verifiable
-          links buyers and investors can click to confirm.
-        </p>
-        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <p className="text-sm font-medium">
-            Let's take a quick tour of the key features.
-          </p>
-        </div>
-      </div>
-    ),
-    placement: "center",
-    disableBeacon: true,
-  },
-  {
     target: '[data-tour="create-invoice"]',
     content: (
       <div className="space-y-3 p-2">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-md bg-yellow-500/10">
-            <svg className="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <div className="p-1.5 rounded-md bg-primary/10">
+            <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <p className="font-bold text-base">Create Invoices</p>
+          <p className="font-bold text-base">Welcome! Let's explore VeriVenture</p>
         </div>
-        <p className="text-sm leading-relaxed">
-          Start here to get paid. Create an on-chain invoice, share a link, and receive payment
-          with automatic receipt proofs.
-        </p>
+        <div className="space-y-3">
+          <div className="flex items-start gap-2">
+            <div className="p-1 rounded-md bg-yellow-500/10 mt-0.5">
+              <svg className="h-4 w-4 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-sm">Create Invoices</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Get paid with on-chain invoices and automatic receipt proofs
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground pl-1">
+            This tour will show you the key features to get started.
+          </p>
+        </div>
       </div>
     ),
     placement: "right",
+    disableBeacon: true,
   },
   {
     target: '[data-tour="proofs"]',
@@ -210,52 +199,78 @@ export function FirstRunOnboardingTour() {
           zIndex: 10000,
           primaryColor: "hsl(var(--primary))",
           textColor: "hsl(var(--foreground))",
-          backgroundColor: "hsl(var(--background))",
-          arrowColor: "hsl(var(--background))",
+          backgroundColor: "hsl(var(--card))",
+          arrowColor: "hsl(var(--card))",
         },
         overlay: {
-          backgroundColor: "rgba(0, 0, 0, 0.6)",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
         },
         spotlight: {
           borderRadius: "0.75rem",
         },
         tooltip: {
           borderRadius: "1rem",
-          padding: "1.5rem",
-          backgroundColor: "hsl(var(--background))",
-          border: "2px solid hsl(var(--border))",
-          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          padding: "0",
+          backgroundColor: "hsl(var(--card))",
+          border: "3px solid hsl(var(--border))",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          maxWidth: "520px",
+          opacity: "1",
         },
         tooltipContainer: {
           textAlign: "left",
+          backgroundColor: "hsl(var(--card))",
         },
         tooltipContent: {
-          padding: "0.5rem 0",
+          padding: "1.5rem",
+          paddingBottom: "1rem",
+          backgroundColor: "hsl(var(--card))",
+          color: "hsl(var(--card-foreground))",
+        },
+        tooltipFooter: {
+          padding: "1rem 1.5rem",
+          marginTop: "0",
+          borderTop: "2px solid hsl(var(--border))",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          backgroundColor: "hsl(var(--card))",
+        },
+        tooltipFooterSpacer: {
+          flex: "1",
         },
         buttonNext: {
           backgroundColor: "hsl(var(--primary))",
           color: "hsl(var(--primary-foreground))",
           borderRadius: "0.5rem",
-          padding: "0.75rem 1.5rem",
+          padding: "0.625rem 1.25rem",
           fontSize: "0.875rem",
           fontWeight: "600",
           border: "none",
           boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+          cursor: "pointer",
         },
         buttonBack: {
-          color: "hsl(var(--muted-foreground))",
+          color: "hsl(var(--foreground))",
           marginRight: "0.5rem",
-          padding: "0.75rem 1.5rem",
+          padding: "0.625rem 1.25rem",
           fontSize: "0.875rem",
           fontWeight: "600",
           borderRadius: "0.5rem",
           border: "2px solid hsl(var(--border))",
-          backgroundColor: "transparent",
+          backgroundColor: "hsl(var(--card))",
+          cursor: "pointer",
         },
         buttonSkip: {
           color: "hsl(var(--muted-foreground))",
           fontSize: "0.875rem",
-          padding: "0.5rem",
+          padding: "0.5rem 0.75rem",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        },
+        buttonClose: {
+          display: "none",
         },
       }}
       locale={{
