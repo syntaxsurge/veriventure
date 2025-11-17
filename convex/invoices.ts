@@ -165,10 +165,10 @@ export const getAllInvoices = query({
   handler: async (ctx, args) => {
     let invoices;
 
-    if (args.status) {
+    if (args.status !== undefined) {
       invoices = await ctx.db
         .query("invoices")
-        .withIndex("by_status", (q) => q.eq("status", args.status))
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
         .collect();
     } else {
       invoices = await ctx.db.query("invoices").collect();

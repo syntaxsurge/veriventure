@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { api } from "@/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 
 // GET /api/invoices/stats - Get invoice statistics for an address
