@@ -9,6 +9,7 @@ import { computeAchievementHash } from "@/lib/achievement-hash";
 import { mintAchievementBadge } from "@/lib/web3/validity-contract";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 import { Coachmark } from "@/components/onboarding/coachmark";
+import { cn } from "@/lib/utils";
 import type {
   AchievementPayload,
   AchievementRecord,
@@ -31,6 +32,14 @@ const initialState: AchievementPayload = {
 
 type AchievementField = keyof AchievementPayload;
 
+const FIELD_LIMITS: Partial<Record<AchievementField, number>> = {
+  title: 160,
+  summary: 800,
+  metrics: 400,
+  evidenceUrl: 400,
+  impactArea: 200,
+};
+
 export function AchievementForm({
   disabled,
   address,
@@ -48,6 +57,11 @@ export function AchievementForm({
   const { mark, progress } = useOnboardingProgress();
 
   const previewHash = useMemo(() => computeAchievementHash(form), [form]);
+  const fieldLimit = (field: AchievementField) => FIELD_LIMITS[field];
+  const fieldOverLimit = (field: AchievementField) => {
+    const limit = FIELD_LIMITS[field];
+    return typeof limit === "number" && form[field].length > limit;
+  };
 
   function updateField<K extends keyof AchievementPayload>(
     key: K,
@@ -157,9 +171,15 @@ export function AchievementForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <div className="grid gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="title">Milestone title</Label>
+      <p className="text-xs text-muted-foreground">
+        Fields marked optional can be skipped. Character counts update as you type.
+      </p>
+      <div className="grid gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="title">Milestone title</Label>
+            <span className="text-xs text-muted-foreground">(required)</span>
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -177,11 +197,17 @@ export function AchievementForm({
           value={form.title}
           onChange={(event) => updateField("title", event.target.value)}
           required
+          aria-invalid={fieldOverLimit("title")}
+          className={cn(fieldOverLimit("title") && "border-destructive")}
         />
       </div>
-      <div className="grid gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="summary">Summary</Label>
+      <FieldCharacterInfo value={form.title} max={fieldLimit("title")} />
+      <div className="grid gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="summary">Summary</Label>
+            <span className="text-xs text-muted-foreground">(required)</span>
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -200,11 +226,17 @@ export function AchievementForm({
           value={form.summary}
           onChange={(event) => updateField("summary", event.target.value)}
           required
+          aria-invalid={fieldOverLimit("summary")}
+          className={cn(fieldOverLimit("summary") && "border-destructive")}
         />
       </div>
-      <div className="grid gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="metrics">KPIs or metrics</Label>
+      <FieldCharacterInfo value={form.summary} max={fieldLimit("summary")} />
+      <div className="grid gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="metrics">KPIs or metrics</Label>
+            <span className="text-xs text-muted-foreground">(required)</span>
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -223,21 +255,17 @@ export function AchievementForm({
           value={form.metrics}
           onChange={(event) => updateField("metrics", event.target.value)}
           required
+          aria-invalid={fieldOverLimit("metrics")}
+          className={cn(fieldOverLimit("metrics") && "border-destructive")}
         />
       </div>
-      <div className="grid gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="evidenceUrl">Evidence URL</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs"
-            onClick={() => handleAssist("evidenceUrl")}
-            disabled={disabled || submitting || aiBusy.evidenceUrl}
-          >
-            {aiBusy.evidenceUrl ? "Generating…" : "Use AI"}
-          </Button>
+      <FieldCharacterInfo value={form.metrics} max={fieldLimit("metrics")} />
+      <div className="grid gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="evidenceUrl">Evidence URL</Label>
+            <span className="text-xs text-muted-foreground">(optional)</span>
+          </div>
         </div>
         <Input
           id="evidenceUrl"
@@ -245,12 +273,20 @@ export function AchievementForm({
           placeholder="https://example.com/dashboard"
           value={form.evidenceUrl}
           onChange={(event) => updateField("evidenceUrl", event.target.value)}
-          required
+          aria-invalid={fieldOverLimit("evidenceUrl")}
+          className={cn(fieldOverLimit("evidenceUrl") && "border-destructive")}
         />
       </div>
-      <div className="grid gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <Label htmlFor="impactArea">Impact area</Label>
+      <FieldCharacterInfo
+        value={form.evidenceUrl}
+        max={fieldLimit("evidenceUrl")}
+      />
+      <div className="grid gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <Label htmlFor="impactArea">Impact area</Label>
+            <span className="text-xs text-muted-foreground">(required)</span>
+          </div>
           <Button
             type="button"
             variant="ghost"
@@ -268,8 +304,14 @@ export function AchievementForm({
           value={form.impactArea}
           onChange={(event) => updateField("impactArea", event.target.value)}
           required
+          aria-invalid={fieldOverLimit("impactArea")}
+          className={cn(fieldOverLimit("impactArea") && "border-destructive")}
         />
       </div>
+      <FieldCharacterInfo
+        value={form.impactArea}
+        max={fieldLimit("impactArea")}
+      />
 
       <div className="rounded-xl border bg-muted/60 p-4 text-sm">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -325,5 +367,31 @@ export function AchievementForm({
         </p>
       )}
     </form>
+  );
+}
+
+function FieldCharacterInfo({
+  value,
+  max,
+}: {
+  value: string;
+  max?: number;
+}) {
+  const length = value.length;
+  if (typeof max === "number") {
+    const over = length > max;
+    return (
+      <p
+        className={cn(
+          "text-xs text-muted-foreground",
+          over && "text-destructive",
+        )}
+      >
+        {length}/{max} characters
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-muted-foreground">{length} characters</p>
   );
 }
