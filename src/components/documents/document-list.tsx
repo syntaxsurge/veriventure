@@ -47,14 +47,6 @@ function renderTypeDetails(record: DocumentRecord) {
             )}
           </div>
         )}
-        <div className="pt-1">
-          <Link
-            href={`/ai-assistant/resume/${record.id}`}
-            className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            Open resume
-          </Link>
-        </div>
       </div>
     );
   }
@@ -154,6 +146,13 @@ export function DocumentList({ documents }: DocumentListProps) {
             )}
             <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
               <span className="truncate">Checksum: {record.checksum}</span>
+              {record.type === "resume" && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/ai-assistant/resume/${record.id}`}>
+                    Open resume
+                  </Link>
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -500,6 +501,13 @@ export function ResumeBuilder() {
                     >
                       {exportingPdf ? "Exporting…" : "Export PDF"}
                     </Button>
+                    {documentRecord && (
+                      <Button type="button" size="sm" variant="outline" asChild>
+                        <Link href={`/ai-assistant/resume/${documentRecord.id}`}>
+                          Open resume
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {resume.skills.length > 0 && (
