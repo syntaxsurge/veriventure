@@ -6,12 +6,16 @@ import {
 } from "@/lib/server/achievement-store";
 import { getSession } from "@/lib/server/session-cookie";
 
+const optionalEvidenceUrl = z
+  .union([z.string().url().max(500), z.literal("")])
+  .transform((value) => value ?? "");
+
 const achievementPayloadSchema = z.object({
-  title: z.string().min(3).max(120),
-  summary: z.string().min(10).max(600),
-  metrics: z.string().min(3).max(240),
-  evidenceUrl: z.string().url().max(500),
-  impactArea: z.string().min(3).max(120),
+  title: z.string().min(3).max(160),
+  summary: z.string().min(10).max(800),
+  metrics: z.string().min(3).max(400),
+  evidenceUrl: optionalEvidenceUrl,
+  impactArea: z.string().min(3).max(200),
 });
 
 const requestSchema = z.object({
@@ -45,7 +49,7 @@ export async function POST(request: NextRequest) {
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.flatten() },
+      { error: formatValidationError(parsed.error) },
       { status: 400 },
     );
   }
@@ -63,4 +67,17 @@ export async function POST(request: NextRequest) {
     contractAddress,
   });
   return NextResponse.json({ achievement: record });
+}
+
+function formatValidationError(error: z.ZodError) {
+  const flattened = error.flatten();
+  for (const [field, messages] of Object.entries(flattened.fieldErrors)) {
+    if (messages && messages.length) {
+      return `${field}: ${messages[0]}`;
+    }
+  }
+  if (flattened.formErrors && flattened.formErrors.length) {
+    return flattened.formErrors[0];
+  }
+  return "Invalid achievement payload.";
 }

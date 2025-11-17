@@ -179,14 +179,18 @@ export function AchievementList({
               </div>
             )}
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-              <a
-                className="text-primary underline-offset-4 hover:underline"
-                href={achievement.evidenceUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View evidence
-              </a>
+              {achievement.evidenceUrl ? (
+                <a
+                  className="text-primary underline-offset-4 hover:underline"
+                  href={achievement.evidenceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View evidence
+                </a>
+              ) : (
+                <span className="text-muted-foreground">No evidence URL</span>
+              )}
               <span>
                 {new Date(achievement.createdAt).toLocaleString(undefined, {
                   dateStyle: "medium",

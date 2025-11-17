@@ -10,6 +10,7 @@ import { mintAchievementBadge } from "@/lib/web3/validity-contract";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 import { Coachmark } from "@/components/onboarding/coachmark";
 import { cn } from "@/lib/utils";
+import { clientEnv } from "@/env/client";
 import type {
   AchievementPayload,
   AchievementRecord,
@@ -40,6 +41,13 @@ const FIELD_LIMITS: Partial<Record<AchievementField, number>> = {
   impactArea: 200,
 };
 
+function buildExplorerUrl(txHash?: string | null) {
+  if (!txHash) return null;
+  const template = clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE;
+  if (!template.includes("{tx}")) return null;
+  return template.replace("{tx}", encodeURIComponent(txHash));
+}
+
 export function AchievementForm({
   disabled,
   address,
@@ -50,10 +58,14 @@ export function AchievementForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [txHash, setTxHash] = useState<string | null>(null);
   const [stage, setStage] = useState<"idle" | "minting" | "saving">("idle");
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState<Partial<Record<AchievementField, boolean>>>({});
+  const [txDetails, setTxDetails] = useState<{
+    hash: string;
+    network: string | null;
+    contractAddress: string | null;
+  } | null>(null);
   const { mark, progress } = useOnboardingProgress();
 
   const previewHash = useMemo(() => computeAchievementHash(form), [form]);
@@ -85,14 +97,18 @@ export function AchievementForm({
     setStage("minting");
     setError(null);
     setSuccess(null);
-    setTxHash(null);
+    setTxDetails(null);
     try {
       const mintResult = await mintAchievementBadge({
         walletClient,
         to: address,
         payloadHash: previewHash,
       });
-      setTxHash(mintResult.txHash);
+      setTxDetails({
+        hash: mintResult.txHash,
+        network: mintResult.network,
+        contractAddress: mintResult.contractAddress,
+      });
       setStage("saving");
 
       const response = await fetch("/api/achievements", {
@@ -128,11 +144,6 @@ export function AchievementForm({
     }
   }
 
-  function extractEvidenceUrl(value: string) {
-    const match = value.match(/https?:\/\/[^\s"'<>]+/i);
-    return match?.[0]?.trim() ?? "";
-  }
-
   async function handleAssist(field: AchievementField) {
     setAiBusy((prev) => ({ ...prev, [field]: true }));
     setAiError(null);
@@ -154,12 +165,7 @@ export function AchievementForm({
       if (!response.ok || !suggestion) {
         throw new Error(payload.error ?? "Unable to suggest content.");
       }
-      const normalized =
-        field === "evidenceUrl" ? extractEvidenceUrl(suggestion) : suggestion;
-      if (field === "evidenceUrl" && !normalized) {
-        throw new Error("AI did not return a valid URL. Please try again.");
-      }
-      updateField(field, normalized);
+      updateField(field, suggestion);
     } catch (err) {
       const fallback =
         err instanceof Error ? err.message : "Unable to suggest content.";
@@ -328,6 +334,38 @@ export function AchievementForm({
         </div>
       )}
 
+      {txDetails && (
+        <div className="space-y-2 rounded-xl border bg-muted/40 p-4 text-xs text-muted-foreground">
+          <p className="text-sm font-semibold text-foreground">
+            Achievement transaction submitted
+          </p>
+          {txDetails.network && (
+            <p>
+              Network:{" "}
+              <span className="font-mono text-foreground">
+                {txDetails.network}
+              </span>
+            </p>
+          )}
+          <p className="break-all">
+            Hash:{" "}
+            <span className="font-mono text-foreground">
+              {txDetails.hash}
+            </span>
+          </p>
+          {buildExplorerUrl(txDetails.hash) && (
+            <a
+              href={buildExplorerUrl(txDetails.hash) ?? "#"}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              View on block explorer
+            </a>
+          )}
+        </div>
+      )}
+
       {aiError && (
         <p className="text-xs text-destructive" role="alert">
           {aiError}
@@ -359,11 +397,6 @@ export function AchievementForm({
       {success && (
         <p className="text-sm text-emerald-600" role="status">
           {success}
-        </p>
-      )}
-      {txHash && (
-        <p className="text-xs text-muted-foreground break-all">
-          Tx hash: {txHash}
         </p>
       )}
     </form>
