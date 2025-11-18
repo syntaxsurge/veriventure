@@ -444,50 +444,6 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Achievement Notifications - Repositioned to sidebar */}
-          <div className="fixed right-4 top-32 hidden xl:flex flex-col gap-4 z-40 max-w-xs">
-            <motion.div
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-            >
-              <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/95 border-purple-500/20">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  <span className="text-sm font-medium">Achievement Verified</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">+1,250 trust points</p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-            >
-              <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/95 border-green-500/20">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-green-500" />
-                  <span className="text-sm font-medium">Payment Received</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">$5,000 USDC</p>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.9, duration: 0.5 }}
-            >
-              <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/95 border-blue-500/20">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-blue-500" />
-                  <span className="text-sm font-medium">Pitch Deck Ready</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">AI-Generated in 2 min</p>
-              </Card>
-            </motion.div>
-          </div>
         </div>
       </section>
 
