@@ -23,7 +23,7 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 ## Segment 4 – Pitch Deck Studio
 
 1. **On-screen:** Navigate to AI Assistant → Pitch Deck to open `/ai-assistant/pitch-deck`.
-2. **On-screen:** In the form, type the company name and a short mission phrase or a few keywords in a single field (for example the Mission field), leave the other fields mostly blank, then click a `Use AI` button on that field so the assistant fills in the longer text from that initial input. Once the key fields are populated, click `Generate Deck`.
+2. **On-screen:** In the `Startup name` field, type `Summit Flow Analytics` and leave the other fields mostly blank, then click a `Use AI` button next to the remaining fields so the assistant generates their content from that single startup name. Once the key fields are populated, click `Generate Deck`.
 3. **On-screen:** When generation finishes, open the generated deck workspace with slide thumbnails, then briefly show an export menu for PDF or PPTX.
    - **Voice-over 4:** “To prepare for investors I open the pitch deck studio. I seed it with my company name and just a few words about my mission, then click `Use AI` so the assistant drafts the detailed wording for me. When I click generate, VeriVenture creates a structured deck I can refine and export to PDF or PowerPoint, so even if I’m not a designer I can get an investor-ready deck in minutes.”
 
