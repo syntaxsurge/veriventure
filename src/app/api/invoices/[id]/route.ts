@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { api } from "@convex/_generated/api";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/invoices/[id] - Get a specific invoice
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const invoice = await fetchQuery(api.invoices.getInvoiceById, {
       invoiceId: id,
     });
@@ -30,7 +32,7 @@ export async function GET(
 // PATCH /api/invoices/[id] - Update invoice status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const body = await request.json();
@@ -43,7 +45,7 @@ export async function PATCH(
       );
     }
 
-    const { id } = await params;
+    const { id } = params;
     await fetchMutation(api.invoices.updateInvoiceStatus, {
       invoiceId: id,
       status,

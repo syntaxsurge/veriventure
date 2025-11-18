@@ -16,7 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClaimHandleDialog } from "@/components/profile/claim-handle-dialog";
 import { ChangeHandleDialog } from "@/components/profile/change-handle-dialog";
-import { ShieldCheck, ExternalLink, Info, Sparkles, TriangleAlert, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, ExternalLink, Info, Sparkles, CheckCircle2, Pencil, FileText, Shield, Presentation, Star } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -208,19 +208,9 @@ export default function PassportPage() {
                   Linked
                 </Badge>
               </CardHeader>
-              <CardContent>
-                <Alert variant="destructive">
-                  <TriangleAlert className="h-4 w-4" />
-                  <AlertTitle>Changing this handle breaks existing links</AlertTitle>
-                  <AlertDescription>
-                    Updating your handle immediately invalidates any shared /verify URLs. If another
-                    founder claims your previous handle, those links will resolve to their profile.
-                    Only change handles when you&apos;re ready to notify partners.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
               <CardFooter className="flex flex-wrap gap-3">
                 <Button variant="outline" onClick={() => setChangeHandleOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
                   Edit @handle
                 </Button>
                 {publicProfileHref && (
@@ -374,6 +364,7 @@ export default function PassportPage() {
                   </CardContent>
                   <CardFooter>
                     <Button variant="outline" onClick={() => setProfileEditing(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
                       Edit profile details
                     </Button>
                   </CardFooter>
@@ -394,16 +385,28 @@ export default function PassportPage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <Button asChild variant="outline">
-                    <Link href="/invoices/new">Create an invoice</Link>
+                    <Link href="/invoices/new">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create an invoice
+                    </Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link href="/ai-assistant/truth">Publish a truth note</Link>
+                    <Link href="/ai-assistant/truth">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Publish a truth note
+                    </Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link href="/ai-assistant/pitch-deck">Generate a pitch deck</Link>
+                    <Link href="/ai-assistant/pitch-deck">
+                      <Presentation className="h-4 w-4 mr-2" />
+                      Generate a pitch deck
+                    </Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link href="/proofs">Manage featured proofs</Link>
+                    <Link href="/proofs">
+                      <Star className="h-4 w-4 mr-2" />
+                      Manage featured proofs
+                    </Link>
                   </Button>
                 </div>
               </CardContent>

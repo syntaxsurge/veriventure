@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { api } from "@convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/invoices/stats - Get invoice statistics for an address
 export async function GET(request: NextRequest) {
   try {

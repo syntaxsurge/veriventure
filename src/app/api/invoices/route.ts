@@ -3,6 +3,8 @@ import { api } from "@convex/_generated/api";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { zeroAddress } from "viem";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/invoices - Get all invoices for a user
 export async function GET(request: NextRequest) {
   try {
