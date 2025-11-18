@@ -6,6 +6,7 @@ export function TopLoader() {
   return (
     <NextTopLoader
       color="hsl(var(--primary))"
+      appRouter
       initialPosition={0.08}
       crawlSpeed={200}
       height={3}
