@@ -44,7 +44,7 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 ## Segment 7 – Create Invoice
 
 1. **On-screen:** Navigate to `/invoices` and click `New Invoice` to open the invoice creation form at `/invoices/new`.
-2. **On-screen:** Fill in the client name or label, leave the client wallet address field empty so any wallet can pay, add one or two line items with amounts and a due date, and make sure the “Publish proof to DKG” toggle is off at creation if your UI has it. Click `Create Invoice` or `Save & Share` and wait for the invoice detail page to load, then copy the public invoice link from this page.
+2. **On-screen:** Fill in the client name or label and, in the invoice Description field, type `Climate advisory retainer for November`, leave the client wallet address field empty so any wallet can pay, add one or two line items with amounts and a due date, and make sure the “Publish proof to DKG” toggle is off at creation if your UI has it. Click `Create Invoice` or `Save & Share` and wait for the invoice detail page to load, then copy the public invoice link from this page.
    - **Voice-over 7:** “Now I’ll send an invoice. I don’t need the client’s wallet address upfront—anyone with the public invoice link can pay. I set the client label, line items, and due date, create the invoice, and I get a public link that I can drop into email, Slack, or a message. Notice that at this step I am not publishing anything to the DKG yet; creation is private until the invoice is actually paid.”
 
 ## Segment 8 – Client Pays Invoice
