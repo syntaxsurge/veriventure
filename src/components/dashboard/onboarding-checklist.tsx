@@ -114,16 +114,8 @@ export function OnboardingChecklist() {
     }
   }, [address, completedItems, userProfile, completeChecklistItem]);
 
-  // Auto-hide after 2 items completed
-  useEffect(() => {
-    if (completedItems.length >= 2 && !dismissed) {
-      const timer = setTimeout(() => setDismissed(true), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [completedItems.length, dismissed]);
-
-  // Don't show if user has dismissed or completed >= 2 items (after auto-hide delay)
-  if (!address || dismissed || (completedItems.length >= 2 && dismissed)) {
+  // Don't show if user has dismissed it
+  if (!address || dismissed) {
     return null;
   }
 

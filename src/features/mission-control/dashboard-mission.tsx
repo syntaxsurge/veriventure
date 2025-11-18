@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Circle, Share2 } from "lucide-react";
 import { useOnboardingProgress } from "@/lib/onboarding/use-onboarding-progress";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 type DashboardMissionProps = {
   address?: string | null;
+  className?: string;
 };
 
 type MissionStep = {
@@ -18,7 +20,7 @@ type MissionStep = {
   disabled?: boolean;
 };
 
-export function DashboardMission({ address }: DashboardMissionProps) {
+export function DashboardMission({ address, className }: DashboardMissionProps) {
   const router = useRouter();
   const { progress, mark } = useOnboardingProgress();
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "error">(
@@ -95,12 +97,34 @@ export function DashboardMission({ address }: DashboardMissionProps) {
   );
 
   return (
-    <div className="sticky top-4 z-20 mb-8 rounded-2xl border bg-background/80 p-4 shadow-sm backdrop-blur">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Mission Control
-          </span>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background p-5 shadow-lg",
+        className,
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.12),transparent_55%)]" />
+      <div className="relative space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Mission Control
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Track your wallet-only progress across VeriVenture
+            </p>
+          </div>
+          {shareStatus !== "idle" && (
+            <Badge
+              variant={shareStatus === "error" ? "destructive" : "secondary"}
+              className="shrink-0"
+            >
+              {shareStatus === "error" ? "Clipboard blocked" : "Link copied"}
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
           {steps.map((step) => (
             <button
               key={step.key}
@@ -112,13 +136,11 @@ export function DashboardMission({ address }: DashboardMissionProps) {
               }}
               disabled={step.disabled}
               className={cn(
-                "flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                "flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                 step.complete
-                  ? "border-green-500 bg-green-500/10 text-green-700 dark:border-green-400 dark:bg-green-400/10 dark:text-green-300"
-                  : "border-border text-muted-foreground",
-                step.disabled
-                  ? "cursor-not-allowed opacity-60"
-                  : "hover:border-primary/50 hover:text-primary",
+                  ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-400/10 dark:text-emerald-200"
+                  : "border-border/70 text-muted-foreground hover:border-primary/60 hover:text-primary",
+                step.disabled && "cursor-not-allowed opacity-60",
               )}
             >
               {step.complete ? (
@@ -131,18 +153,6 @@ export function DashboardMission({ address }: DashboardMissionProps) {
               {step.label}
             </button>
           ))}
-        </div>
-        <div className="flex items-center gap-2">
-          {shareStatus === "copied" && (
-            <span className="text-xs font-semibold text-green-700 dark:text-green-300">
-              Link copied
-            </span>
-          )}
-          {shareStatus === "error" && (
-            <span className="text-xs font-semibold text-destructive">
-              Clipboard blocked
-            </span>
-          )}
         </div>
       </div>
     </div>

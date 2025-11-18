@@ -3,17 +3,19 @@
 import { motion } from "framer-motion";
 import { Target, Rocket, Award, Clock, Hash, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AchievementList } from "@/components/credentials/achievement-list";
 import { DashboardMission } from "@/features/mission-control/dashboard-mission";
 import { InvoiceDashboardWidget } from "@/components/invoices/invoice-dashboard-widget";
 import { AppShellClient } from "@/components/layout/app-shell.client";
-import { PageHeader } from "@/components/layout/page-header";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { useAccount } from "wagmi";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import type { AchievementRecord } from "@/types/achievement";
 
 const container = {
   hidden: { opacity: 0 },
@@ -32,14 +34,26 @@ const item = {
 
 export default function DashboardPage() {
   const { address } = useAccount();
-  const achievements = useQuery(
+  const achievementsRaw = useQuery(
     api.achievements.getByOwner,
     address ? { ownerAddress: address } : "skip"
   );
 
-  const isLoading = achievements === undefined && address;
-  const achievementsList = achievements || [];
+  // Map Convex documents to match AchievementRecord format
+  type ConvexAchievementDoc = AchievementRecord & { _id?: string; achievementId?: string };
+
+  const achievementsList: AchievementRecord[] =
+    achievementsRaw?.map((doc: ConvexAchievementDoc) => ({
+      ...doc,
+      id: doc.achievementId || doc._id,
+      txHash: doc.txHash ?? null,
+      network: doc.network ?? null,
+      contractAddress: doc.contractAddress ?? null,
+    })) || [];
+
+  const isLoading = achievementsRaw === undefined && address;
   const latest = achievementsList[0];
+  const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   if (!address) {
     return (
@@ -91,181 +105,248 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* First-Run Tour and Onboarding Checklist */}
-        <motion.div variants={item}>
-          <DashboardClient />
-        </motion.div>
-
-        {/* Mission Control */}
-        <motion.div variants={item}>
-          <DashboardMission address={address} />
-        </motion.div>
-
-        {/* Invoicing Widget */}
-        <motion.div variants={item}>
-          <InvoiceDashboardWidget />
-        </motion.div>
+        {/* Guide rails, mission, and invoices */}
+        <motion.section variants={item}>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.1fr)]">
+            <DashboardClient />
+            <div className="space-y-6">
+              <DashboardMission address={address} />
+              <InvoiceDashboardWidget />
+            </div>
+          </div>
+        </motion.section>
 
         {/* Stats Overview with modern design */}
-        <motion.div variants={item}>
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            Overview
-          </h2>
-        </motion.div>
-
-        {isLoading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="border-2">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-5 w-5 rounded" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-9 w-20 mb-2" />
-                  <Skeleton className="h-3 w-32" />
-                </CardContent>
-              </Card>
-            ))}
+        <motion.section variants={item} className="space-y-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-2xl font-bold">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              Overview
+            </div>
+            <Badge variant="outline" className="text-xs uppercase tracking-wide">
+              Live snapshot
+            </Badge>
           </div>
-        ) : (
-          <motion.div
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-            variants={container}
-          >
-            <motion.div variants={item} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-              <Card className="border-2 border-blue-200/50 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 transition-all hover:shadow-xl hover:border-blue-300/50 dark:border-blue-900/50 dark:from-blue-500/5 dark:to-cyan-500/5">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
-                    Total Badges
-                  </CardTitle>
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center shadow-sm">
-                    <Award className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                    {achievementsList.length}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
-                    Verifiable credentials
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
 
-            <motion.div variants={item} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-              <Card className="border-2 border-purple-200/50 bg-gradient-to-br from-purple-500/10 to-pink-500/5 transition-all hover:shadow-xl hover:border-purple-300/50 dark:border-purple-900/50 dark:from-purple-500/5 dark:to-pink-500/5">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
-                    Status
-                  </CardTitle>
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center shadow-sm">
-                    <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    {latest ? "Active" : "Pending"}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
-                    {latest ? "Recent activity" : "Awaiting first badge"}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div variants={item} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-              <Card className="border-2 border-green-200/50 bg-gradient-to-br from-green-500/10 to-emerald-500/5 transition-all hover:shadow-xl hover:border-green-300/50 dark:border-green-900/50 dark:from-green-500/5 dark:to-emerald-500/5">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
-                    Profile
-                  </CardTitle>
-                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center shadow-sm">
-                    <Rocket className="h-6 w-6 text-green-600 dark:text-green-400" aria-hidden="true" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                    {achievementsList.length > 0 ? "Live" : "Setup"}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
-                    {achievementsList.length > 0 ? "Profile ready" : "Complete setup"}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {/* Latest Badge with modern styling */}
-        {latest && (
-          <motion.div variants={item} whileHover={{ scale: 1.01 }} transition={{ duration: 0.2 }}>
-            <Card className="overflow-hidden border-2 border-primary/30 shadow-xl bg-gradient-to-br from-background to-primary/5">
-              <div className="h-2 bg-gradient-to-r from-primary via-purple-500 to-primary animate-gradient" />
-              <CardHeader className="flex flex-row items-start justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="gap-1.5 px-3 py-1">
-                      <Sparkles className="h-3 w-3" aria-hidden="true" />
-                      Latest Achievement
-                    </Badge>
-                    <Badge variant="outline" className="gap-1.5">
-                      <Clock className="h-3 w-3" />
-                      Recent
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-3xl font-bold">{latest.title}</CardTitle>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)]">
+            <div>
+              {isLoading ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="border-2">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-5 w-5 rounded" />
+                      </CardHeader>
+                      <CardContent>
+                        <Skeleton className="h-9 w-20 mb-2" />
+                        <Skeleton className="h-3 w-32" />
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 p-4 shadow-lg">
-                  <Award className="h-10 w-10 text-primary" aria-hidden="true" />
-                </div>
+              ) : (
+                <motion.div
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                  variants={container}
+                >
+                  <motion.div variants={item} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+                    <Card className="border-2 border-blue-200/50 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 transition-all hover:shadow-xl hover:border-blue-300/50 dark:border-blue-900/50 dark:from-blue-500/5 dark:to-cyan-500/5">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
+                          Total Badges
+                        </CardTitle>
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center shadow-sm">
+                          <Award className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                          {achievementsList.length}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 font-medium">
+                          Verifiable credentials
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div variants={item} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+                    <Card className="border-2 border-purple-200/50 bg-gradient-to-br from-purple-500/10 to-pink-500/5 transition-all hover:shadow-xl hover:border-purple-300/50 dark:border-purple-900/50 dark:from-purple-500/5 dark:to-pink-500/5">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
+                          Status
+                        </CardTitle>
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center shadow-sm">
+                          <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                          {latest ? "Active" : "Pending"}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 font-medium">
+                          {latest ? "Recent activity" : "Awaiting first badge"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div variants={item} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+                    <Card className="border-2 border-green-200/50 bg-gradient-to-br from-green-500/10 to-emerald-500/5 transition-all hover:shadow-xl hover:border-green-300/50 dark:border-green-900/50 dark:from-green-500/5 dark:to-emerald-500/5">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
+                          Profile
+                        </CardTitle>
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center shadow-sm">
+                          <Rocket className="h-6 w-6 text-green-600 dark:text-green-400" aria-hidden="true" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                          {achievementsList.length > 0 ? "Live" : "Setup"}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2 font-medium">
+                          {achievementsList.length > 0 ? "Profile ready" : "Complete setup"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              )}
+            </div>
+
+            <div className="space-y-6">
+              <motion.div variants={item} whileHover={{ scale: 1.01 }} transition={{ duration: 0.2 }}>
+                {isLoading ? (
+                  <Card className="border-2">
+                    <CardContent className="space-y-3 py-6">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-20 w-full" />
+                    </CardContent>
+                  </Card>
+                ) : latest ? (
+                  <Card className="overflow-hidden border-2 border-primary/30 shadow-xl bg-gradient-to-br from-background to-primary/5">
+                    <div className="h-2 bg-gradient-to-r from-primary via-purple-500 to-primary animate-gradient" />
+                    <CardHeader className="flex flex-row items-start justify-between">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="gap-1.5 px-3 py-1">
+                            <Sparkles className="h-3 w-3" aria-hidden="true" />
+                            Latest Achievement
+                          </Badge>
+                          <Badge variant="outline" className="gap-1.5">
+                            <Clock className="h-3 w-3" />
+                            Recent
+                          </Badge>
+                        </div>
+                        <CardTitle className="text-3xl font-bold">{latest.title}</CardTitle>
+                      </div>
+                      <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 p-4 shadow-lg">
+                        <Award className="h-10 w-10 text-primary" aria-hidden="true" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-muted-foreground leading-relaxed text-base">
+                        {latest.summary}
+                      </p>
+                      <div className="flex items-center gap-3 rounded-xl border-2 border-primary/20 bg-muted/50 p-4 backdrop-blur-sm">
+                        <div className="rounded-lg bg-primary/10 p-2">
+                          <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
+                        </div>
+                        <code className="text-sm font-mono text-primary flex-1 break-all">
+                          {latest.hash.slice(0, 32)}...
+                        </code>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-muted/30 to-background hover:border-primary/50 transition-all">
+                    <CardHeader>
+                      <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
+                        <Target className="h-7 w-7 text-primary" aria-hidden="true" />
+                      </div>
+                      <CardTitle className="text-2xl">Get Started</CardTitle>
+                      <CardDescription className="text-base">
+                        Head to Credentials to mint your first badge and start building your verifiable profile.
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                )}
+              </motion.div>
+
+              <Card className="border-2 border-primary/20 bg-card/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Proof Snapshot</CardTitle>
+                  <CardDescription>Share wallet-ready proofs without leaving this page</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-xl border bg-muted/40 p-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Connected wallet</p>
+                    <p className="font-mono text-sm">{shortAddress}</p>
+                  </div>
+                  <div className="grid gap-3 text-sm sm:grid-cols-2">
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Badges minted</p>
+                      {isLoading ? (
+                        <Skeleton className="mt-2 h-6 w-12" />
+                      ) : (
+                        <p className="text-2xl font-bold mt-1">{achievementsList.length}</p>
+                      )}
+                    </div>
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Latest status</p>
+                      {isLoading ? (
+                        <Skeleton className="mt-2 h-6 w-20" />
+                      ) : (
+                        <p className="text-base font-semibold mt-1">
+                          {latest ? "Live on-chain" : "Awaiting first badge"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button asChild className="flex-1">
+                      <Link href="/credentials">Mint badge</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="flex-1">
+                      <Link href={`/verify/${address}`}>Share verify link</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Activity Timeline */}
+        <motion.section className="space-y-6" variants={item}>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-1 bg-gradient-to-b from-primary to-purple-500 rounded-full" />
+            <div>
+              <h2 className="text-2xl font-bold">Activity Timeline</h2>
+              <p className="text-sm text-muted-foreground">
+                Recent badge mints, hash computations, and verification events
+              </p>
+            </div>
+          </div>
+          {achievementsList.length > 0 ? (
+            <AchievementList achievements={achievementsList} />
+          ) : (
+            <Card className="border-2 border-dashed border-primary/30">
+              <CardHeader>
+                <CardTitle>No activity yet</CardTitle>
+                <CardDescription>Mint a credential to populate your mission history.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground leading-relaxed text-base">
-                  {latest.summary}
-                </p>
-                <div className="flex items-center gap-3 rounded-xl border-2 border-primary/20 bg-muted/50 p-4 backdrop-blur-sm">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
-                  </div>
-                  <code className="text-sm font-mono text-primary flex-1 break-all">
-                    {latest.hash.slice(0, 32)}...
-                  </code>
-                </div>
+              <CardContent>
+                <Button asChild>
+                  <Link href="/credentials">Open Credentials Studio</Link>
+                </Button>
               </CardContent>
             </Card>
-          </motion.div>
-        )}
-
-        {/* Next Step - Only show if no achievements */}
-        {!latest && !isLoading && (
-          <motion.div variants={item}>
-            <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-muted/30 to-background hover:border-primary/50 transition-all">
-              <CardHeader>
-                <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
-                  <Target className="h-7 w-7 text-primary" aria-hidden="true" />
-                </div>
-                <CardTitle className="text-2xl">Get Started</CardTitle>
-                <CardDescription className="text-base">
-                  Head to Credentials to mint your first badge and start building your verifiable profile
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Activity Timeline with modern design */}
-        {achievementsList.length > 0 && (
-          <motion.section className="space-y-6" variants={item}>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-1 bg-gradient-to-b from-primary to-purple-500 rounded-full" />
-              <h2 className="text-2xl font-bold">Activity Timeline</h2>
-            </div>
-            <AchievementList achievements={achievementsList} />
-          </motion.section>
-        )}
+          )}
+        </motion.section>
       </motion.div>
     </AppShellClient>
   );

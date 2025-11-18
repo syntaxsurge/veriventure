@@ -5,14 +5,10 @@ import { QuickStartChecklist } from "./quick-start-checklist";
 
 export function DashboardClient() {
   return (
-    <>
-      <div className="mb-8">
-        <QuickStartChecklist />
-      </div>
-      {/* Keep the old checklist for backwards compatibility, but it will likely not show */}
-      <div className="mb-8">
-        <OnboardingChecklist />
-      </div>
-    </>
+    <div className="flex flex-col gap-6">
+      <QuickStartChecklist />
+      {/* Keep the old checklist around for wallets that still rely on it */}
+      <OnboardingChecklist />
+    </div>
   );
 }

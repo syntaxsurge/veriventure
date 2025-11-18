@@ -46,7 +46,8 @@ export function AchievementList({
   const handleVerify = useCallback(
     async (record: AchievementRecord) => {
       if (!ownerAddress) return;
-      setVerifyingId(record.id);
+      const recordId = record.id || record.achievementId || record._id;
+      setVerifyingId(recordId);
       try {
         const localHash = computeAchievementHash({
           title: record.title,
@@ -87,7 +88,7 @@ export function AchievementList({
 
         setVerificationStatus((prev) => ({
           ...prev,
-          [record.id]: {
+          [recordId]: {
             state: localMatch && onChainMatch ? "valid" : "invalid",
             message: parts.join(" "),
           },
@@ -97,7 +98,7 @@ export function AchievementList({
           error instanceof Error ? error.message : "Verification failed.";
         setVerificationStatus((prev) => ({
           ...prev,
-          [record.id]: {
+          [recordId]: {
             state: "error",
             message,
           },
@@ -130,7 +131,7 @@ export function AchievementList({
   return (
     <div className="space-y-4">
       {sorted.map((achievement) => (
-        <Card key={achievement.id} className="border border-primary/20">
+        <Card key={achievement.id || achievement.achievementId || achievement._id} className="border border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <div>
               <CardTitle className="text-xl">{achievement.title}</CardTitle>
@@ -198,33 +199,36 @@ export function AchievementList({
                 })}
               </span>
             </div>
-            {verifiable && ownerAddress && (
-              <div className="space-y-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={verifyingId === achievement.id}
-                  onClick={() => handleVerify(achievement)}
-                >
-                  {verifyingId === achievement.id
-                    ? "Verifying…"
-                    : "Recompute hash"}
-                </Button>
-                {verificationStatus[achievement.id] && (
-                  <p
-                    className={
-                      verificationStatus[achievement.id].state === "valid"
-                        ? "text-xs text-green-700 dark:text-green-300"
-                        : verificationStatus[achievement.id].state === "invalid"
-                          ? "text-xs text-amber-700 dark:text-amber-300"
-                          : "text-xs text-destructive"
-                    }
+            {verifiable && ownerAddress && (() => {
+              const achievementId = achievement.id || achievement.achievementId || achievement._id;
+              return (
+                <div className="space-y-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={verifyingId === achievementId}
+                    onClick={() => handleVerify(achievement)}
                   >
-                    {verificationStatus[achievement.id].message}
-                  </p>
-                )}
-              </div>
-            )}
+                    {verifyingId === achievementId
+                      ? "Verifying…"
+                      : "Recompute hash"}
+                  </Button>
+                  {verificationStatus[achievementId] && (
+                    <p
+                      className={
+                        verificationStatus[achievementId].state === "valid"
+                          ? "text-xs text-green-700 dark:text-green-300"
+                          : verificationStatus[achievementId].state === "invalid"
+                            ? "text-xs text-amber-700 dark:text-amber-300"
+                            : "text-xs text-destructive"
+                      }
+                    >
+                      {verificationStatus[achievementId].message}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       ))}

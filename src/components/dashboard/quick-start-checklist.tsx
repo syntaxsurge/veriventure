@@ -112,17 +112,6 @@ export function QuickStartChecklist() {
     });
   }, [address, userProfile, completedItems, completeChecklistItem]);
 
-  // Auto-dismiss after 2 items completed (but show if user clicks on it again)
-  useEffect(() => {
-    const shouldAutoDismiss = completedItems.length >= 2 && !dismissed;
-    if (shouldAutoDismiss) {
-      const timer = setTimeout(() => {
-        setDismissed(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [completedItems.length, dismissed]);
-
   const handleDismiss = () => {
     setDismissed(true);
     localStorage.setItem("vv_checklist_dismissed", "true");
