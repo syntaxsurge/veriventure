@@ -99,7 +99,6 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 - `npm run lint`, `npm run typecheck`, `npm run lint:fix` – quality gates.
 - `npm run build:contract` – compile the Hardhat contracts (see `blockchain/`).
 - `npm run convex:dev`, `npm run convex:deploy`, `npm run convex:reset` – Convex workflows.
-- `npm run seed:demo` – seed Convex with the demo achievements + community notes shown in the video walkthrough.
 
 ## Environment & configuration
 1. Copy `.env.example` to `.env.local` and keep both files mirrored whenever values change.
@@ -123,7 +122,7 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 2. **Run Convex locally** – `npm run convex:dev` in a separate terminal to watch schema changes and regenerate `_generated` helpers.
 3. **Compile contracts** – `npm run build:contract` (runs Hardhat via `blockchain/`). Deploy with your preferred Hardhat network and copy addresses into the env file if you change them.
 4. **Start the app** – `npm run dev` and open [http://localhost:3000](http://localhost:3000). RainbowKit will request a wallet signature the first time you connect.
-5. **Quality gates** – `npm run lint`, `npm run typecheck`, and `npm run seed:demo` before shipping changes. The Agent Playbook (AGENTS.md) must be updated alongside any route/flow adjustments.
+5. **Quality gates** – `npm run lint` and `npm run typecheck` before shipping changes. The Agent Playbook (AGENTS.md) must be updated alongside any route/flow adjustments.
 
 ## Data & privacy model
 - **On-chain** – Only hashed achievements and invoice metadata live on Moonbase Alpha. No raw customer info is stored on-chain.
