@@ -10,7 +10,6 @@ const teamMemberSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2).max(120),
   role: z.string().min(2).max(120),
-  expertise: z.string().min(2).max(160),
 });
 
 const createDeckSchema = z.object({

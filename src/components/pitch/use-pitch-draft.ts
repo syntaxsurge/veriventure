@@ -26,7 +26,6 @@ const emptyDraft: PitchWizardDraft = {
       id: "founder-1",
       name: "",
       role: "",
-      expertise: "",
     },
   ],
 };
@@ -96,7 +95,6 @@ export function usePitchDeckDraft() {
           id: `team-${previous.team.length + 1}`,
           name: "",
           role: "",
-          expertise: "",
         },
       ],
     }));

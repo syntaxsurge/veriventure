@@ -4,7 +4,6 @@ export type PitchTeamMember = {
   id: string;
   name: string;
   role: string;
-  expertise: string;
 };
 
 export type PitchSlideImage = {

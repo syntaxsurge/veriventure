@@ -97,7 +97,7 @@ export const pitchSlideLibrary: SlideTemplate[] = [
     title: "Team",
     description: "Highlight people building the company.",
     prompt:
-      "Summarize why the team is uniquely capable. Mention category expertise per member.",
+      "Summarize why the team is uniquely capable. Highlight leadership roles and proof points per member.",
     slideType: "team",
     category: "Team",
   },

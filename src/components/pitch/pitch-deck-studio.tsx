@@ -549,7 +549,6 @@ function ExecutionStep({
       const missing = validateFields([
         [`Team member ${index + 1} name`, member.name, 120],
         [`Team member ${index + 1} role`, member.role, 120],
-        [`Team member ${index + 1} expertise`, member.expertise, 160],
       ]);
       issues.push(...missing);
     });
@@ -629,12 +628,12 @@ function ExecutionStep({
         <div>
           <p className="text-sm font-medium">Team</p>
           <p className="text-xs text-muted-foreground">
-            Share names, roles, and each teammate&apos;s superpower.
+            Share names and roles for each teammate.
           </p>
         </div>
         {draft.team.map((member, index) => (
           <Card key={member.id} className="border-dashed">
-            <CardContent className="grid gap-3 pt-6 md:grid-cols-3">
+            <CardContent className="grid gap-3 pt-6 md:grid-cols-2">
               <Input
                 value={member.name}
                 onChange={(event) =>
@@ -649,14 +648,6 @@ function ExecutionStep({
                   updateTeamMember(index, { role: event.target.value })
                 }
                 placeholder="Role (e.g. COO)"
-                required
-              />
-              <Input
-                value={member.expertise}
-                onChange={(event) =>
-                  updateTeamMember(index, { expertise: event.target.value })
-                }
-                placeholder="Superpower or expertise"
                 required
               />
               {draft.team.length > 1 && (
@@ -909,7 +900,6 @@ function ReviewStep({
       const missing = validateFields([
         [`Team member ${index + 1} name`, member.name, 120],
         [`Team member ${index + 1} role`, member.role, 120],
-        [`Team member ${index + 1} expertise`, member.expertise, 160],
       ]);
       issues.push(...missing);
     });

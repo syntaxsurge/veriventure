@@ -1162,7 +1162,6 @@ function TeamSlideSection({ slide, brandColors, tokens, team }: SlideSectionProp
                 id: "placeholder",
                 name: slide.images[0]?.caption || "Team member",
                 role: "Core operator",
-                expertise: "",
               },
             ]
         ).map((member, index) => (
