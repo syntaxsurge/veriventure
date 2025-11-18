@@ -63,7 +63,7 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 
 1. **On-screen:** Navigate to the Proofs or Proofs & Audit Log page (for example `/proofs`).
 2. **On-screen:** Show the newly created proof entry for the paid invoice with its UAL and chain transaction link. Click a toggle such as `Feature on Profile` for that payment proof, and feature one credential proof as well if your UI supports it.
-   - **Voice-over 10:** “All of my proofs live in the Proofs and Audit Log area. Here I can see the payment proof I just published, along with its DKG UAL and chain transaction link. I can choose which items I want to feature on my public profile—for example, this settled invoice and my key milestone credentials—so my verify page shows the highlights instead of everything.”
+   - **Voice-over 10:** “All of my proofs live in the Proofs and Audit Log area. Here I can see the payment proof I just published, along with its DKG UAL and chain transaction link. I can choose which items I want to feature on my public profile.”
 
 ## Segment 11 – Documents Vault
 
