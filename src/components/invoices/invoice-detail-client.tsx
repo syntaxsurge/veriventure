@@ -454,6 +454,61 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     },
   ];
 
+  const statusHelper =
+    invoice.status === "Paid"
+      ? "Payment complete"
+      : invoice.status === "Cancelled"
+      ? "Invoice cancelled"
+      : isOverdue
+      ? "Past due — notify the payer"
+      : "Awaiting payment";
+  const paymentScopeValue = isOpenInvoice ? "Open link" : "Targeted payer";
+  const paymentScopeHelper = isOpenInvoice
+    ? "Any wallet with this link can settle"
+    : "Only the selected wallet can pay";
+  const summaryTiles: Array<{
+    label: string;
+    value: string;
+    helper: string;
+    icon: LucideIcon;
+    valueClass?: string;
+  }> = [
+    {
+      label: "Amount Due",
+      value: `${amountDEV} DEV`,
+      helper: `Currency: ${invoice.currencyType}`,
+      icon: DollarSign,
+      valueClass: "text-3xl text-foreground",
+    },
+    {
+      label: "Due Date",
+      value: dueDate.toLocaleDateString(),
+      helper: isOverdue ? "Past due" : "On schedule",
+      icon: Calendar,
+      valueClass: isOverdue ? "text-destructive" : undefined,
+    },
+    {
+      label: "Status",
+      value: invoice.status,
+      helper: statusHelper,
+      icon: ShieldCheck,
+      valueClass:
+        invoice.status === "Paid"
+          ? "text-emerald-500"
+          : invoice.status === "Cancelled"
+          ? "text-muted-foreground"
+          : isOverdue
+          ? "text-destructive"
+          : "text-amber-500",
+    },
+    {
+      label: "Payment Scope",
+      value: paymentScopeValue,
+      helper: paymentScopeHelper,
+      icon: User,
+    },
+  ];
+
   return (
     <>
       {/* Header */}
@@ -474,6 +529,31 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
           </div>
           {getStatusBadge(invoice.status)}
         </div>
+      </div>
+
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {summaryTiles.map((tile) => {
+          const Icon = tile.icon;
+          return (
+            <div
+              key={tile.label}
+              className="rounded-2xl border bg-card/80 p-4 shadow-sm ring-1 ring-border/40"
+            >
+              <div className="flex items-center gap-3">
+                <span className="rounded-xl bg-primary/10 p-2 text-primary">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {tile.label}
+                </span>
+              </div>
+              <p className={`mt-4 text-2xl font-semibold ${tile.valueClass ?? ""}`}>
+                {tile.value}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{tile.helper}</p>
+            </div>
+          );
+        })}
       </div>
 
       {/* Overdue Alert */}
@@ -517,14 +597,15 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
       </Card>
 
       {/* Main Card */}
-      <Card className="border-2 mb-6">
-        <CardHeader>
-          <CardTitle>Invoice Information</CardTitle>
-          <CardDescription>
-            Created on {new Date(invoice.createdAt).toLocaleDateString()}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="border-2 h-full">
+          <CardHeader>
+            <CardTitle>Invoice Information</CardTitle>
+            <CardDescription>
+              Created on {new Date(invoice.createdAt).toLocaleDateString()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
           {/* Amount */}
           <div className="rounded-lg bg-muted/50 p-6 text-center">
             <p className="text-sm text-muted-foreground mb-2">Amount Due</p>
@@ -686,7 +767,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               <Button
                 onClick={handlePay}
                 disabled={isPaying}
-                className="flex-1"
+                className="flex-1 rounded-2xl py-6 text-lg font-semibold shadow-lg shadow-primary/30 transition hover:-translate-y-0.5"
                 size="lg"
               >
                 {isPaying ? (
@@ -708,6 +789,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                 onClick={handleCancel}
                 disabled={isCancelling}
                 variant="destructive"
+                className="rounded-2xl border-2 border-destructive/40 py-6 text-lg font-semibold shadow-sm transition hover:-translate-y-0.5"
                 size="lg"
               >
                 {isCancelling ? (
@@ -751,15 +833,15 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               </AlertDescription>
             </Alert>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card className="border-2 mb-6">
-        <CardHeader>
-          <CardTitle>Proofs & Transparency</CardTitle>
-          <CardDescription>Control how this invoice surfaces on-chain verifications.</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Card className="border-2 h-full">
+          <CardHeader>
+            <CardTitle>Proofs & Transparency</CardTitle>
+            <CardDescription>Control how this invoice surfaces on-chain verifications.</CardDescription>
+          </CardHeader>
+          <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             {/* Issuance */}
             <div className="rounded-lg border p-4 space-y-3">
@@ -907,11 +989,12 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                 : "Publish revenue attestation"}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Share Link */}
-      <Card>
+      <Card className="border-2 bg-muted/30">
         <CardHeader>
           <CardTitle className="text-base">Share Invoice</CardTitle>
           <CardDescription>
