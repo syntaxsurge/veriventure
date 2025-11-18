@@ -73,10 +73,10 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 
 ## Segment 12 – Claim Checker / Truth Alignment
 
-1. **On-screen:** Navigate to AI Assistant → Claim Checker, for example `/ai-assistant/truth`.
-2. **On-screen:** In the main claim field, type a real example such as `We reduced onboarding time by 40% in Q3 2025.` In the sources section, add at least one URL, such as a case study page on your site or a report URL. Click `Analyze` and wait for the results.
-3. **On-screen:** Briefly scroll past the Similarity score, Missing topics, and Unique claims sections. Click `Publish Community Note` and show the resulting UAL and `View on DKG Explorer` link.
-   - **Voice-over 12:** “Claim Checker is for statements that matter—like traction claims, ESG metrics, or certifications. I paste my claim, link to my evidence, and ask the assistant to analyze it. It highlights differences between my claim and the sources I provided, and suggests what I might be missing. When I’m comfortable with the wording, I publish a Community Note to the DKG. That note is a signed, timestamped explanation of the claim with citations, and the UAL becomes a link I can use in decks, on landing pages, or in procurement documents to give reviewers more confidence.”
+1. **On-screen:** Go to **AI Assistant → Claim Checker** (`/ai-assistant/truth`).
+2. **On-screen:** In **Topic**, type **Climate change** and click **Analyze** to fetch **Wikipedia** and **Grokipedia** versions.
+3. **On-screen:** Scroll through **Similarity score**, **Missing topics**, and **Unique claims**. Click **Publish Community Note**, copy the returned **UAL**, then click **View on DKG Explorer**.
+   - **Voice-over 12:** "Claim Checker compares Wikipedia and Grokipedia for the same topic to surface agreement, missing context, and any biased or hallucinated statements. I’m using ‘Climate change’ because both sources are rich and often diverge—perfect for showing how the tool works. The analysis computes a similarity score, lists what’s missing, and flags unique claims so I can see where narratives differ. When I publish a Community Note, it becomes a signed, timestamped Knowledge Asset on the OriginTrail DKG with citations and a shareable UAL. As a founder, I use that UAL wherever my brand references the topic—press kits, policy or ESG pages, ad approvals, or RFPs—so reviewers get a neutral, verifiable summary they can click, which reduces back-and-forth and de‑risks compliance and brand safety checks."
 
 ## Segment 13 – Public Verify Page
 
