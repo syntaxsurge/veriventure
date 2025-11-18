@@ -36,6 +36,24 @@ const nextConfig: NextConfig = {
       "thread-stream": threadStreamAlias,
     },
   },
+  async redirects() {
+    const demoVideo = process.env.DEMO_VIDEO_URL || "https://www.youtube.com/";
+    const pitchDeck =
+      process.env.PITCH_DECK_URL || "https://example.com/pitch-deck";
+
+    return [
+      {
+        source: "/demo-video",
+        destination: demoVideo,
+        permanent: false,
+      },
+      {
+        source: "/pitch-deck",
+        destination: pitchDeck,
+        permanent: false,
+      },
+    ];
+  },
   // Webpack config for fallback (when --webpack flag is used)
   webpack: (config, { isServer }) => {
     config.resolve = config.resolve || {};
