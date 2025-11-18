@@ -54,113 +54,128 @@ export function InvoiceDashboardWidget() {
   if (!address) return null;
 
   return (
-    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <Receipt className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-xl">Invoicing</CardTitle>
-              <CardDescription>Track payments and get paid instantly</CardDescription>
-            </div>
+    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden">
+      <CardHeader className="space-y-4">
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg">
+            <Receipt className="h-7 w-7 text-primary" />
           </div>
-          <Button asChild>
-            <Link href="/invoices/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Invoice
-            </Link>
-          </Button>
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-2xl font-bold mb-2">Invoicing</CardTitle>
+            <CardDescription className="text-base">Track payments and get paid instantly</CardDescription>
+          </div>
         </div>
+        <Button asChild className="w-full" size="lg">
+          <Link href="/invoices/new">
+            <Plus className="mr-2 h-5 w-5" />
+            Create New Invoice
+          </Link>
+        </Button>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24" />
+              <Skeleton key={i} className="h-32" />
             ))}
           </div>
         ) : stats ? (
-          <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-4">
+            {/* Stats Grid - Now Full Width */}
+            <div className="grid gap-4">
               {/* Total Issued */}
-              <div className="rounded-lg border bg-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Issued</p>
-                    <p className="text-2xl font-bold mt-1">{stats.issued.total}</p>
+              <div className="rounded-xl border-2 bg-gradient-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/10 p-5 transition-all hover:shadow-lg hover:border-green-300/50">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Invoices Issued</p>
+                    </div>
+                    <p className="text-4xl font-bold text-green-700 dark:text-green-400">{stats.issued.total}</p>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <ArrowUpRight className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center shadow-sm">
+                    <ArrowUpRight className="h-7 w-7 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
-                {stats.issued.pending > 0 && (
-                  <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {stats.issued.pending} pending
+                <div className="flex items-center justify-between pt-3 border-t border-green-200/50 dark:border-green-900/50">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{stats.issued.pending} pending</span>
                   </div>
-                )}
+                  <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                    {stats.issued.paid} paid
+                  </span>
+                </div>
               </div>
 
               {/* Revenue */}
-              <div className="rounded-lg border bg-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Earned</p>
-                    <p className="text-2xl font-bold mt-1 font-mono">
-                      {parseFloat(formatEther(BigInt(stats.issued.totalAmount || "0"))).toFixed(2)}
-                    </p>
+              <div className="rounded-xl border-2 bg-gradient-to-br from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10 p-5 transition-all hover:shadow-lg hover:border-blue-300/50">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Total Earned</p>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-4xl font-bold font-mono text-blue-700 dark:text-blue-400">
+                        {parseFloat(formatEther(BigInt(stats.issued.totalAmount || "0"))).toFixed(2)}
+                      </p>
+                      <span className="text-lg font-semibold text-muted-foreground">DEV</span>
+                    </div>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-primary" />
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center shadow-sm">
+                    <TrendingUp className="h-7 w-7 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {stats.issued.paid} invoice{stats.issued.paid !== 1 ? "s" : ""} paid
-                </p>
+                <div className="flex items-center gap-2 pt-3 border-t border-blue-200/50 dark:border-blue-900/50">
+                  <Badge variant="secondary" className="font-medium">
+                    {stats.issued.paid} invoice{stats.issued.paid !== 1 ? "s" : ""} completed
+                  </Badge>
+                </div>
               </div>
 
               {/* Pending Payments */}
-              <div className="rounded-lg border bg-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">To Pay</p>
-                    <p className="text-2xl font-bold mt-1">{stats.received.pending}</p>
+              <div className="rounded-xl border-2 bg-gradient-to-br from-orange-50/50 to-amber-50/30 dark:from-orange-950/20 dark:to-amber-950/10 p-5 transition-all hover:shadow-lg hover:border-orange-300/50">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pending to Pay</p>
+                    </div>
+                    <p className="text-4xl font-bold text-orange-700 dark:text-orange-400">{stats.received.pending}</p>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                    <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-500/5 flex items-center justify-center shadow-sm">
+                    <Clock className="h-7 w-7 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>
                 {stats.received.pending > 0 && (
-                  <Badge variant="outline" className="mt-2 text-xs">
-                    Action required
-                  </Badge>
+                  <div className="pt-3 border-t border-orange-200/50 dark:border-orange-900/50">
+                    <Badge variant="destructive" className="text-xs font-semibold">
+                      Action Required
+                    </Badge>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-3">
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/invoices">
-                  <Receipt className="mr-2 h-4 w-4" />
-                  View All Invoices
-                </Link>
-              </Button>
-            </div>
+            <Button asChild variant="outline" size="lg" className="w-full">
+              <Link href="/invoices">
+                <Receipt className="mr-2 h-5 w-5" />
+                View All Invoices
+              </Link>
+            </Button>
           </div>
         ) : (
-          <div className="py-8 text-center">
-            <Receipt className="mx-auto h-12 w-12 text-muted-foreground/50 mb-3" />
-            <p className="text-sm text-muted-foreground mb-4">
-              Create your first invoice to get started
+          <div className="py-12 text-center">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+              <Receipt className="h-10 w-10 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">No invoices yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+              Create your first invoice to start tracking payments and getting paid on-chain
             </p>
-            <Button asChild>
+            <Button asChild size="lg">
               <Link href="/invoices/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Invoice
+                <Plus className="mr-2 h-5 w-5" />
+                Create Your First Invoice
               </Link>
             </Button>
           </div>
