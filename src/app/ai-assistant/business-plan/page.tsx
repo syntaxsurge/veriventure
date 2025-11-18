@@ -12,7 +12,7 @@ export default function BusinessPlanPage() {
           description="Answer a few focused prompts and generate a lender-ready narrative that cites your wallet-signed achievements and embeds the right KPIs. Each run is saved to the Documents vault with a checksum so diligence teams can verify provenance."
           breadcrumbs={[
             { label: "Home", href: "/" },
-            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "AI Tools" },
             { label: "Business Plan Lab" },
           ]}
         >

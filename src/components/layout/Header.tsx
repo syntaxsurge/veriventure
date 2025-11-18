@@ -171,7 +171,7 @@ const mobileNavigation = [
   { title: "Dashboard", href: "/dashboard", icon: Rocket },
   { title: "Credentials", href: "/credentials", icon: Award },
   { title: "Invoices", href: "/invoices", icon: DollarSign },
-  { title: "AI Assistant", href: "/ai-assistant", icon: Sparkles },
+  { title: "AI Tools", href: "/ai-assistant/pitch-deck", icon: Sparkles },
   { title: "Pricing", href: "/#pricing", icon: TrendingUp, scroll: true },
   { title: "Help", href: "/help", icon: HelpCircle }
 ];

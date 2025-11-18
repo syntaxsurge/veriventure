@@ -27,8 +27,8 @@ const baseNavItems: NavItem[] = [
     isActive: (pathname) => pathname?.startsWith("/credentials") ?? false,
   },
   {
-    href: "/ai-assistant",
-    label: "AI Assistant",
+    href: "/ai-assistant/pitch-deck",
+    label: "AI Tools",
     isActive: (pathname) => pathname?.startsWith("/ai-assistant") ?? false,
   },
   {

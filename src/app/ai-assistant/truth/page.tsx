@@ -39,7 +39,7 @@ export default function TruthAlignmentPage() {
           description="Turn sensitive claims into verifiable truths buyers, investors, and platforms trust. Compare sources, attach evidence, and publish a signed DKG Knowledge Asset in minutes."
           breadcrumbs={[
             { label: "Home", href: "/" },
-            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "AI Tools" },
             { label: "Claim Checker" },
           ]}
         >

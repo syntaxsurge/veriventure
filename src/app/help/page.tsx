@@ -78,7 +78,7 @@ export default function HelpCenterPage() {
       icon: FileText,
       color: "from-blue-500 to-cyan-500",
       steps: [
-        "Go to AI Assistant > Pitch Deck",
+        "Open Pitch Deck Studio from the sidebar",
         "Fill in your startup details",
         "Select your industry template",
         "Let AI generate your slides",

@@ -24,7 +24,7 @@ export default async function PitchDeckPage() {
           description="Create professional pitch decks with AI assistance"
           breadcrumbs={[
             { label: "Home", href: "/" },
-            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "AI Tools" },
             { label: "Pitch Deck Studio" },
           ]}
         >

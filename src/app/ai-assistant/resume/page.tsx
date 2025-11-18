@@ -24,7 +24,7 @@ export default async function ResumePage() {
           description="Generate professional resumes from your verified achievements"
           breadcrumbs={[
             { label: "Home", href: "/" },
-            { label: "AI Assistant", href: "/ai-assistant" },
+            { label: "AI Tools" },
             { label: "Resume Builder" },
           ]}
         >

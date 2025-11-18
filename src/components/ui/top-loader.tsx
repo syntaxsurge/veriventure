@@ -13,6 +13,7 @@ export function TopLoader() {
       showSpinner={false}
       easing="ease"
       speed={200}
+      zIndex={9999}
       shadow="0 0 10px hsl(var(--primary)),0 0 5px hsl(var(--primary))"
     />
   );

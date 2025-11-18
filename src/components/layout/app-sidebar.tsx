@@ -105,10 +105,11 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
   // Always add AI Tools
   items.push({
     title: "AI Tools",
-    href: "/ai-assistant",
+    href: aiAssistantItems[0]?.href ?? "/ai-assistant/pitch-deck",
     icon: Bot,
     children: aiAssistantItems,
     description: "AI-powered business tools",
+    isActive: (pathname: string) => pathname.startsWith("/ai-assistant"),
   });
 
   // Conditionally add Documents
@@ -160,7 +161,10 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
         <nav className="space-y-1" role="navigation" aria-label="Sidebar navigation">
           {sidebarNavItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = item.isActive ? item.isActive(pathname) : pathname === item.href;
+            const startsWithPath = item.children
+              ? item.isActive?.(pathname) ?? pathname.startsWith(item.href)
+              : pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
 
             if (hasChildren) {
@@ -179,7 +183,7 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                     className={cn(
                       "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      isActive || pathname.startsWith(item.href)
+                      isActive || startsWithPath
                         ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                         : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                     )}
@@ -187,7 +191,7 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                     <Icon
                       className={cn(
                         "h-5 w-5 shrink-0 transition-colors",
-                        isActive || pathname.startsWith(item.href)
+                        isActive || startsWithPath
                           ? "text-sidebar-primary"
                           : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
                       )}
