@@ -36,7 +36,7 @@ export function RainbowKitWalletProvider({ children }: { children: React.ReactNo
           initialChain={moonbaseAlpha}
           showRecentTransactions
           theme={darkTheme({
-            accentColor: "#0ea5e9",
+            accentColor: "#6366f1",
             accentColorForeground: "#ffffff",
             borderRadius: "none",
             overlayBlur: "small",
