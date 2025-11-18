@@ -18,11 +18,11 @@ Founders and entrepreneurs lose weeks chasing invoice payments, rewriting pitch 
 
 ## How the build maps to three focus areas
 1. **AI-first entrepreneurship programs** – VeriVenture delivers production copilots that live inside each workflow (credentials, invoices, decks, plans, resumes, social content). They reuse wallet context, respect per-field limits, and export to PDF/PPTX so founders receive immediate, business-ready materials that can be referenced in diligence.
-2. **User-centered Web3 resilience initiatives** – Wallet-only auth via RainbowKit + wagmi, proxy-enforced session cookies, Convex-backed data, and smart contracts (ValidityRegistry + InvoiceRegistry) make the Web3 layer invisible to non-technical buyers. Every route exposes explorer links, DKG proof buttons, and `/demo-video` + `/pitch-deck` shortlinks powered by environment variables so marketing swaps need zero redeploys.
+2. **User-centered Web3 resilience initiatives** – Wallet-only auth via RainbowKit + wagmi, proxy-enforced session cookies, Convex-backed data, and smart contracts (ValidityRegistry + InvoiceRegistry) make the Web3 layer invisible to non-technical buyers. Every route exposes explorer links, DKG proof buttons, and shareable links powered by environment variables so marketing swaps need zero redeploys.
 3. **Truth Alignment Lab focus** – The build incorporates the full Grokipedia vs Wikipedia analysis flow, AI embeddings, and automatic publishing to OriginTrail DKG for Community Notes and DKG Activity. Founders can cite a signed UAL for every claim, satisfying the Truth Alignment Lab brief without mentioning hackathon logistics.
 
 ## Feature map – what every screen delivers
-The recorded walkthrough (mirrored via `/demo-video`) touches each of these routes and the public `/pitch-deck` shortlink shares the investor deck that aligns with the same flows.
+The recorded walkthrough touches each of these routes and the public deck link shares the investor deck that aligns with the same flows.
 
 | Route | Audience | Highlights |
 | --- | --- | --- |
@@ -42,8 +42,6 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 | `/ai-assistant/truth` | Founders | Truth Alignment Lab: Grokipedia/Wikipedia ingestion, cosine comparisons, divergence view, publish to `/api/dkg/notes` |
 | `/ai-assistant/dkg-test` | Founders & reviewers | Production DKG Activity list merging Truth Alignment Notes and AI exports with UAL/explorer/Subscan links |
 | `/verify/[handle]` | Public reviewers | Share/copy handle, recompute hash, OriginTrail UAL viewer, NeuroWeb Subscan proofs, automatic redirect from `/verify/{wallet}` |
-| `/demo-video` | Anyone | Redirects to the configured demo video URL for the YouTube/loom walkthrough |
-| `/pitch-deck` | Anyone | Redirects to the configured public deck so investors can self-serve |
 
 ## End-to-end journey (plain English)
 1. **Connect** – Visit the landing page, click Connect Wallet, sign the nonce from `/api/auth/challenge`, and land on the dashboard with the Quick Start checklist.
@@ -52,7 +50,7 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 4. **Invoice & get paid** – Create an invoice, leave the payer blank if you want open payments, and send the share link. Buyers can settle from any wallet and see explorer receipts instantly.
 5. **Publish settlement proof** – Once paid, open the invoice detail page and publish the settlement proof + revenue attestation to OriginTrail so lenders and partners can validate the claim.
 6. **Align external facts** – Run Truth Alignment Lab when referencing market or ESG data, compare sources, and publish a Community Note with its UAL so the statement is independently auditable.
-7. **Share everything** – Distribute `/verify/[handle]`, `/demo-video`, and `/pitch-deck`; reviewers can click through blockchain transactions and DKG UALs without extra calls.
+7. **Share everything** – Distribute `/verify/[handle]` and any linked collateral; reviewers can click through blockchain transactions and DKG UALs without extra calls.
 
 ## Architecture & trust layer
 
@@ -113,7 +111,7 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
    NEXT_PUBLIC_DKG_TX_TEMPLATE=https://neuroweb-testnet.subscan.io/tx/{tx}
    NEXT_PUBLIC_SOCIAL_AUTOMATION_READY=false
    ```
-3. Marketing redirects that power `/demo-video` and `/pitch-deck`: set `DEMO_VIDEO_URL` to the public recording you want prospects to watch and `PITCH_DECK_URL` to the shareable investor deck. Updating these environment variables immediately updates the shortlinks.
+3. Marketing redirects for public demo and deck links: set `DEMO_VIDEO_URL` to the public recording you want prospects to watch and `PITCH_DECK_URL` to the shareable investor deck. Updating these environment variables immediately updates the shortlinks.
 4. Fill out server-only secrets and signing keys: `OPENAI_API_KEY`, `AUTH_SECRET`, `DKG_NODE_ENDPOINT`, `DKG_NODE_PORT`, `DKG_ENV`, `DKG_BLOCKCHAIN_NAME`, `DKG_BLOCKCHAIN_RPC`, `DKG_BLOCKCHAIN_PRIVATE_KEY`, and any Convex deploy tokens. These values stay on the server and are validated by `src/env/server.ts` before boot.
 5. Optional helpers: `CONVEX_RESET_TOKEN`, `GROKIPEDIA_BASE_URL`, `NEXT_PUBLIC_SOCIAL_AUTOMATION_READY`, `PITCH_DECK_IMAGE_SIZE`, etc.
 
