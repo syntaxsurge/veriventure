@@ -268,25 +268,28 @@ export default function HelpCenterPage() {
     }
   ];
 
-  const filteredFaqs = Object.entries(faqs).reduce((acc, [category, questions]) => {
-    const filtered = questions.filter(
-      (faq) =>
-        searchQuery === "" ||
-        faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    if (filtered.length > 0) {
-      acc[category] = filtered;
-    }
-    return acc;
-  }, {} as typeof faqs);
+  const filteredFaqEntries = (Object.entries(faqs) as [keyof typeof faqs, (typeof faqs)[keyof typeof faqs]][]).reduce(
+    (acc, [category, questions]) => {
+      const filtered = questions.filter(
+        (faq) =>
+          searchQuery === "" ||
+          faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      if (filtered.length > 0) {
+        acc.push([category, filtered]);
+      }
+      return acc;
+    },
+    [] as [keyof typeof faqs, (typeof faqs)[keyof typeof faqs]][]
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background">
+    <div className="min-h-screen bg-linear-to-b from-background via-background/95 to-background">
       {/* Hero Section */}
       <div className="relative overflow-hidden border-b">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5" />
+          <div className="absolute inset-0 bg-linear-to-br from-purple-500/5 via-transparent to-blue-500/5" />
           <div className="absolute top-10 left-10 w-96 h-96 bg-purple-500/5 rounded-full filter blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/5 rounded-full filter blur-3xl" />
         </div>
@@ -304,7 +307,7 @@ export default function HelpCenterPage() {
             </Badge>
 
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 How Can We Help You?
               </span>
             </h1>
@@ -347,11 +350,11 @@ export default function HelpCenterPage() {
                 transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
               >
                 <Card className="group relative h-full overflow-hidden transition-all hover:shadow-lg">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${guide.color} opacity-5 transition-opacity group-hover:opacity-10`} />
+                  <div className={`absolute inset-0 bg-linear-to-br ${guide.color} opacity-5 transition-opacity group-hover:opacity-10`} />
 
                   <CardHeader>
                     <div className="mb-3 flex items-center justify-between">
-                      <div className={`rounded-lg bg-gradient-to-br ${guide.color} p-2`}>
+                      <div className={`rounded-lg bg-linear-to-br ${guide.color} p-2`}>
                         <guide.icon className="h-5 w-5 text-white" />
                       </div>
                       <Badge variant="secondary" className="text-xs">
@@ -402,7 +405,7 @@ export default function HelpCenterPage() {
               transition={{ duration: 0.3 }}
             >
               <Accordion type="multiple" className="space-y-4">
-                {Object.entries(filteredFaqs).map(([category, questions]) => (
+                {filteredFaqEntries.map(([category, questions]) => (
                   <Card key={category}>
                     <CardHeader>
                       <CardTitle className="capitalize">{category} Questions</CardTitle>
@@ -468,7 +471,7 @@ export default function HelpCenterPage() {
                 {popularArticles.map((article, idx) => (
                   <Card key={idx} className="group cursor-pointer transition-all hover:shadow-md">
                     <CardContent className="flex items-center gap-4 p-6">
-                      <div className="rounded-lg bg-gradient-to-br from-purple-500/10 to-indigo-500/10 p-3">
+                      <div className="rounded-lg bg-linear-to-br from-purple-500/10 to-indigo-500/10 p-3">
                         <article.icon className="h-6 w-6 text-purple-600" />
                       </div>
                       <div className="flex-1">
@@ -502,7 +505,7 @@ export default function HelpCenterPage() {
                     rel={channel.link.startsWith("http") ? "noopener noreferrer" : undefined}
                   >
                     <Card className="group h-full cursor-pointer transition-all hover:shadow-lg">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${channel.color}`} />
+                      <div className={`absolute inset-0 bg-linear-to-br ${channel.color}`} />
                       <CardContent className="relative p-6">
                         <div className="mb-4 inline-flex rounded-lg bg-background/80 p-3">
                           <channel.icon className="h-6 w-6 text-primary" />
@@ -519,7 +522,7 @@ export default function HelpCenterPage() {
                 ))}
               </div>
 
-              <Card className="bg-gradient-to-br from-purple-500/5 to-indigo-500/5">
+              <Card className="bg-linear-to-br from-purple-500/5 to-indigo-500/5">
                 <CardContent className="p-8 text-center">
                   <Zap className="mx-auto mb-4 h-12 w-12 text-purple-600" />
                   <h3 className="mb-2 text-2xl font-bold">Need Priority Support?</h3>
@@ -528,7 +531,7 @@ export default function HelpCenterPage() {
                   </p>
                   <div className="flex justify-center gap-4">
                     <Link href="/pricing">
-                      <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+                      <Button size="lg" className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
                         View Plans
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>

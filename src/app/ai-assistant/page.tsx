@@ -61,7 +61,7 @@ export default function AIAssistantPage() {
     <AppShell sidebar maxWidth="7xl">
       <div className="section-spacing animate-in">
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-3xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background p-12 text-center shadow-lg md:p-16">
+        <div className="relative overflow-hidden rounded-3xl border-2 border-primary/20 bg-linear-to-br from-primary/5 via-background to-background p-12 text-center shadow-lg md:p-16">
           <div className="relative z-10 mx-auto max-w-3xl space-y-8">
             <Badge
               variant="secondary"
@@ -74,7 +74,7 @@ export default function AIAssistantPage() {
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
               Build with AI,
               <br />
-              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 Verify with Truth
               </span>
             </h1>

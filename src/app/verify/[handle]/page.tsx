@@ -81,25 +81,25 @@ export default async function VerifyHandlePage({ params }: VerifyPageProps) {
   const hasData = profile.achievements.length > 0 || profile.notes.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-500/10 to-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-linear-to-br from-primary/10 to-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-linear-to-tr from-blue-500/10 to-primary/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 container-app section-spacing animate-in py-16">
         {/* Modern Header Section */}
         <div className="mb-12 text-center space-y-6">
           {/* Status Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-primary/5 backdrop-blur-sm rounded-full border border-primary/20">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-primary/10 to-primary/5 backdrop-blur-sm rounded-full border border-primary/20">
             <ShieldCheck className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">Verified Trust Profile</span>
           </div>
 
           {/* Profile Info */}
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-br from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold bg-linear-to-br from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
               {profile.display || "Anonymous Profile"}
             </h1>
 
@@ -137,7 +137,7 @@ export default async function VerifyHandlePage({ params }: VerifyPageProps) {
           <div className="lg:col-span-1 space-y-6">
             {/* Bio Card */}
             <Card className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-              <div className="h-1 bg-gradient-to-r from-primary via-purple-500 to-blue-500" />
+              <div className="h-1 bg-linear-to-r from-primary via-purple-500 to-blue-500" />
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-5 w-5 text-primary" />

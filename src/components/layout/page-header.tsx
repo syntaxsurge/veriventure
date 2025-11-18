@@ -53,7 +53,7 @@ export function PageHeader({
           <h1 className="text-4xl font-semibold tracking-tight lg:text-5xl">{title}</h1>
           {description && <p className="text-lead max-w-2xl">{description}</p>}
         </div>
-        {children && <div className="flex-shrink-0">{children}</div>}
+        {children && <div className="shrink-0">{children}</div>}
       </div>
     </div>
   );

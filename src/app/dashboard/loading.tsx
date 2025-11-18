@@ -73,7 +73,7 @@ export default function DashboardLoading() {
 
         {/* Latest Badge Skeleton */}
         <Card className="overflow-hidden border-2">
-          <div className="h-2 bg-gradient-to-r from-primary/50 via-primary/30 to-primary/20" />
+          <div className="h-2 bg-linear-to-r from-primary/50 via-primary/30 to-primary/20" />
           <CardHeader>
             <Skeleton className="h-5 w-16 mb-3" />
             <Skeleton className="h-7 w-64 mb-4" />

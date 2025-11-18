@@ -60,7 +60,7 @@ export default async function DocumentsPage() {
             return (
               <Card key={item.title} className="group border-2 transition-all hover:shadow-xl hover:border-primary/50">
                 <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
+                  <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 group-hover:from-primary/30 group-hover:to-primary/10 transition-all">
                     <Icon className="h-8 w-8 text-primary" aria-hidden="true" />
                   </div>
                   <CardTitle className="text-lg">{item.title}</CardTitle>
@@ -87,7 +87,7 @@ export default async function DocumentsPage() {
         {documents.length === 0 && pitchDecks.length === 0 && (
           <Card className="border-2 border-dashed bg-muted/30">
             <CardHeader className="text-center py-16">
-              <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
+              <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5">
                 <FileText className="h-8 w-8 text-primary" aria-hidden="true" />
               </div>
               <CardTitle className="text-xl">No documents yet</CardTitle>

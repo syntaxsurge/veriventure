@@ -45,10 +45,30 @@ import {
   ArrowRight,
   Wallet
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-const mainNavigation = [
+type SubNavigationItem = {
+  title: string;
+  href: string;
+  description: string;
+  icon?: LucideIcon;
+  color?: string;
+  external?: boolean;
+};
+
+type MainNavigationItem = {
+  title: string;
+  href: string;
+  badge?: string;
+  highlight?: boolean;
+  scroll?: boolean;
+  description?: string;
+  items?: SubNavigationItem[];
+};
+
+const mainNavigation: MainNavigationItem[] = [
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -190,12 +210,12 @@ export function Header() {
             <div className="flex items-center gap-8">
               <Link href="/" className="group flex items-center gap-2">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 opacity-75 blur group-hover:opacity-100 transition-opacity" />
-                  <div className="relative rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 p-2">
+                  <div className="absolute inset-0 rounded-lg bg-linear-to-br from-purple-600 to-indigo-600 opacity-75 blur group-hover:opacity-100 transition-opacity" />
+                  <div className="relative rounded-lg bg-linear-to-br from-purple-600 to-indigo-600 p-2">
                     <Sparkles className="h-5 w-5 text-white" />
                   </div>
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                   VeriVenture
                 </span>
               </Link>
@@ -221,7 +241,7 @@ export function Header() {
                                       rel={subItem.external ? "noopener noreferrer" : undefined}
                                       className={cn(
                                         "group block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                                        subItem.color && `bg-gradient-to-br ${subItem.color}`
+                                        subItem.color && `bg-linear-to-br ${subItem.color}`
                                       )}
                                     >
                                       <div className="flex items-center gap-2">
@@ -338,7 +358,7 @@ export function Header() {
 
               {/* Get Started Button (for non-authenticated users) */}
               <Link href="/dashboard" className="hidden lg:block">
-                <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
+                <Button className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
                   Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -457,7 +477,7 @@ export function Header() {
                         return (
                           <Button
                             onClick={openConnectModal}
-                            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600"
+                            className="w-full bg-linear-to-r from-purple-600 to-indigo-600"
                           >
                             <Wallet className="mr-2 h-4 w-4" />
                             {account ? "Connected" : "Connect Wallet"}

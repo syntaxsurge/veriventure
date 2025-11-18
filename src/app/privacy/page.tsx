@@ -357,10 +357,10 @@ You may lodge complaints with your local data protection authority.`
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background">
+    <div className="min-h-screen bg-linear-to-b from-background via-background/95 to-background">
       {/* Hero Section */}
       <div className="relative border-b">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-cyan-500/5" />
+        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 via-transparent to-cyan-500/5" />
 
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <motion.div
@@ -453,7 +453,7 @@ You may lodge complaints with your local data protection authority.`
                 {sections.map((section, idx) => (
                   <div key={section.id} id={section.id}>
                     <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-gradient-to-br from-blue-500/10 to-cyan-500/10 p-2">
+                      <div className="rounded-lg bg-linear-to-br from-blue-500/10 to-cyan-500/10 p-2">
                         <section.icon className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="flex-1 space-y-4">
@@ -468,7 +468,7 @@ You may lodge complaints with your local data protection authority.`
                 ))}
 
                 {/* Data Request Form Link */}
-                <div className="mt-12 rounded-lg border bg-gradient-to-br from-blue-500/5 to-cyan-500/5 p-6">
+                <div className="mt-12 rounded-lg border bg-linear-to-br from-blue-500/5 to-cyan-500/5 p-6">
                   <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                     <Lock className="h-5 w-5 text-blue-600" />
                     Exercise Your Privacy Rights

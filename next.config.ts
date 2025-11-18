@@ -1,4 +1,8 @@
+import path from "path";
 import type { NextConfig } from "next";
+
+const threadStreamStub = path.resolve(__dirname, "src/lib/stubs/thread-stream.js");
+const threadStreamAlias = "./src/lib/stubs/thread-stream.js";
 
 const securityHeaders = [
   {
@@ -27,7 +31,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["dkg.js"],
   output: "standalone",
-  turbopack: {},
+  turbopack: {
+    resolveAlias: {
+      "thread-stream": threadStreamAlias,
+    },
+  },
   // Webpack config for fallback (when --webpack flag is used)
   webpack: (config, { isServer }) => {
     config.resolve = config.resolve || {};
@@ -36,6 +44,10 @@ const nextConfig: NextConfig = {
       fs: false,
       net: false,
       tls: false,
+    };
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "thread-stream": threadStreamStub,
     };
 
     config.module = config.module || {};

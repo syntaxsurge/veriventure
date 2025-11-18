@@ -186,7 +186,7 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                   >
                     <Icon
                       className={cn(
-                        "h-5 w-5 flex-shrink-0 transition-colors",
+                        "h-5 w-5 shrink-0 transition-colors",
                         isActive || pathname.startsWith(item.href)
                           ? "text-sidebar-primary"
                           : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
@@ -222,7 +222,7 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
                         >
                           <ChildIcon
                             className={cn(
-                              "h-4 w-4 flex-shrink-0 transition-colors",
+                              "h-4 w-4 shrink-0 transition-colors",
                               isChildActive
                                 ? "text-sidebar-primary"
                                 : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
@@ -253,7 +253,7 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
               >
                 <Icon
                   className={cn(
-                    "h-5 w-5 flex-shrink-0 transition-colors",
+                    "h-5 w-5 shrink-0 transition-colors",
                     isActive
                       ? "text-sidebar-primary"
                       : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
@@ -281,7 +281,7 @@ export function AppSidebar({ address, handle }: AppSidebarProps) {
               >
                 <Check
                   className={cn(
-                    "h-5 w-5 flex-shrink-0 transition-colors",
+                    "h-5 w-5 shrink-0 transition-colors",
                     pathname.startsWith("/verify")
                       ? "text-sidebar-primary"
                       : "text-muted-foreground group-hover:text-sidebar-accent-foreground"

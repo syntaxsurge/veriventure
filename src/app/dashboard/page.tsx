@@ -79,7 +79,7 @@ interface StatCardProps {
 function StatCard({ title, value, change, trend, icon: Icon, color }: StatCardProps) {
   return (
     <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-background via-background/95 to-background shadow-xl">
+      <Card className="relative overflow-hidden border-0 bg-linear-to-br from-background via-background/95 to-background shadow-xl">
         <div className={cn(
           "absolute inset-0 opacity-[0.03]",
           "bg-[radial-gradient(ellipse_at_top_right,var(--primary),transparent_50%)]"
@@ -88,7 +88,7 @@ function StatCard({ title, value, change, trend, icon: Icon, color }: StatCardPr
           <div className="flex items-start justify-between mb-4">
             <div className={cn(
               "rounded-2xl p-3 shadow-lg",
-              "bg-gradient-to-br",
+              "bg-linear-to-br",
               color
             )}>
               <Icon className="h-5 w-5 text-white" />
@@ -132,14 +132,14 @@ function QuickAction({ title, description, icon: Icon, href, color, badge }: Qui
         <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 h-full group">
           <div className={cn(
             "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-            "bg-gradient-to-br",
+            "bg-linear-to-br",
             color
           )} style={{ opacity: 0.05 }} />
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className={cn(
                 "rounded-xl p-2.5 shadow-md",
-                "bg-gradient-to-br",
+                "bg-linear-to-br",
                 color
               )}>
                 <Icon className="h-5 w-5 text-white" />
@@ -172,16 +172,23 @@ export default function DashboardPage() {
   );
 
   // Map Convex documents to match AchievementRecord format
-  type ConvexAchievementDoc = AchievementRecord & { _id?: string; achievementId?: string };
+  type ConvexAchievementDoc = Omit<AchievementRecord, "id"> & {
+    id?: string;
+    _id?: string;
+    achievementId?: string;
+  };
 
   const achievementsList: AchievementRecord[] =
-    achievementsRaw?.map((doc: ConvexAchievementDoc) => ({
-      ...doc,
-      id: doc.achievementId || doc._id,
-      txHash: doc.txHash ?? null,
-      network: doc.network ?? null,
-      contractAddress: doc.contractAddress ?? null,
-    })) || [];
+    achievementsRaw?.map((doc) => {
+      const typedDoc = doc as ConvexAchievementDoc;
+      return {
+        ...typedDoc,
+        id: typedDoc.achievementId ?? typedDoc._id ?? typedDoc.id ?? typedDoc.hash,
+        txHash: typedDoc.txHash ?? null,
+        network: typedDoc.network ?? null,
+        contractAddress: typedDoc.contractAddress ?? null,
+      };
+    }) || [];
 
   const latest = achievementsList[0];
 
@@ -195,11 +202,11 @@ export default function DashboardPage() {
             transition={{ duration: 0.5 }}
             className="max-w-md w-full"
           >
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-background via-background/98 to-primary/5">
+            <Card className="border-0 shadow-2xl bg-linear-to-br from-background via-background/98 to-primary/5">
               <CardContent className="flex flex-col items-center justify-center py-16 px-8">
                 <div className="relative mb-6">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600/20 to-indigo-600/20 blur-2xl" />
-                  <div className="relative rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 p-5">
+                  <div className="absolute inset-0 rounded-full bg-linear-to-br from-purple-600/20 to-indigo-600/20 blur-2xl" />
+                  <div className="relative rounded-full bg-linear-to-br from-purple-600 to-indigo-600 p-5">
                     <Wallet className="h-12 w-12 text-white" />
                   </div>
                 </div>
@@ -284,7 +291,7 @@ export default function DashboardPage() {
     {
       title: "Total Achievements",
       value: achievementsList.length,
-      change: achievementGrowth > 0 ? `+${achievementGrowth}%` : null,
+      change: achievementGrowth > 0 ? `+${achievementGrowth}%` : undefined,
       trend: achievementGrowth > 0 ? "up" as const : "neutral" as const,
       icon: Award,
       color: "from-purple-600 to-indigo-600"
@@ -292,7 +299,7 @@ export default function DashboardPage() {
     {
       title: "Active Invoices",
       value: "0",
-      change: null,
+      change: undefined,
       trend: "neutral" as const,
       icon: DollarSign,
       color: "from-emerald-600 to-teal-600"
@@ -300,7 +307,7 @@ export default function DashboardPage() {
     {
       title: "DKG Publications",
       value: "0",
-      change: null,
+      change: undefined,
       trend: "neutral" as const,
       icon: Link2,
       color: "from-blue-600 to-cyan-600"
@@ -308,7 +315,7 @@ export default function DashboardPage() {
     {
       title: "Trust Score",
       value: achievementsList.length > 0 ? Math.min(50 + (achievementsList.length * 10), 100) : 0,
-      change: null,
+      change: undefined,
       trend: "neutral" as const,
       icon: ShieldCheck,
       color: "from-amber-600 to-orange-600"
@@ -325,18 +332,18 @@ export default function DashboardPage() {
       >
         {/* Modern Dashboard Header */}
         <motion.div variants={item} className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-transparent to-indigo-600/10 rounded-3xl blur-3xl" />
-          <div className="relative bg-gradient-to-br from-background via-background/98 to-primary/5 rounded-3xl border-0 shadow-xl p-8">
+          <div className="absolute inset-0 bg-linear-to-r from-purple-600/10 via-transparent to-indigo-600/10 rounded-3xl blur-3xl" />
+          <div className="relative bg-linear-to-br from-background via-background/98 to-primary/5 rounded-3xl border-0 shadow-xl p-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div className="flex items-start gap-4">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-600/30 to-indigo-600/30 blur-xl" />
-                  <div className="relative rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 p-4 shadow-2xl">
+                  <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-purple-600/30 to-indigo-600/30 blur-xl" />
+                  <div className="relative rounded-2xl bg-linear-to-br from-purple-600 to-indigo-600 p-4 shadow-2xl">
                     <Rocket className="h-8 w-8 text-white" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     Mission Control
                   </h1>
                   <p className="text-muted-foreground mt-2 max-w-2xl">
@@ -359,7 +366,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg">
+                <Button size="lg" className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg">
                   <Sparkles className="mr-2 h-5 w-5" />
                   Quick Actions
                 </Button>
@@ -412,7 +419,7 @@ export default function DashboardPage() {
                 <InvoiceDashboardWidget />
 
                 {/* Mission Brief Card */}
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-background via-primary/5 to-background">
+                <Card className="border-0 shadow-xl bg-linear-to-br from-background via-primary/5 to-background">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Target className="h-5 w-5 text-primary" />
@@ -492,7 +499,7 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-xl bg-gradient-to-br from-purple-600/10 to-indigo-600/10 p-3">
+                    <div className="rounded-xl bg-linear-to-br from-purple-600/10 to-indigo-600/10 p-3">
                       <Clock className="h-6 w-6 text-primary" />
                     </div>
                     <div>
@@ -513,14 +520,14 @@ export default function DashboardPage() {
                 ) : (
                   <Card className="border-2 border-dashed border-muted-foreground/20 bg-muted/10">
                     <CardContent className="py-16 text-center">
-                      <div className="mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-600/10 to-indigo-600/10 p-6 w-fit">
+                      <div className="mx-auto mb-6 rounded-2xl bg-linear-to-br from-purple-600/10 to-indigo-600/10 p-6 w-fit">
                         <Award className="h-12 w-12 text-primary" />
                       </div>
                       <CardTitle className="text-2xl mb-3">Start Building Your Legacy</CardTitle>
                       <CardDescription className="text-base mb-6 max-w-md mx-auto">
                         Mint your first credential to begin building your verifiable proof portfolio on the blockchain.
                       </CardDescription>
-                      <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600">
+                      <Button size="lg" className="bg-linear-to-r from-purple-600 to-indigo-600">
                         <Sparkles className="mr-2 h-5 w-5" />
                         Mint First Achievement
                       </Button>

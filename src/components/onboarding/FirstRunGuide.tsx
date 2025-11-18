@@ -55,7 +55,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
       content: (
         <div className="space-y-6">
           <div className="relative mx-auto h-48 w-48">
-            <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 blur-2xl" />
+            <div className="absolute inset-0 animate-pulse rounded-full bg-linear-to-br from-purple-500/20 to-indigo-500/20 blur-2xl" />
             <div className="relative flex h-full w-full items-center justify-center">
               <Rocket className="h-24 w-24 text-purple-600" />
             </div>
@@ -63,7 +63,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
 
           <div className="space-y-4 text-center">
             <h3 className="text-2xl font-bold">
-              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 Build Trust. Get Funded. Scale Fast.
               </span>
             </h3>
@@ -115,7 +115,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
       content: (
         <div className="space-y-6">
           <div className="relative mx-auto h-32 w-32">
-            <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 blur-xl" />
+            <div className="absolute inset-0 animate-pulse rounded-full bg-linear-to-br from-amber-500/20 to-orange-500/20 blur-xl" />
             <div className="relative flex h-full w-full items-center justify-center">
               <Trophy className="h-20 w-20 text-amber-600" />
             </div>
@@ -160,7 +160,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
             </div>
           </div>
 
-          <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
+          <Card className="border-amber-500/20 bg-linear-to-br from-amber-500/5 to-orange-500/5">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-sm">
                 <Zap className="h-4 w-4 text-amber-600" />
@@ -188,7 +188,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
       content: (
         <div className="space-y-6">
           <div className="relative mx-auto h-32 w-32">
-            <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 blur-xl" />
+            <div className="absolute inset-0 animate-pulse rounded-full bg-linear-to-br from-blue-500/20 to-cyan-500/20 blur-xl" />
             <div className="relative flex h-full w-full items-center justify-center">
               <FileText className="h-20 w-20 text-blue-600" />
             </div>
@@ -259,7 +259,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
       content: (
         <div className="space-y-6">
           <div className="relative mx-auto h-32 w-32">
-            <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 blur-xl" />
+            <div className="absolute inset-0 animate-pulse rounded-full bg-linear-to-br from-green-500/20 to-emerald-500/20 blur-xl" />
             <div className="relative flex h-full w-full items-center justify-center">
               <DollarSign className="h-20 w-20 text-green-600" />
             </div>
@@ -273,7 +273,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
           </div>
 
           <div className="space-y-3">
-            <Card className="border-green-500/20 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
+            <Card className="border-green-500/20 bg-linear-to-r from-green-500/5 to-emerald-500/5">
               <CardContent className="flex items-center justify-between p-4">
                 <div>
                   <p className="font-medium">On-Chain Settlement</p>
@@ -283,7 +283,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
               </CardContent>
             </Card>
 
-            <Card className="border-green-500/20 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
+            <Card className="border-green-500/20 bg-linear-to-r from-green-500/5 to-emerald-500/5">
               <CardContent className="flex items-center justify-between p-4">
                 <div>
                   <p className="font-medium">Revenue Attestations</p>
@@ -293,7 +293,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
               </CardContent>
             </Card>
 
-            <Card className="border-green-500/20 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
+            <Card className="border-green-500/20 bg-linear-to-r from-green-500/5 to-emerald-500/5">
               <CardContent className="flex items-center justify-between p-4">
                 <div>
                   <p className="font-medium">Auto-Reconciliation</p>
@@ -322,7 +322,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
       content: (
         <div className="space-y-6">
           <div className="relative mx-auto h-32 w-32">
-            <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 blur-xl" />
+            <div className="absolute inset-0 animate-pulse rounded-full bg-linear-to-br from-purple-500/20 to-pink-500/20 blur-xl" />
             <div className="relative flex h-full w-full items-center justify-center">
               <Globe className="h-20 w-20 text-purple-600" />
             </div>
@@ -336,7 +336,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
           </div>
 
           <Card className="overflow-hidden border-purple-500/20">
-            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 p-4">
+            <div className="bg-linear-to-br from-purple-500/10 to-pink-500/10 p-4">
               <div className="rounded-lg bg-background/80 p-4">
                 <p className="mb-2 text-sm font-medium text-muted-foreground">Your verify URL:</p>
                 <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
@@ -358,7 +358,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
             </div>
           </div>
 
-          <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+          <Card className="border-purple-500/20 bg-linear-to-br from-purple-500/5 to-pink-500/5">
             <CardContent className="p-4">
               <div className="flex items-start gap-2">
                 <Sparkles className="mt-0.5 h-4 w-4 text-purple-600" />
@@ -533,7 +533,7 @@ export function FirstRunGuide({ isOpen: controlledIsOpen, onClose }: FirstRunGui
                   onClick={handleNext}
                   className={`${
                     currentStep === steps.length - 1
-                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                      ? "bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                       : ""
                   }`}
                 >

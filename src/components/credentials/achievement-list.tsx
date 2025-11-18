@@ -51,8 +51,8 @@ export function AchievementList({
   return (
     <div className="space-y-6">
       {sorted.map((achievement) => (
-        <Card key={achievement.id || achievement.achievementId || achievement._id} className="border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5 overflow-hidden hover:shadow-lg transition-all">
-          <div className="h-1 bg-gradient-to-r from-primary via-purple-500 to-primary" />
+        <Card key={achievement.id ?? achievement.hash} className="border-2 border-primary/20 bg-linear-to-br from-background to-primary/5 overflow-hidden hover:shadow-lg transition-all">
+          <div className="h-1 bg-linear-to-r from-primary via-purple-500 to-primary" />
           <CardHeader className="pb-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-2">
@@ -67,7 +67,7 @@ export function AchievementList({
                 </div>
                 <CardTitle className="text-2xl font-bold">{achievement.title}</CardTitle>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 shadow-lg">
                 <Award className="h-8 w-8 text-primary" />
               </div>
             </div>

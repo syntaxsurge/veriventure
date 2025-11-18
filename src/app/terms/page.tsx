@@ -230,10 +230,10 @@ For enterprise inquiries: enterprise@veriventure.xyz`
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background">
+    <div className="min-h-screen bg-linear-to-b from-background via-background/95 to-background">
       {/* Hero Section */}
       <div className="relative border-b">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 via-transparent to-slate-700/5" />
+        <div className="absolute inset-0 bg-linear-to-br from-slate-500/5 via-transparent to-slate-700/5" />
 
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <motion.div

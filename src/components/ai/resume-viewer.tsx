@@ -145,7 +145,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
       {/* Main Resume Preview */}
       <div className="space-y-6">
         {/* Resume Paper - Modern Design */}
-        <Card className="border-2 shadow-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+        <Card className="border-2 shadow-2xl overflow-hidden bg-linear-to-br from-slate-50 to-white">
           <CardContent className="p-8">
             <div
               className="relative mx-auto w-full overflow-hidden rounded-xl border-4 border-white bg-white shadow-2xl"
@@ -153,8 +153,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
             >
               <div className="flex h-full flex-col overflow-y-auto bg-white">
                 {/* Modern Header with Gradient */}
-                <header className="relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-10 py-8 text-white">
-                  <div className="absolute top-0 right-0 h-full w-1/3 bg-gradient-to-l from-primary/20 to-transparent" />
+                <header className="relative bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 px-10 py-8 text-white">
+                  <div className="absolute top-0 right-0 h-full w-1/3 bg-linear-to-l from-primary/20 to-transparent" />
 
                   <div className="relative flex items-start justify-between gap-8">
                     <div className="flex-1 space-y-3">
@@ -212,7 +212,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                             {resolvedResume.skills.map((skill) => (
                               <span
                                 key={skill}
-                                className="inline-flex items-center rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 px-3 py-1.5 text-[10px] font-semibold text-slate-700 shadow-sm"
+                                className="inline-flex items-center rounded-lg bg-linear-to-r from-primary/10 to-primary/5 border border-primary/20 px-3 py-1.5 text-[10px] font-semibold text-slate-700 shadow-sm"
                               >
                                 {skill}
                               </span>
@@ -236,8 +236,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                                 key={`${section.heading}-${index.toString()}`}
                                 className="flex gap-3 group"
                               >
-                                <div className="mt-1.5 flex-shrink-0">
-                                  <div className="h-2 w-2 rounded-full bg-gradient-to-br from-primary to-primary/60" />
+                                <div className="mt-1.5 shrink-0">
+                                  <div className="h-2 w-2 rounded-full bg-linear-to-br from-primary to-primary/60" />
                                 </div>
                                 <p className="flex-1 text-xs leading-relaxed text-slate-700">
                                   {bullet}
@@ -252,7 +252,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
                 </main>
 
                 {/* Modern Footer Accent */}
-                <div className="h-2 bg-gradient-to-r from-primary via-purple-500 to-primary" />
+                <div className="h-2 bg-linear-to-r from-primary via-purple-500 to-primary" />
               </div>
             </div>
 
@@ -268,7 +268,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
       {/* Sidebar Actions */}
       <div className="space-y-6">
         {/* Photo Upload */}
-        <Card className="border-2 bg-gradient-to-br from-primary/5 to-transparent">
+        <Card className="border-2 bg-linear-to-br from-primary/5 to-transparent">
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="resume-photo" className="flex items-center gap-2 text-sm font-bold">
@@ -315,7 +315,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
         </Card>
 
         {/* Actions */}
-        <Card className="border-2 bg-gradient-to-br from-slate-50 to-white">
+        <Card className="border-2 bg-linear-to-br from-slate-50 to-white">
           <CardContent className="p-6 space-y-4">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />

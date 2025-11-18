@@ -182,7 +182,7 @@ export default function ConnectWalletPage() {
             >
               Connect Your Wallet
               <br />
-              <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient">
+              <span className="bg-linear-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient">
                 to Continue
               </span>
             </motion.h1>
@@ -229,7 +229,7 @@ export default function ConnectWalletPage() {
                         }}
                       >
                         <div className={`
-                          flex-shrink-0 h-12 w-12 rounded-xl flex items-center justify-center
+                          shrink-0 h-12 w-12 rounded-xl flex items-center justify-center
                           ${step.status === "complete"
                             ? "bg-primary/20 text-primary"
                             : step.status === "active"
@@ -264,7 +264,7 @@ export default function ConnectWalletPage() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-destructive">{error}</p>
                       <p className="text-xs text-destructive/80 mt-1">Please try connecting again</p>
@@ -315,7 +315,7 @@ export default function ConnectWalletPage() {
                   transition={{ duration: 0.6, delay: 1.0 }}
                 >
                   <div className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <div>
                       <p className="font-medium text-foreground mb-1">Safe & Secure</p>
                       <p className="text-xs leading-relaxed">

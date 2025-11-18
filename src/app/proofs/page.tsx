@@ -67,11 +67,11 @@ function ProofCard({ proof, onToggleFeatured }: ProofCardProps) {
       whileHover={{ y: -4 }}
     >
       <Card className={`group relative border-2 overflow-hidden transition-all hover:border-primary/50 hover:shadow-xl ${proof.featured ? "ring-2 ring-primary/20" : ""}`}>
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradients[proof.type]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+        <div className={`absolute inset-0 bg-linear-to-br ${gradients[proof.type]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
         <CardHeader className="relative flex flex-row items-start justify-between space-y-0 pb-4">
           <div className="flex items-start gap-4 flex-1">
-            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 transition-all group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
+            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5 transition-all group-hover:scale-110 group-hover:rotate-3 shadow-sm`}>
               <Icon className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1 space-y-2">
@@ -144,7 +144,7 @@ function EmptyState({ type }: { type?: string }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+      <Card className="border-2 border-dashed border-primary/30 bg-linear-to-br from-primary/5 to-transparent">
         <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
           <div className="p-4 rounded-full bg-primary/10 mb-4">
             <Info className="h-8 w-8 text-primary" />
@@ -334,7 +334,7 @@ export default function ProofsPage() {
             transition={{ duration: 0.5 }}
             className="grid gap-4 md:grid-cols-4"
           >
-            <Card className="border-2 bg-gradient-to-br from-yellow-500/10 to-orange-500/5">
+            <Card className="border-2 bg-linear-to-br from-yellow-500/10 to-orange-500/5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -348,7 +348,7 @@ export default function ProofsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 bg-gradient-to-br from-blue-500/10 to-cyan-500/5">
+            <Card className="border-2 bg-linear-to-br from-blue-500/10 to-cyan-500/5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -362,7 +362,7 @@ export default function ProofsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 bg-gradient-to-br from-green-500/10 to-emerald-500/5">
+            <Card className="border-2 bg-linear-to-br from-green-500/10 to-emerald-500/5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -376,7 +376,7 @@ export default function ProofsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 bg-gradient-to-br from-purple-500/10 to-pink-500/5">
+            <Card className="border-2 bg-linear-to-br from-purple-500/10 to-pink-500/5">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>

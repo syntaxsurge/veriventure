@@ -218,35 +218,35 @@
 
   /* Fix button contrast issues in dark mode */
   .dark button[class*="bg-gradient"] {
-    @apply text-white !important;
+    @apply !text-white;
   }
 
   /* Ensure gradient buttons have proper text contrast */
   button[class*="from-purple"] {
-    @apply text-white !important;
+    @apply !text-white;
   }
 
   button[class*="from-indigo"] {
-    @apply text-white !important;
+    @apply !text-white;
   }
 
   /* Fix badge contrast in light/dark modes */
   .dark .badge-contrast {
-    @apply bg-slate-700 text-white !important;
+    @apply !bg-slate-700 !text-white;
   }
 
   .badge-contrast {
-    @apply bg-slate-800 text-white !important;
+    @apply !bg-slate-800 !text-white;
   }
 
   /* Ensure floating elements don't overlap content */
   .floating-achievements {
-    @apply fixed right-4 top-24 z-40 max-w-sm !important;
+    @apply !fixed !right-4 !top-24 !z-40 !max-w-sm;
   }
 
   /* Prevent hover flickering */
   .no-flicker {
-    @apply transform-gpu will-change-transform !important;
+    @apply !transform-gpu !will-change-transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }

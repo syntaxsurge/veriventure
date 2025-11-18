@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
     const userId = request.headers.get('x-user-id') || undefined;
     const sessionId = request.cookies.get('session')?.value || undefined;
 
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const realIp = request.headers.get('x-real-ip');
+    const ipAddress = forwardedFor?.split(',')[0]?.trim() || realIp || 'unknown';
+
     // Enrich error report
     const enrichedReport: ErrorReport = {
       ...body,
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
       timestamp: body.timestamp || new Date().toISOString(),
       metadata: {
         ...body.metadata,
-        ip: request.ip || request.headers.get('x-forwarded-for') || 'unknown',
+        ip: ipAddress,
         referer: request.headers.get('referer') || 'direct',
       },
     };
@@ -62,7 +66,9 @@ export async function POST(request: NextRequest) {
     // Store error (with size limit)
     if (recentErrors.size >= MAX_STORED_ERRORS) {
       const firstKey = recentErrors.keys().next().value;
-      recentErrors.delete(firstKey);
+      if (firstKey) {
+        recentErrors.delete(firstKey);
+      }
     }
     recentErrors.set(body.errorId, enrichedReport);
 

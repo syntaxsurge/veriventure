@@ -180,12 +180,15 @@ const getEndpointConfig = (pathname: string): RateLimitConfig => {
 const createRateLimitResponse = (
   message: string,
   rateLimiterRes?: RateLimiterRes,
-  tier?: string
+  tier?: string,
+  limit?: number
 ): NextResponse => {
   const headers = new Headers();
 
   if (rateLimiterRes) {
-    headers.set(RATE_LIMIT_HEADERS.limit, rateLimiterRes.points.toString());
+    if (typeof limit === "number") {
+      headers.set(RATE_LIMIT_HEADERS.limit, limit.toString());
+    }
     headers.set(RATE_LIMIT_HEADERS.remaining, rateLimiterRes.remainingPoints.toString());
     headers.set(RATE_LIMIT_HEADERS.reset, new Date(Date.now() + rateLimiterRes.msBeforeNext).toISOString());
     headers.set(RATE_LIMIT_HEADERS.retryAfter, Math.round(rateLimiterRes.msBeforeNext / 1000).toString());
@@ -231,7 +234,12 @@ export async function rateLimitMiddleware(req: NextRequest): Promise<NextRespons
       try {
         await ipGlobalLimiter.consume(clientIp);
       } catch (rateLimiterRes) {
-        return createRateLimitResponse(RATE_LIMIT_MESSAGES.ipBlocked, rateLimiterRes as RateLimiterRes);
+        return createRateLimitResponse(
+          RATE_LIMIT_MESSAGES.ipBlocked,
+          rateLimiterRes as RateLimiterRes,
+          undefined,
+          ipGlobalLimiter.points
+        );
       }
     }
 
@@ -239,7 +247,12 @@ export async function rateLimitMiddleware(req: NextRequest): Promise<NextRespons
       try {
         await ipBurstLimiter.consume(clientIp);
       } catch (rateLimiterRes) {
-        return createRateLimitResponse(RATE_LIMIT_MESSAGES.tooManyRequests, rateLimiterRes as RateLimiterRes);
+        return createRateLimitResponse(
+          RATE_LIMIT_MESSAGES.tooManyRequests,
+          rateLimiterRes as RateLimiterRes,
+          undefined,
+          ipBurstLimiter.points
+        );
       }
     }
 
@@ -255,7 +268,12 @@ export async function rateLimitMiddleware(req: NextRequest): Promise<NextRespons
         const message = userTier === 'anonymous' || userTier === 'free'
           ? RATE_LIMIT_MESSAGES.upgradeRequired
           : RATE_LIMIT_MESSAGES.tooManyRequests;
-        return createRateLimitResponse(message, rateLimiterRes as RateLimiterRes, userTier);
+        return createRateLimitResponse(
+          message,
+          rateLimiterRes as RateLimiterRes,
+          userTier,
+          tierLimiter.points
+        );
       }
     }
 
@@ -289,7 +307,7 @@ export async function rateLimitMiddleware(req: NextRequest): Promise<NextRespons
           // Add rate limit info to response headers (for successful requests)
           if (req.headers.get('x-include-rate-limit-info') === 'true') {
             const headers = new Headers();
-            headers.set(RATE_LIMIT_HEADERS.limit, rateLimiterRes.points.toString());
+            headers.set(RATE_LIMIT_HEADERS.limit, limiter.points.toString());
             headers.set(RATE_LIMIT_HEADERS.remaining, rateLimiterRes.remainingPoints.toString());
             headers.set(RATE_LIMIT_HEADERS.reset, new Date(Date.now() + rateLimiterRes.msBeforeNext).toISOString());
             headers.set(RATE_LIMIT_HEADERS.tier, userTier);
@@ -308,7 +326,12 @@ export async function rateLimitMiddleware(req: NextRequest): Promise<NextRespons
             message = RATE_LIMIT_MESSAGES.uploadLimit;
           }
 
-          return createRateLimitResponse(message, rateLimiterRes as RateLimiterRes, userTier);
+          return createRateLimitResponse(
+            message,
+            rateLimiterRes as RateLimiterRes,
+            userTier,
+            limiter.points
+          );
         }
       }
     }

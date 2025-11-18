@@ -302,7 +302,7 @@ export function RateLimitDashboard() {
       </Card>
 
       {/* Tips Card */}
-      <Card className="bg-gradient-to-br from-purple-500/5 to-indigo-500/5">
+      <Card className="bg-linear-to-br from-purple-500/5 to-indigo-500/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5" />
@@ -352,7 +352,7 @@ export function RateLimitDashboard() {
                 Upgrade to a higher plan for increased rate limits and priority support
               </p>
             </div>
-            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600">
+            <Button className="bg-linear-to-r from-purple-600 to-indigo-600">
               Upgrade Plan
               <TrendingUp className="ml-2 h-4 w-4" />
             </Button>

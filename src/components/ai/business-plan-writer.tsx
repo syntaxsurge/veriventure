@@ -179,10 +179,10 @@ export function BusinessPlanWriter() {
   return (
     <div className="space-y-8">
       {/* Hero Card */}
-      <Card className="border-2 bg-gradient-to-br from-blue-500/5 via-background to-background shadow-lg">
+      <Card className="border-2 bg-linear-to-br from-blue-500/5 via-background to-background shadow-lg">
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 flex-shrink-0">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500/20 to-blue-600/10 shrink-0">
               <FileText className="h-7 w-7 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1">

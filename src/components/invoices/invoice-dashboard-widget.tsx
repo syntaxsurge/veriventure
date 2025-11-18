@@ -54,10 +54,10 @@ export function InvoiceDashboardWidget() {
   if (!address) return null;
 
   return (
-    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden">
+    <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 via-background to-background overflow-hidden">
       <CardHeader className="space-y-4">
         <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 shadow-lg">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 shadow-lg">
             <Receipt className="h-7 w-7 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
@@ -84,7 +84,7 @@ export function InvoiceDashboardWidget() {
             {/* Stats Grid - Now Full Width */}
             <div className="grid gap-4">
               {/* Total Issued */}
-              <div className="rounded-xl border-2 bg-gradient-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/10 p-5 transition-all hover:shadow-lg hover:border-green-300/50">
+              <div className="rounded-xl border-2 bg-linear-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/10 p-5 transition-all hover:shadow-lg hover:border-green-300/50">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -92,7 +92,7 @@ export function InvoiceDashboardWidget() {
                     </div>
                     <p className="text-4xl font-bold text-green-700 dark:text-green-400">{stats.issued.total}</p>
                   </div>
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center shadow-sm">
+                  <div className="h-14 w-14 rounded-2xl bg-linear-to-br from-green-500/20 to-green-500/5 flex items-center justify-center shadow-sm">
                     <ArrowUpRight className="h-7 w-7 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
@@ -108,7 +108,7 @@ export function InvoiceDashboardWidget() {
               </div>
 
               {/* Revenue */}
-              <div className="rounded-xl border-2 bg-gradient-to-br from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10 p-5 transition-all hover:shadow-lg hover:border-blue-300/50">
+              <div className="rounded-xl border-2 bg-linear-to-br from-blue-50/50 to-cyan-50/30 dark:from-blue-950/20 dark:to-cyan-950/10 p-5 transition-all hover:shadow-lg hover:border-blue-300/50">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -121,7 +121,7 @@ export function InvoiceDashboardWidget() {
                       <span className="text-lg font-semibold text-muted-foreground">DEV</span>
                     </div>
                   </div>
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center shadow-sm">
+                  <div className="h-14 w-14 rounded-2xl bg-linear-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center shadow-sm">
                     <TrendingUp className="h-7 w-7 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
@@ -133,7 +133,7 @@ export function InvoiceDashboardWidget() {
               </div>
 
               {/* Pending Payments */}
-              <div className="rounded-xl border-2 bg-gradient-to-br from-orange-50/50 to-amber-50/30 dark:from-orange-950/20 dark:to-amber-950/10 p-5 transition-all hover:shadow-lg hover:border-orange-300/50">
+              <div className="rounded-xl border-2 bg-linear-to-br from-orange-50/50 to-amber-50/30 dark:from-orange-950/20 dark:to-amber-950/10 p-5 transition-all hover:shadow-lg hover:border-orange-300/50">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -141,7 +141,7 @@ export function InvoiceDashboardWidget() {
                     </div>
                     <p className="text-4xl font-bold text-orange-700 dark:text-orange-400">{stats.received.pending}</p>
                   </div>
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-500/5 flex items-center justify-center shadow-sm">
+                  <div className="h-14 w-14 rounded-2xl bg-linear-to-br from-orange-500/20 to-orange-500/5 flex items-center justify-center shadow-sm">
                     <Clock className="h-7 w-7 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>

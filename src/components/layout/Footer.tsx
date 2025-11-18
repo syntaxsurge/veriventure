@@ -68,9 +68,9 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative mt-auto border-t bg-gradient-to-b from-background to-background/95">
+    <footer className="relative mt-auto border-t bg-linear-to-b from-background to-background/95">
       {/* Newsletter Section */}
-      <div className="border-b bg-gradient-to-br from-purple-500/5 via-transparent to-indigo-500/5">
+      <div className="border-b bg-linear-to-br from-purple-500/5 via-transparent to-indigo-500/5">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -81,7 +81,7 @@ export function Footer() {
           >
             <div className="mx-auto max-w-2xl">
               <h2 className="text-2xl font-bold">
-                <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                   Stay Updated
                 </span>
               </h2>
@@ -96,7 +96,7 @@ export function Footer() {
                   className="flex-1"
                   required
                 />
-                <Button type="submit" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+                <Button type="submit" className="bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
                   Subscribe
                   <Send className="ml-2 h-4 w-4" />
                 </Button>
@@ -123,8 +123,8 @@ export function Footer() {
           >
             <div className="flex items-center gap-2">
               <div className="relative">
-                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 opacity-75 blur" />
-                <div className="relative rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 p-2">
+                <div className="absolute inset-0 rounded-lg bg-linear-to-br from-purple-600 to-indigo-600 opacity-75 blur" />
+                <div className="relative rounded-lg bg-linear-to-br from-purple-600 to-indigo-600 p-2">
                   <Sparkles className="h-5 w-5 text-white" />
                 </div>
               </div>

@@ -61,10 +61,10 @@ export function DkgActivityFeed({ notes, assets }: Props) {
     <div className="space-y-12">
       {/* Truth Alignment Community Notes Section */}
       <section className="space-y-6">
-        <Card className="border-2 bg-gradient-to-br from-green-500/5 via-background to-background shadow-lg">
+        <Card className="border-2 bg-linear-to-br from-green-500/5 via-background to-background shadow-lg">
           <CardHeader className="pb-4">
             <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/10 flex-shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-green-500/20 to-green-600/10 shrink-0">
                 <BookOpen className="h-7 w-7 text-green-600 dark:text-green-400" />
               </div>
               <div className="flex-1">
@@ -113,7 +113,7 @@ export function DkgActivityFeed({ notes, assets }: Props) {
                       <CardTitle className="text-lg font-bold flex-1">
                         {note.topic}
                       </CardTitle>
-                      <Badge variant="outline" className="flex-shrink-0">
+                      <Badge variant="outline" className="shrink-0">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Published
                       </Badge>
@@ -158,7 +158,7 @@ export function DkgActivityFeed({ notes, assets }: Props) {
                                   rel="noreferrer"
                                   className="break-all text-xs"
                                 >
-                                  <ExternalLink className="h-3 w-3 mr-2 flex-shrink-0" />
+                                  <ExternalLink className="h-3 w-3 mr-2 shrink-0" />
                                   <span className="flex-1">{ref}</span>
                                 </a>
                               </Button>
@@ -168,7 +168,7 @@ export function DkgActivityFeed({ notes, assets }: Props) {
                       </div>
                     )}
 
-                    <div className="space-y-3 rounded-lg border-2 bg-gradient-to-br from-muted/50 to-muted/20 p-4">
+                    <div className="space-y-3 rounded-lg border-2 bg-linear-to-br from-muted/50 to-muted/20 p-4">
                       <div>
                         <p className="text-xs font-semibold mb-2 uppercase tracking-wide text-muted-foreground">
                           Universal Asset Locator
@@ -182,7 +182,7 @@ export function DkgActivityFeed({ notes, assets }: Props) {
                             variant="outline"
                             size="sm"
                             onClick={() => copyToClipboard(note.ual, note.id)}
-                            className="flex-shrink-0"
+                            className="shrink-0"
                           >
                             {isCopied ? (
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -234,10 +234,10 @@ export function DkgActivityFeed({ notes, assets }: Props) {
 
       {/* AI Copilot DKG Assets Section */}
       <section className="space-y-6">
-        <Card className="border-2 bg-gradient-to-br from-blue-500/5 via-background to-background shadow-lg">
+        <Card className="border-2 bg-linear-to-br from-blue-500/5 via-background to-background shadow-lg">
           <CardHeader className="pb-4">
             <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 flex-shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-blue-500/20 to-blue-600/10 shrink-0">
                 <FileText className="h-7 w-7 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="flex-1">
@@ -302,7 +302,7 @@ export function DkgActivityFeed({ notes, assets }: Props) {
                       {asset.summary}
                     </p>
 
-                    <div className="space-y-3 rounded-lg border-2 bg-gradient-to-br from-muted/50 to-muted/20 p-3">
+                    <div className="space-y-3 rounded-lg border-2 bg-linear-to-br from-muted/50 to-muted/20 p-3">
                       <div>
                         <p className="text-[10px] font-semibold mb-2 uppercase tracking-wide text-muted-foreground">
                           UAL
@@ -316,7 +316,7 @@ export function DkgActivityFeed({ notes, assets }: Props) {
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(asset.ual, asset.id)}
-                            className="flex-shrink-0 h-7 w-7 p-0"
+                            className="shrink-0 h-7 w-7 p-0"
                           >
                             {isCopied ? (
                               <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />

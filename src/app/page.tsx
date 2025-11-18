@@ -181,7 +181,13 @@ const techStack = [
 ];
 
 // Comparison table
-const comparisonData = [
+type ComparisonEntry = {
+  feature: string;
+  veriventure: boolean | "partial";
+  traditional: boolean | "partial";
+};
+
+const comparisonData: ComparisonEntry[] = [
   { feature: "Verifiable Achievements", veriventure: true, traditional: false },
   { feature: "AI-Powered Tools", veriventure: true, traditional: "partial" },
   { feature: "Blockchain Integration", veriventure: true, traditional: false },
@@ -288,7 +294,7 @@ export default function LandingPage() {
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
         <AnimatedGradientBg />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-background to-blue-900/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-900/20 via-background to-blue-900/20" />
         {particles.map((particle) => (
           <motion.div
             key={particle.id}
@@ -320,7 +326,7 @@ export default function LandingPage() {
           style={{ y, opacity }}
           className="absolute inset-0"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-600/10 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-b from-purple-600/10 via-transparent to-transparent" />
         </motion.div>
 
         <div className="relative z-10 mx-auto max-w-7xl text-center">
@@ -357,7 +363,7 @@ export default function LandingPage() {
                 Build Trust.
               </motion.span>
               <motion.span
-                className="block bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent"
+                className="block bg-linear-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
@@ -395,7 +401,7 @@ export default function LandingPage() {
                 {({ openConnectModal }) => (
                   <Button
                     size="lg"
-                    className="h-14 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-xl shadow-purple-500/25 transition-all hover:scale-105"
+                    className="h-14 px-8 text-lg bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-xl shadow-purple-500/25 transition-all hover:scale-105"
                     onClick={openConnectModal}
                   >
                     <Wallet className="mr-2 h-5 w-5" />
@@ -486,7 +492,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section - Enhanced with Animation */}
-      <section className="relative py-20 px-4 bg-gradient-to-b from-transparent via-muted/50 to-transparent">
+      <section className="relative py-20 px-4 bg-linear-to-b from-transparent via-muted/50 to-transparent">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -506,11 +512,11 @@ export default function LandingPage() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-500/20 to-indigo-500/20 mb-4">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-purple-500/20 to-indigo-500/20 mb-4">
                       <Icon className="h-8 w-8 text-purple-600" />
                     </div>
                     <div className="text-3xl font-bold sm:text-4xl lg:text-5xl">
-                      <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                         {stat.prefix}
                         <CountUp
                           end={stat.value}
@@ -547,7 +553,7 @@ export default function LandingPage() {
             </Badge>
             <h2 className="text-4xl font-bold sm:text-5xl lg:text-6xl">
               Everything You Need to{" "}
-              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 Succeed
               </span>
             </h2>
@@ -566,7 +572,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
                 <Card className="group relative h-full overflow-hidden transition-all hover:shadow-2xl hover:scale-105 hover:-translate-y-2">
-                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity group-hover:opacity-10", feature.bg)} />
+                  <div className={cn("absolute inset-0 bg-linear-to-br opacity-5 transition-opacity group-hover:opacity-10", feature.bg)} />
 
                   {/* Stats Badge - Fixed contrast */}
                   <div className="absolute top-4 right-4">
@@ -576,7 +582,7 @@ export default function LandingPage() {
                   </div>
 
                   <CardHeader>
-                    <div className={cn("mb-4 inline-flex rounded-xl p-3 bg-gradient-to-br transition-all group-hover:scale-110", feature.bg)}>
+                    <div className={cn("mb-4 inline-flex rounded-xl p-3 bg-linear-to-br transition-all group-hover:scale-110", feature.bg)}>
                       <feature.icon className="h-6 w-6" />
                     </div>
                     <CardTitle className="text-xl">{feature.title}</CardTitle>
@@ -624,7 +630,7 @@ export default function LandingPage() {
       </section>
 
       {/* Interactive Demo Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-b from-background via-muted/50 to-background">
+      <section className="relative py-20 px-4 bg-linear-to-b from-background via-muted/50 to-background">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -638,7 +644,7 @@ export default function LandingPage() {
               Live Demo
             </Badge>
             <h2 className="text-4xl font-bold sm:text-5xl">
-              See VeriVenture in <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Action</span>
+              See VeriVenture in <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Action</span>
             </h2>
           </motion.div>
 
@@ -651,25 +657,25 @@ export default function LandingPage() {
             <Card className="overflow-hidden">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 h-auto p-1">
-                  <TabsTrigger value="features" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
+                  <TabsTrigger value="features" className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Features
                   </TabsTrigger>
-                  <TabsTrigger value="process" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
+                  <TabsTrigger value="process" className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
                     <Activity className="mr-2 h-4 w-4" />
                     Process
                   </TabsTrigger>
-                  <TabsTrigger value="usecases" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
+                  <TabsTrigger value="usecases" className="data-[state=active]:bg-linear-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
                     <Briefcase className="mr-2 h-4 w-4" />
                     Use Cases
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="features" className="p-6">
-                  <div className="aspect-video rounded-lg bg-gradient-to-br from-purple-500/10 to-indigo-500/10 flex items-center justify-center">
+                  <div className="aspect-video rounded-lg bg-linear-to-br from-purple-500/10 to-indigo-500/10 flex items-center justify-center">
                     <Button
                       size="lg"
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600"
+                      className="bg-linear-to-r from-purple-600 to-indigo-600"
                       onClick={() => setIsVideoPlaying(true)}
                     >
                       <Play className="mr-2 h-5 w-5" />
@@ -689,8 +695,8 @@ export default function LandingPage() {
                         transition={{ duration: 0.5, delay: idx * 0.1 }}
                         className="flex gap-6 items-start"
                       >
-                        <div className="flex-shrink-0">
-                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold">
+                        <div className="shrink-0">
+                          <div className="h-12 w-12 rounded-full bg-linear-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold">
                             {step.number}
                           </div>
                         </div>
@@ -723,7 +729,7 @@ export default function LandingPage() {
                         <Card className="h-full hover:shadow-lg transition-all">
                           <CardHeader>
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center">
+                              <div className="h-10 w-10 rounded-lg bg-linear-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center">
                                 <useCase.icon className="h-6 w-6 text-purple-600" />
                               </div>
                               <div>
@@ -768,7 +774,7 @@ export default function LandingPage() {
               Platform Comparison
             </Badge>
             <h2 className="text-4xl font-bold sm:text-5xl">
-              Why <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">VeriVenture</span> Wins
+              Why <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">VeriVenture</span> Wins
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
               See how we stack up against traditional platforms
@@ -785,12 +791,12 @@ export default function LandingPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-gradient-to-r from-purple-500/5 to-indigo-500/5">
+                    <tr className="border-b bg-linear-to-r from-purple-500/5 to-indigo-500/5">
                       <th className="px-6 py-4 text-left font-semibold">Feature</th>
                       <th className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Sparkles className="h-4 w-4 text-purple-600" />
-                          <span className="font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                          <span className="font-semibold bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                             VeriVenture
                           </span>
                         </div>
@@ -847,7 +853,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials - Enhanced with Company Info */}
-      <section className="relative py-20 px-4 bg-gradient-to-b from-background via-muted/50 to-background">
+      <section className="relative py-20 px-4 bg-linear-to-b from-background via-muted/50 to-background">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -861,7 +867,7 @@ export default function LandingPage() {
               Testimonials
             </Badge>
             <h2 className="text-4xl font-bold sm:text-5xl">
-              Loved by <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Founders</span>
+              Loved by <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Founders</span>
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
               Join thousands of entrepreneurs building verifiable businesses
@@ -888,7 +894,7 @@ export default function LandingPage() {
                     <p className="mb-4 text-muted-foreground flex-1">"{testimonial.content}"</p>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-semibold">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-600 to-indigo-600 text-white font-semibold">
                           {testimonial.avatar}
                         </div>
                         <div>
@@ -924,7 +930,7 @@ export default function LandingPage() {
               Technology Stack
             </Badge>
             <h2 className="text-4xl font-bold sm:text-5xl">
-              Built on <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Battle-Tested Tech</span>
+              Built on <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Battle-Tested Tech</span>
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
               Enterprise-grade infrastructure for your entrepreneurial journey
@@ -941,7 +947,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
               >
                 <Card className="group h-full text-center transition-all hover:shadow-2xl cursor-pointer overflow-hidden hover:-translate-y-1">
-                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300", tech.color)} />
+                  <div className={cn("absolute inset-0 bg-linear-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300", tech.color)} />
                   <CardContent className="relative p-6">
                     <div className="mb-2 text-4xl transform transition-transform group-hover:scale-110">
                       {tech.icon}
@@ -957,9 +963,9 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section - Polkadot Ecosystem Style */}
-      <section id="pricing" className="relative py-20 px-4 bg-gradient-to-b from-background via-muted/30 to-background">
+      <section id="pricing" className="relative py-20 px-4 bg-linear-to-b from-background via-muted/30 to-background">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-transparent to-indigo-600/5" />
+          <div className="absolute inset-0 bg-linear-to-r from-purple-600/5 via-transparent to-indigo-600/5" />
         </div>
 
         <div className="relative mx-auto max-w-7xl">
@@ -975,7 +981,7 @@ export default function LandingPage() {
               Pricing Plans
             </Badge>
             <h2 className="text-4xl font-bold sm:text-5xl lg:text-6xl">
-              Choose Your <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Growth Path</span>
+              Choose Your <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Growth Path</span>
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
               Transparent pricing designed for founders at every stage. Start free, scale as you grow.
@@ -986,7 +992,7 @@ export default function LandingPage() {
               <span className={cn("text-sm font-medium", !isYearly && "text-foreground")}>Monthly</span>
               <button
                 onClick={() => setIsYearly(!isYearly)}
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-purple-600 data-[state=checked]:to-indigo-600"
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 data-[state=checked]:bg-linear-to-r data-[state=checked]:from-purple-600 data-[state=checked]:to-indigo-600"
                 data-state={isYearly ? "checked" : "unchecked"}
               >
                 <span className={cn(
@@ -1011,7 +1017,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
             >
               <Card className="relative h-full overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-700/5" />
+                <div className="absolute inset-0 bg-linear-to-br from-slate-500/5 to-slate-700/5" />
                 <CardHeader className="relative">
                   <div className="flex items-center justify-between mb-4">
                     <Badge variant="secondary">Free Forever</Badge>
@@ -1074,13 +1080,13 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="relative"
             >
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 opacity-75 blur-lg animate-pulse" />
+              <div className="absolute -inset-1 rounded-2xl bg-linear-to-r from-purple-600 to-indigo-600 opacity-75 blur-lg animate-pulse" />
               <Card className="relative h-full overflow-hidden border-0 shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-indigo-600/10" />
-                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-600 to-indigo-600" />
+                <div className="absolute inset-0 bg-linear-to-br from-purple-600/10 to-indigo-600/10" />
+                <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-purple-600 to-indigo-600" />
                 <CardHeader className="relative">
                   <div className="flex items-center justify-between mb-4">
-                    <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">Most Popular</Badge>
+                    <Badge className="bg-linear-to-r from-purple-600 to-indigo-600 text-white">Most Popular</Badge>
                     <Trophy className="h-5 w-5 text-purple-600" />
                   </div>
                   <CardTitle className="text-2xl">Pro</CardTitle>
@@ -1132,7 +1138,7 @@ export default function LandingPage() {
                       <span className="text-sm font-medium">Team collaboration (3 users)</span>
                     </li>
                   </ul>
-                  <Button className="w-full mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" size="lg" asChild>
+                  <Button className="w-full mt-6 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" size="lg" asChild>
                     <Link href="/dashboard?plan=pro">Start Free Trial</Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-3">14-day free trial • No credit card required</p>
@@ -1148,7 +1154,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <Card className="relative h-full overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all">
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-600/5" />
+                <div className="absolute inset-0 bg-linear-to-br from-amber-500/5 to-orange-600/5" />
                 <CardHeader className="relative">
                   <div className="flex items-center justify-between mb-4">
                     <Badge variant="outline" className="border-amber-500/50">Full Control</Badge>
@@ -1235,12 +1241,12 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
           >
             <Card className="relative overflow-hidden border-2 border-purple-500/20">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-indigo-600/20 to-pink-600/20" />
+              <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 via-indigo-600/20 to-pink-600/20" />
 
               {/* Animated Background Elements */}
               <div className="absolute inset-0 overflow-hidden">
                 <motion.div
-                  className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-purple-600/30 to-transparent rounded-full blur-3xl"
+                  className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-purple-600/30 to-transparent rounded-full blur-3xl"
                   animate={{
                     rotate: 360,
                     scale: [1, 1.2, 1]
@@ -1252,7 +1258,7 @@ export default function LandingPage() {
                   }}
                 />
                 <motion.div
-                  className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-indigo-600/30 to-transparent rounded-full blur-3xl"
+                  className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-tl from-indigo-600/30 to-transparent rounded-full blur-3xl"
                   animate={{
                     rotate: -360,
                     scale: [1.2, 1, 1.2]
@@ -1286,7 +1292,7 @@ export default function LandingPage() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                 >
                   Ready to Transform Your{" "}
-                  <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent">
+                  <span className="bg-linear-to-r from-purple-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent">
                     Startup Journey?
                   </span>
                 </motion.h2>
@@ -1312,7 +1318,7 @@ export default function LandingPage() {
                     {({ openConnectModal }) => (
                       <Button
                         size="lg"
-                        className="h-14 px-8 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-xl transition-all hover:scale-105"
+                        className="h-14 px-8 text-lg bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-xl transition-all hover:scale-105"
                         onClick={openConnectModal}
                       >
                         Get Started Free

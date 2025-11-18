@@ -91,7 +91,7 @@ export function BusinessPlanViewer({ planDocument }: BusinessPlanViewerProps) {
         <CardContent className="p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br from-primary/20 to-primary/5">
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
@@ -121,7 +121,7 @@ export function BusinessPlanViewer({ planDocument }: BusinessPlanViewerProps) {
       </Card>
 
       {/* Summary */}
-      <Card className="border-2 bg-gradient-to-br from-primary/5 to-transparent">
+      <Card className="border-2 bg-linear-to-br from-primary/5 to-transparent">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -161,7 +161,7 @@ export function BusinessPlanViewer({ planDocument }: BusinessPlanViewerProps) {
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3 flex-1">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 shrink-0">
                       <span className="text-sm font-bold text-primary">{index + 1}</span>
                     </div>
                     <CardTitle className="text-lg">{section.heading}</CardTitle>
@@ -217,7 +217,7 @@ export function BusinessPlanViewer({ planDocument }: BusinessPlanViewerProps) {
                 {planDocument.checksum}
               </code>
             </div>
-            <Button variant="ghost" size="sm" onClick={copyChecksum} className="flex-shrink-0">
+            <Button variant="ghost" size="sm" onClick={copyChecksum} className="shrink-0">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>
           </div>

@@ -149,12 +149,12 @@ export function DocumentList({ documents, pitchDecks = [] }: DocumentListProps) 
 
         return (
           <Card key={id} className="group relative overflow-hidden border-2 transition-all hover:shadow-xl hover:border-primary/50">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <CardContent className="relative p-6 space-y-4">
               {/* Header */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex-shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-primary/20 to-primary/5 shrink-0">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -164,7 +164,7 @@ export function DocumentList({ documents, pitchDecks = [] }: DocumentListProps) 
                     </p>
                   </div>
                 </div>
-                <Badge variant="secondary" className="flex-shrink-0 text-xs">
+                <Badge variant="secondary" className="shrink-0 text-xs">
                   {formatType(itemType)}
                 </Badge>
               </div>

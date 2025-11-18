@@ -165,10 +165,10 @@ export function TruthAlignmentLab() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <Card className="border-2 bg-gradient-to-br from-purple-500/5 via-background to-background shadow-lg">
+      <Card className="border-2 bg-linear-to-br from-purple-500/5 via-background to-background shadow-lg">
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 flex-shrink-0">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-purple-500/20 to-purple-600/10 shrink-0">
               <FlaskConical className="h-7 w-7 text-purple-600 dark:text-purple-400" />
             </div>
             <div className="flex-1">
@@ -228,7 +228,7 @@ export function TruthAlignmentLab() {
             <Card className="mt-4 border-2 border-destructive/50 bg-destructive/5">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                   <p className="text-sm text-destructive font-medium">{error}</p>
                 </div>
               </CardContent>
@@ -305,7 +305,7 @@ export function TruthAlignmentLab() {
           {/* Source Comparison */}
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="border-2">
-              <CardHeader className="bg-gradient-to-br from-blue-500/5 to-background">
+              <CardHeader className="bg-linear-to-br from-blue-500/5 to-background">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Wikipedia</CardTitle>
                   <Badge variant="outline">Human Curated</Badge>
@@ -344,7 +344,7 @@ export function TruthAlignmentLab() {
             </Card>
 
             <Card className="border-2">
-              <CardHeader className="bg-gradient-to-br from-green-500/5 to-background">
+              <CardHeader className="bg-linear-to-br from-green-500/5 to-background">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Grokipedia</CardTitle>
                   <Badge variant="outline">
@@ -387,7 +387,7 @@ export function TruthAlignmentLab() {
 
           {/* Divergences Analysis */}
           <Card className="border-2">
-            <CardHeader className="bg-gradient-to-br from-amber-500/5 to-background">
+            <CardHeader className="bg-linear-to-br from-amber-500/5 to-background">
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 Divergences & Insights
@@ -457,7 +457,7 @@ export function TruthAlignmentLab() {
           </Card>
 
           {/* Publish Community Note */}
-          <Card className="border-2 bg-gradient-to-br from-primary/5 to-background">
+          <Card className="border-2 bg-linear-to-br from-primary/5 to-background">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
@@ -532,7 +532,7 @@ export function TruthAlignmentLab() {
                             variant="outline"
                             size="sm"
                             onClick={copyUAL}
-                            className="flex-shrink-0"
+                            className="shrink-0"
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -585,7 +585,7 @@ export function TruthAlignmentLab() {
                   <Card className="border-2 border-destructive/50 bg-destructive/5">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                         <p className="text-sm text-destructive font-medium">{noteError}</p>
                       </div>
                     </CardContent>

@@ -178,7 +178,7 @@ export default function PassportPage() {
               </CardContent>
             </Card>
           ) : !userHandle ? (
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+            <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 to-background">
               <CardHeader>
                 <CardTitle>Step 1: Claim Your @handle</CardTitle>
                 <CardDescription>

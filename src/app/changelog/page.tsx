@@ -221,10 +221,10 @@ export default function ChangelogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background">
+    <div className="min-h-screen bg-linear-to-b from-background via-background/95 to-background">
       {/* Hero Section */}
       <div className="relative border-b">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-500/5 via-transparent to-blue-500/5" />
 
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <motion.div
@@ -239,7 +239,7 @@ export default function ChangelogPage() {
             </Badge>
 
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 Changelog
               </span>
             </h1>
@@ -287,7 +287,7 @@ export default function ChangelogPage() {
                       <div className="flex items-center gap-3">
                         <h2 className="text-2xl font-bold">v{entry.version}</h2>
                         <Badge
-                          className={`bg-gradient-to-r ${versionTypeConfig[entry.type].color} text-white`}
+                          className={`bg-linear-to-r ${versionTypeConfig[entry.type].color} text-white`}
                         >
                           {versionTypeConfig[entry.type].label}
                         </Badge>
@@ -379,7 +379,7 @@ export default function ChangelogPage() {
           transition={{ duration: 0.5, delay: 0.5 }}
           className="mt-12"
         >
-          <Card className="bg-gradient-to-br from-purple-500/5 to-indigo-500/5">
+          <Card className="bg-linear-to-br from-purple-500/5 to-indigo-500/5">
             <CardHeader className="text-center">
               <CardTitle>Stay Updated</CardTitle>
               <CardDescription>

@@ -170,7 +170,7 @@ Time: ${new Date().toISOString()}
 
       // Default error UI
       return (
-        <div className="min-h-screen bg-gradient-to-b from-background to-background/95 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-linear-to-b from-background to-background/95 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -315,7 +315,7 @@ Time: ${new Date().toISOString()}
 
                 {/* Report Error Section */}
                 {enableReporting && !reportSent && (
-                  <Card className="bg-gradient-to-br from-purple-500/5 to-indigo-500/5 border-dashed">
+                  <Card className="bg-linear-to-br from-purple-500/5 to-indigo-500/5 border-dashed">
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -331,7 +331,7 @@ Time: ${new Date().toISOString()}
                           size="sm"
                           onClick={this.handleReportError}
                           disabled={reportSent}
-                          className="bg-gradient-to-r from-purple-600 to-indigo-600"
+                          className="bg-linear-to-r from-purple-600 to-indigo-600"
                         >
                           {reportSent ? (
                             <>

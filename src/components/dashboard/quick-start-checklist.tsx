@@ -161,7 +161,7 @@ export function QuickStartChecklist() {
   }
 
   return (
-    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+    <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 to-background">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
