@@ -69,7 +69,7 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 
 1. **On-screen:** Navigate to `/documents`.
 2. **On-screen:** Highlight the pitch deck and business plan entries that were generated earlier using the AI tools. Open the pitch deck entry and show the `Preview` or `Download` buttons.
-   - **Voice-over 11:** “The Documents page is my archive of AI-generated artefacts—pitch decks, business plans, resumes, and other content. I can re-open any document that I created with a single prompt and a `Use AI` click, or download it as a PDF or PPTX for email or data room uploads.”
+   - **Voice-over 11:** “The Documents page is my archive of AI-generated artefacts—pitch decks, business plans, resumes, and other content. I can re-open any document that I created with a single prompt or download it as a PDF or PPTX for email or data room uploads.”
 
 ## Segment 12 – Claim Checker / Truth Alignment
 
