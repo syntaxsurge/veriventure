@@ -481,7 +481,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Invoice</h1>
-                {invoice.onChainId && (
+                {invoice.onChainId && invoice.onChainId > 0 && (
                   <p className="text-lg text-muted-foreground mt-1">
                     #{invoice.onChainId}
                   </p>
@@ -504,14 +504,16 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
           )}
 
           {/* Amount Display - Prominent and Bold */}
-          <div className="text-center py-8 mb-8 bg-background/50 backdrop-blur-sm rounded-2xl border border-primary/10">
-            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          <div className="text-center py-10 mb-8 bg-background/50 backdrop-blur-sm rounded-2xl border border-primary/10">
+            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
               Amount Due
             </p>
-            <p className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
-              {amountDEV}
-            </p>
-            <p className="text-3xl md:text-4xl font-bold text-muted-foreground mt-2">
+            <div className="px-4">
+              <p className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-foreground leading-none">
+                {amountDEV}
+              </p>
+            </div>
+            <p className="text-3xl md:text-4xl font-bold text-muted-foreground mt-4">
               DEV
             </p>
             <p className="text-sm text-muted-foreground mt-4">
@@ -526,7 +528,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                 onClick={handlePay}
                 disabled={isPaying}
                 size="lg"
-                className="flex-1 h-16 text-xl font-bold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-2xl shadow-primary/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-1 h-16 text-xl font-bold rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isPaying ? (
                   <>

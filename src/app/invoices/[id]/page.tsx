@@ -5,7 +5,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
 
   return (
-    <AppShell maxWidth="3xl">
+    <AppShell maxWidth="7xl">
       <div className="section-spacing animate-in">
         <InvoiceDetailClient invoiceId={id} />
       </div>
