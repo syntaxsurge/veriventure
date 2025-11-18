@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,11 +50,11 @@ import {
   BookOpen,
   Send,
   Heart,
-  Coffee,
-  Command
+  Coffee
 } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
 
 // Features data
@@ -276,7 +276,7 @@ const useCases = [
 
 export default function LandingPage() {
   const router = useRouter();
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const { isConnected, address } = useAccount();
   const [activeTab, setActiveTab] = useState("features");
   const [isYearly, setIsYearly] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -302,6 +302,22 @@ export default function LandingPage() {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  const handlePrimaryAction = (openConnectModal?: () => void) => {
+    if (isConnected && address) {
+      router.push("/dashboard");
+      return;
+    }
+    openConnectModal?.();
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    if (typeof window === "undefined") return;
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <div className="min-h-screen overflow-hidden">
@@ -416,7 +432,7 @@ export default function LandingPage() {
                   <Button
                     size="lg"
                     className="h-14 px-8 text-lg bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-xl shadow-purple-500/25 transition-all hover:scale-105"
-                    onClick={openConnectModal}
+                    onClick={() => handlePrimaryAction(openConnectModal)}
                   >
                     <Wallet className="mr-2 h-5 w-5" />
                     Start Building Trust
@@ -429,10 +445,10 @@ export default function LandingPage() {
                 size="lg"
                 variant="outline"
                 className="h-14 px-8 text-lg border-2 backdrop-blur-sm hover:bg-background/80 transition-all hover:scale-105"
-                onClick={() => setIsVideoPlaying(true)}
+                onClick={() => scrollToSection("demo")}
               >
                 <Play className="mr-2 h-5 w-5" />
-                Watch Demo (2 min)
+                Watch Demo
               </Button>
             </motion.div>
 
@@ -600,7 +616,7 @@ export default function LandingPage() {
       </section>
 
       {/* Interactive Demo Section */}
-      <section className="relative py-20 px-4 bg-linear-to-b from-background via-muted/50 to-background">
+      <section id="demo" className="relative py-20 px-4 bg-linear-to-b from-background via-muted/50 to-background">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -642,15 +658,14 @@ export default function LandingPage() {
                 </TabsList>
 
                 <TabsContent value="features" className="p-6">
-                  <div className="aspect-video rounded-lg bg-linear-to-br from-purple-500/10 to-indigo-500/10 flex items-center justify-center">
-                    <Button
-                      size="lg"
-                      className="bg-linear-to-r from-purple-600 to-indigo-600"
-                      onClick={() => setIsVideoPlaying(true)}
-                    >
-                      <Play className="mr-2 h-5 w-5" />
-                      Watch Features Demo
-                    </Button>
+                  <div className="aspect-video rounded-lg overflow-hidden shadow-2xl border border-primary/10">
+                    <iframe
+                      className="h-full w-full"
+                      src="https://www.youtube.com/embed/ysz5S6PUM-U"
+                      title="VeriVenture product walkthrough"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
                   </div>
                 </TabsContent>
 
@@ -1108,7 +1123,7 @@ export default function LandingPage() {
                       <span className="text-sm font-medium">Team collaboration (3 users)</span>
                     </li>
                   </ul>
-                  <Button className="w-full mt-6 bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" size="lg" asChild>
+                  <Button className="w-full mt-6 text-white bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" size="lg" asChild>
                     <Link href="/dashboard?plan=pro">Start Free Trial</Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-3">14-day free trial • No credit card required</p>
@@ -1289,7 +1304,7 @@ export default function LandingPage() {
                       <Button
                         size="lg"
                         className="h-14 px-8 text-lg bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-xl transition-all hover:scale-105"
-                        onClick={openConnectModal}
+                        onClick={() => handlePrimaryAction(openConnectModal)}
                       >
                         Get Started Free
                         <ArrowRight className="ml-2 h-5 w-5" />
@@ -1297,16 +1312,15 @@ export default function LandingPage() {
                     )}
                   </ConnectButton.Custom>
 
-                  <Link href="/pricing">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="h-14 px-8 text-lg border-2 backdrop-blur-sm hover:bg-background/80 transition-all hover:scale-105"
-                    >
-                      View Pricing
-                      <ChevronRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-14 px-8 text-lg border-2 backdrop-blur-sm hover:bg-background/80 transition-all hover:scale-105"
+                    onClick={() => scrollToSection("pricing")}
+                  >
+                    View Pricing
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Button>
                 </motion.div>
 
                 <motion.div
@@ -1352,39 +1366,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* Video Modal */}
-      <AnimatePresence>
-        {isVideoPlaying && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-            onClick={() => setIsVideoPlaying(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-lg bg-black shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <iframe
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                className="h-full w-full"
-                allowFullScreen
-              />
-              <button
-                onClick={() => setIsVideoPlaying(false)}
-                className="absolute right-4 top-4 rounded-full bg-white/10 p-2 backdrop-blur hover:bg-white/20 transition-colors"
-              >
-                <XCircle className="h-6 w-6 text-white" />
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
