@@ -17,7 +17,7 @@ export function SiteHeader() {
         >
           <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg">
             <Image
-              src="/images/veriventure-logo-1.png"
+              src="/images/veriventure-logo.png"
               alt="VeriVenture"
               fill
               sizes="2.25rem"
