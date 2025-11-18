@@ -17,22 +17,22 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 ## Segment 3 – Add Credential
 
 1. **On-screen:** Navigate from the dashboard to `/credentials`. Click the `New Credential` or `Add Achievement` button.
-2. **On-screen:** Enter an example milestone such as: Title `First 5 paying customers`, Description `Closed 5 customers in November`, and Date set to today. Show the computed hash or verifiable hash if it appears. Click `Mint on chain` or `View on blockchain` if your UI allows it, then briefly open the block explorer tab to show the transaction.
-   - **Voice-over 3:** “Credentials let me turn key milestones into verifiable records. Here I add an achievement like ‘First 5 paying customers’, and the app computes a verifiable hash and optionally mints an on-chain badge. This gives me a permanent proof of that milestone with a blockchain link that I can reference later on my profile or in my deck.”
+2. **On-screen:** In the Title field, type `First 5 paying customers` and in the Description field type a short hint such as `Closed our first 5 customers in November`, then click the `Use AI` button next to the Description so the assistant expands that hint into a fuller sentence. Set the Date to today, show the computed hash or verifiable hash if it appears, then click `Mint on chain` or `View on blockchain` if your UI allows it and briefly open the block explorer tab to show the transaction.
+   - **Voice-over 3:** “Credentials let me turn key milestones into verifiable records. For this demo I just type the milestone title and a short hint, then use the `Use AI` button to let the assistant write the full description before minting an on-chain badge. That gives me a permanent proof of the milestone with a blockchain link I can reuse later in my profile or in my deck.”
 
 ## Segment 4 – Pitch Deck Studio
 
 1. **On-screen:** Navigate to AI Assistant → Pitch Deck to open `/ai-assistant/pitch-deck`.
-2. **On-screen:** Fill in a few important fields such as company name, mission, target customer, and a short traction summary. Use a `Use AI` button on one of the fields so the AI fills in content. Click `Generate Deck`.
+2. **On-screen:** In the form, type the company name and a short mission phrase or a few keywords in a single field (for example the Mission field), leave the other fields mostly blank, then click a `Use AI` button on that field so the assistant fills in the longer text from that initial input. Once the key fields are populated, click `Generate Deck`.
 3. **On-screen:** When generation finishes, open the generated deck workspace with slide thumbnails, then briefly show an export menu for PDF or PPTX.
-   - **Voice-over 4:** “To prepare for investors I open the pitch deck studio. I answer a few prompts about my mission, my customer, and my traction, and I can let AI help with wording where I need it. When I click generate, VeriVenture creates a structured deck I can refine and export to PDF or PowerPoint, so even if I’m not a designer I can get an investor-ready deck in minutes.”
+   - **Voice-over 4:** “To prepare for investors I open the pitch deck studio. I seed it with my company name and just a few words about my mission, then click `Use AI` so the assistant drafts the detailed wording for me. When I click generate, VeriVenture creates a structured deck I can refine and export to PDF or PowerPoint, so even if I’m not a designer I can get an investor-ready deck in minutes.”
 
 ## Segment 5 – Business Plan & Resume
 
 1. **On-screen:** From the pitch deck studio, navigate back to the AI Assistant hub (`/ai-assistant`).
-2. **On-screen:** Briefly open the Business Plan page at `/ai-assistant/business-plan`, show the main prompt, and reveal at least one generated section.
-3. **On-screen:** Then open the Resume page at `/ai-assistant/resume`, and show a generated summary based on your founder profile.
-   - **Voice-over 5:** “The same AI hub also gives me a business plan writer and a resume builder. I can generate narrative sections for my plan and a founder CV without starting from a blank page, and all of these documents will be available later in the Documents area.”
+2. **On-screen:** Briefly open the Business Plan page at `/ai-assistant/business-plan`. In the main idea or company field, type a short idea name or one-sentence concept, then click the `Use AI` button so the assistant generates the plan sections from that minimal input. Scroll to reveal at least one generated section.
+3. **On-screen:** Then open the Resume page at `/ai-assistant/resume`. In the role or headline field, type something like `Climate fintech founder`, then click a `Use AI` button on the summary so the AI writes a profile based on that title, and show the generated summary.
+   - **Voice-over 5:** “The same AI hub also gives me a business plan writer and a resume builder. I only need to type a simple idea or role title, then I click `Use AI` and let the assistant fill in the narrative for me—and all of these AI-generated documents will be available later in the Documents area.”
 
 ## Segment 6 – Create Invoice
 
@@ -61,8 +61,8 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 ## Segment 10 – Documents Vault
 
 1. **On-screen:** Navigate to `/documents`.
-2. **On-screen:** Highlight the pitch deck and business plan entries that were generated earlier. Open the pitch deck entry and show the `Preview` or `Download` buttons.
-   - **Voice-over 10:** “The Documents page is my archive of AI-generated artefacts—pitch decks, business plans, resumes, and other content. I can re-open any document to tweak it, or download it as a PDF or PPTX for email or data room uploads.”
+2. **On-screen:** Highlight the pitch deck and business plan entries that were generated earlier using the AI tools. Open the pitch deck entry and show the `Preview` or `Download` buttons.
+   - **Voice-over 10:** “The Documents page is my archive of AI-generated artefacts—pitch decks, business plans, resumes, and other content. I can re-open any document that I created with a single prompt and a `Use AI` click, or download it as a PDF or PPTX for email or data room uploads.”
 
 ## Segment 11 – Claim Checker / Truth Alignment
 

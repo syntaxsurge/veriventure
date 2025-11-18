@@ -72,21 +72,17 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
       icon: LayoutDashboard,
       description: "Your mission control",
     },
-    {
-      title: "Passport",
-      href: "/passport",
-      icon: Shield,
-      description: "Your public Supplier Passport",
-    },
-    {
-      title: "Invoices",
-      href: "/invoices",
-      icon: Receipt,
-      description: "Create and manage on-chain invoices",
-    },
   ];
 
-  // Conditionally add Credentials
+  // Passport always comes after Dashboard
+  items.push({
+    title: "Passport",
+    href: "/passport",
+    icon: Shield,
+    description: "Your public Supplier Passport",
+  });
+
+  // Conditionally add Credentials directly after Passport
   if (featureFlags.enableCredentials) {
     items.push({
       title: "Credentials",
@@ -96,15 +92,7 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
     });
   }
 
-  // Proofs come after invoices and credentials
-  items.push({
-    title: "Proofs",
-    href: "/proofs",
-    icon: ListChecks,
-    description: "Your verifiable proofs and audit log",
-  });
-
-  // Always add AI Tools
+  // Always add AI Tools before invoices to mirror the demo flow
   items.push({
     title: "AI Tools",
     href: aiAssistantItems[0]?.href ?? "/ai-assistant/pitch-deck",
@@ -112,6 +100,22 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
     children: aiAssistantItems,
     description: "AI-powered business tools",
     isActive: (pathname: string) => pathname.startsWith("/ai-assistant"),
+  });
+
+  // Invoices come after credentials and AI tools
+  items.push({
+    title: "Invoices",
+    href: "/invoices",
+    icon: Receipt,
+    description: "Create and manage on-chain invoices",
+  });
+
+  // Proofs follow invoices in the lifecycle
+  items.push({
+    title: "Proofs",
+    href: "/proofs",
+    icon: ListChecks,
+    description: "Your verifiable proofs and audit log",
   });
 
   // Conditionally add Documents
