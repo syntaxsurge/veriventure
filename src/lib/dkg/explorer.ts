@@ -10,42 +10,24 @@
  */
 export function ualToExplorerUrl(ual: string): string {
   try {
-    if (!ual || typeof ual !== 'string') {
-      return '';
+    if (!ual || typeof ual !== "string") {
+      return "";
     }
 
-    // Official DKG Explorer base URL
-    const explorerBase = 'https://dkg.origintrail.io';
+    const template =
+      process.env.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE ||
+      "https://dkg-testnet.origintrail.io/explore?ual={ual}";
 
-    // Parse UAL format: did:dkg:network:chainId/assetId
-    const ualPattern = /^did:dkg:([^:]+):(\d+)\/(.+)$/;
-    const match = ual.match(ualPattern);
-
-    if (!match) {
-      // Fallback: Try direct UAL parameter
-      const url = new URL(`${explorerBase}/explore`);
-      url.searchParams.set('ual', ual);
-      return url.toString();
+    if (template.includes("{ual}")) {
+      return template.replace("{ual}", encodeURIComponent(ual));
     }
 
-    const [, network, chainId, assetId] = match;
-
-    // Build the explorer URL
-    const url = new URL(`${explorerBase}/explore`);
-    url.searchParams.set('ual', ual);
-
-    // Add network hint for NeuroWeb (OTP)
-    if (network.toLowerCase() === 'otp') {
-      url.searchParams.set('network', 'neuroweb');
-    }
-
-    // Add chain ID for clarity
-    url.searchParams.set('chainId', chainId);
-
+    const url = new URL(template);
+    url.searchParams.set("ual", ual);
     return url.toString();
   } catch (error) {
-    console.error('Error converting UAL to explorer URL:', error);
-    return '';
+    console.error("Error converting UAL to explorer URL:", error);
+    return "";
   }
 }
 
