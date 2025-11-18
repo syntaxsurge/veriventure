@@ -73,22 +73,16 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
       description: "Your mission control",
     },
     {
-      title: "Invoices",
-      href: "/invoices",
-      icon: Receipt,
-      description: "Create and manage on-chain invoices",
-    },
-    {
-      title: "Proofs",
-      href: "/proofs",
-      icon: ListChecks,
-      description: "Your verifiable proofs and audit log",
-    },
-    {
       title: "Passport",
       href: "/passport",
       icon: Shield,
       description: "Your public Supplier Passport",
+    },
+    {
+      title: "Invoices",
+      href: "/invoices",
+      icon: Receipt,
+      description: "Create and manage on-chain invoices",
     },
   ];
 
@@ -101,6 +95,14 @@ const buildSidebarNavItems = (): SidebarNavItem[] => {
       description: "Your badges and achievements",
     });
   }
+
+  // Proofs come after invoices and credentials
+  items.push({
+    title: "Proofs",
+    href: "/proofs",
+    icon: ListChecks,
+    description: "Your verifiable proofs and audit log",
+  });
 
   // Always add AI Tools
   items.push({
