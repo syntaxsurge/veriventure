@@ -469,7 +469,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>Audited Smart Contracts</span>
+                <span>Open-Source Smart Contracts</span>
               </div>
             </motion.div>
           </motion.div>
