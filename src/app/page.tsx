@@ -58,20 +58,6 @@ import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_DEMO_VIDEO_EMBED_URL = "https://www.youtube.com/embed/ysz5S6PUM-U";
-const YOUTUBE_EMBED_PARAM_WHITELIST = [
-  "autoplay",
-  "loop",
-  "mute",
-  "controls",
-  "rel",
-  "modestbranding",
-  "playsinline",
-  "color",
-  "fs",
-  "iv_load_policy",
-  "enablejsapi",
-  "playlist",
-];
 const demoVideoEmbedUrl = deriveDemoVideoEmbedUrl(process.env.DEMO_VIDEO_URL);
 
 function deriveDemoVideoEmbedUrl(rawUrl?: string | null) {
@@ -139,7 +125,7 @@ function buildYouTubeEmbedUrl(videoId: string, searchParams: URLSearchParams) {
     return DEFAULT_DEMO_VIDEO_EMBED_URL;
   }
 
-  const embedParams = new URLSearchParams();
+  const embedParams = new URLSearchParams({ feature: "oembed" });
   const start = parseStartTime(searchParams);
   if (start !== null) {
     embedParams.set("start", start.toString());
@@ -150,22 +136,9 @@ function buildYouTubeEmbedUrl(videoId: string, searchParams: URLSearchParams) {
     embedParams.set("end", end);
   }
 
-  for (const param of YOUTUBE_EMBED_PARAM_WHITELIST) {
-    const value = searchParams.get(param);
-    if (value) {
-      embedParams.set(param, value);
-    }
-  }
-
-  if (!embedParams.has("playlist")) {
-    const playlistFromList = searchParams.get("list");
-    if (playlistFromList) {
-      embedParams.set("playlist", playlistFromList);
-    }
-  }
-
-  if (embedParams.get("loop") === "1" && !embedParams.has("playlist")) {
-    embedParams.set("playlist", sanitizedId);
+  const playlistId = searchParams.get("list");
+  if (playlistId) {
+    embedParams.set("list", playlistId);
   }
 
   const query = embedParams.toString();
@@ -819,6 +792,7 @@ export default function LandingPage() {
                       src={demoVideoEmbedUrl}
                       title="VeriVenture product walkthrough"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      referrerPolicy="strict-origin-when-cross-origin"
                       allowFullScreen
                     />
                   </div>
