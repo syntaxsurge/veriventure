@@ -61,11 +61,6 @@ export function TrustPanel({ profile }: TrustPanelProps) {
         <Card>
           <CardHeader>
             <CardTitle>Proof summary</CardTitle>
-            {profile.isDemo && (
-              <Badge variant="secondary" className="w-fit">
-                Demo Flight
-              </Badge>
-            )}
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>
@@ -144,7 +139,7 @@ export function TrustPanel({ profile }: TrustPanelProps) {
         </div>
         <AchievementList
           achievements={profile.achievements}
-          verifiable={!profile.isDemo}
+          verifiable={true}
           ownerAddress={profile.address}
         />
       </section>
