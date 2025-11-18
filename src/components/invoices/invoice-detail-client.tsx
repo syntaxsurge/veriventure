@@ -116,6 +116,11 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
 
   const publishIssuanceCommit = async () => {
     if (!invoice) return;
+    const walletIsIssuer = address?.toLowerCase() === invoice.issuerAddress.toLowerCase();
+    if (!walletIsIssuer) {
+      toast.error("Only the issuer can publish this commit");
+      return;
+    }
     setIsPublishingIssuance(true);
     try {
       const res = await fetch(`/api/invoices/${invoiceId}/dkg/issuance`, {
@@ -141,6 +146,12 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   };
 
   const publishSettlementProof = async () => {
+    if (!invoice) return;
+    const walletIsIssuer = address?.toLowerCase() === invoice.issuerAddress.toLowerCase();
+    if (!walletIsIssuer) {
+      toast.error("Only the issuer can manage settlement proofs");
+      return;
+    }
     if (!invoice?.paidAt) {
       toast.warning("Payment required", {
         description: "Pay the invoice first before publishing settlement proof.",
@@ -177,6 +188,12 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   };
 
   const publishRevenueAttestation = async () => {
+    if (!invoice) return;
+    const walletIsIssuer = address?.toLowerCase() === invoice.issuerAddress.toLowerCase();
+    if (!walletIsIssuer) {
+      toast.error("Only the issuer can publish revenue attestations");
+      return;
+    }
     if (!invoice?.paidAt) {
       toast.warning("Payment required", {
         description: "Only paid invoices can be attested.",
@@ -194,7 +211,6 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          issuerAddress: invoice.issuerAddress,
           period,
         }),
       });
@@ -249,16 +265,20 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
         }),
       });
 
-      void fetch(`/api/invoices/${invoiceId}/dkg/settlement`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          txHash: result.txHash,
-          paidAt: paidTimestamp,
-        }),
-      }).catch((error) => {
-        console.warn("Settlement proof publication failed", error);
-      });
+      const walletIsIssuer = address?.toLowerCase() === invoice.issuerAddress.toLowerCase();
+
+      if (walletIsIssuer) {
+        void fetch(`/api/invoices/${invoiceId}/dkg/settlement`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            txHash: result.txHash,
+            paidAt: paidTimestamp,
+          }),
+        }).catch((error) => {
+          console.warn("Settlement proof publication failed", error);
+        });
+      }
 
       toast.success("Payment successful!", {
         description: "The invoice has been paid",
@@ -398,6 +418,9 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     invoice.status === "Pending" && isOpenInvoice && !address;
   const shouldShowPendingAlert =
     !canPay && !canCancel && invoice.status === "Pending" && !requiresWalletConnection;
+  const canPublishIssuance = isIssuer;
+  const canPublishSettlement = isIssuer;
+  const canPublishRevenue = isIssuer;
   const creationHash = invoice.creationTxHash ?? (invoice.status === "Pending" ? invoice.txHash : undefined);
   const creationExplorerUrl = creationHash
     ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", creationHash)
@@ -916,15 +939,21 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                   Not yet published. Recommended only if you need a privacy-preserving timestamp for compliance or grant milestones.
                 </p>
               )}
-              <Button
-                variant={issuanceUAL ? "secondary" : "outline"}
-                size="default"
-                onClick={publishIssuanceCommit}
-                disabled={isPublishingIssuance || isPaying}
-                className="w-full font-semibold"
-              >
-                {isPublishingIssuance ? "Publishing..." : issuanceUAL ? "Re-publish commit" : "Publish issuance commit"}
-              </Button>
+              {canPublishIssuance ? (
+                <Button
+                  variant={issuanceUAL ? "secondary" : "outline"}
+                  size="default"
+                  onClick={publishIssuanceCommit}
+                  disabled={isPublishingIssuance || isPaying}
+                  className="w-full font-semibold"
+                >
+                  {isPublishingIssuance ? "Publishing..." : issuanceUAL ? "Re-publish commit" : "Publish issuance commit"}
+                </Button>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center font-medium">
+                  Only the issuer can publish issuance commits.
+                </p>
+              )}
             </div>
 
             {/* Settlement */}
@@ -963,21 +992,27 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                   No settlement proof yet. This publishes automatically once payment is confirmed, but you can trigger it manually.
                 </p>
               )}
-              <Button
-                variant={settlementUAL ? "secondary" : "default"}
-                size="default"
-                onClick={publishSettlementProof}
-                disabled={isPublishingSettlement || invoice.status !== "Paid"}
-                className="w-full font-semibold"
-              >
-                {invoice.status !== "Paid"
-                  ? "Waiting for payment"
-                  : isPublishingSettlement
-                  ? "Publishing..."
-                  : settlementUAL
-                  ? "Re-publish settlement proof"
-                  : "Publish settlement proof"}
-              </Button>
+              {canPublishSettlement ? (
+                <Button
+                  variant={settlementUAL ? "secondary" : "default"}
+                  size="default"
+                  onClick={publishSettlementProof}
+                  disabled={isPublishingSettlement || invoice.status !== "Paid"}
+                  className="w-full font-semibold"
+                >
+                  {invoice.status !== "Paid"
+                    ? "Waiting for payment"
+                    : isPublishingSettlement
+                    ? "Publishing..."
+                    : settlementUAL
+                    ? "Re-publish settlement proof"
+                    : "Publish settlement proof"}
+                </Button>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center font-medium">
+                  Only the issuer can manage settlement proofs.
+                </p>
+              )}
             </div>
 
             {/* Revenue */}
@@ -1018,19 +1053,25 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                   Publish at least once per month to hand partners a privacy-preserving revenue statement backed by DKG.
                 </p>
               )}
-              <Button
-                variant={revenueUAL ? "secondary" : "outline"}
-                size="default"
-                onClick={publishRevenueAttestation}
-                disabled={isPublishingRevenue || invoice.status !== "Paid"}
-                className="w-full font-semibold"
-              >
-                {invoice.status !== "Paid"
-                  ? "Waiting for payment"
-                  : isPublishingRevenue
-                  ? "Publishing..."
-                  : "Publish revenue attestation"}
-              </Button>
+              {canPublishRevenue ? (
+                <Button
+                  variant={revenueUAL ? "secondary" : "outline"}
+                  size="default"
+                  onClick={publishRevenueAttestation}
+                  disabled={isPublishingRevenue || invoice.status !== "Paid"}
+                  className="w-full font-semibold"
+                >
+                  {invoice.status !== "Paid"
+                    ? "Waiting for payment"
+                    : isPublishingRevenue
+                    ? "Publishing..."
+                    : "Publish revenue attestation"}
+                </Button>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center font-medium">
+                  Only the issuer can generate revenue attestations.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

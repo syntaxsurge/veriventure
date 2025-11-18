@@ -5,6 +5,7 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 
 import { publishKnowledgeAsset } from "@/lib/server/dkg-client";
 import { clientEnv } from "@/env/client";
+import { getSession } from "@/lib/server/session-cookie";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,16 @@ export async function POST(
 
     if (!invoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    const session = await getSession();
+    const sessionAddress = session?.address?.toLowerCase();
+    if (!sessionAddress) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (sessionAddress !== invoice.issuerAddress.toLowerCase()) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const body = (await request.json().catch(() => ({}))) as {

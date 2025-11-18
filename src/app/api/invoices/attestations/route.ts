@@ -4,6 +4,7 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 
 import { buildMerkleTree } from "@/lib/crypto/merkle";
 import { publishKnowledgeAsset } from "@/lib/server/dkg-client";
+import { getSession } from "@/lib/server/session-cookie";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +26,22 @@ function isWithinPeriod(dateIso: string, period: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const issuerAddress = String(body.issuerAddress || "").toLowerCase();
-    if (!issuerAddress) {
-      return NextResponse.json(
-        { error: "Issuer address is required" },
-        { status: 400 },
-      );
+    const session = await getSession();
+    const sessionAddress = session?.address?.toLowerCase();
+    if (!sessionAddress) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const body = await request.json().catch(() => ({}));
+    const requestedIssuer = typeof body?.issuerAddress === "string"
+      ? body.issuerAddress.toLowerCase()
+      : sessionAddress;
+
+    if (requestedIssuer !== sessionAddress) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const issuerAddress = sessionAddress;
 
     const periodInput = typeof body.period === "string" ? body.period : undefined;
     const period =
