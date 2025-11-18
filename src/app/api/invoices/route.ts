@@ -73,6 +73,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedTxHash = txHash ?? creationTxHash;
+
     const result = await fetchMutation(api.invoices.createInvoice, {
       onChainId,
       issuerAddress,
@@ -83,10 +85,12 @@ export async function POST(request: NextRequest) {
       dueAt,
       status,
       memo,
-      txHash: txHash ?? creationTxHash,
-      creationTxHash: creationTxHash ?? txHash,
+      txHash: normalizedTxHash,
       network,
       contractAddress,
+      ...(typeof creationTxHash === "string" && creationTxHash.trim().length > 0
+        ? { creationTxHash }
+        : {}),
     });
 
     return NextResponse.json({ success: true, ...result });

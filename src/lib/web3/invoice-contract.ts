@@ -1,4 +1,12 @@
-import { createPublicClient, getAddress, http, isAddress, parseEther, type WalletClient } from "viem";
+import {
+  createPublicClient,
+  getAddress,
+  http,
+  isAddress,
+  parseEther,
+  parseEventLogs,
+  type WalletClient,
+} from "viem";
 import { moonbaseAlpha } from "viem/chains";
 import { clientEnv } from "@/env/client";
 
@@ -234,16 +242,24 @@ export async function createNativeInvoice({
     account: walletClient.account!,
   });
 
-  // Wait for transaction and get invoice ID from event
+  // Wait for transaction and decode the InvoiceCreated event for the ID
   const receipt = await defaultClient.waitForTransactionReceipt({ hash: txHash });
+  let invoiceId: bigint | undefined;
 
-  // Find InvoiceCreated event
-  const log = receipt.logs.find((log) =>
-    log.topics[0] === "0x..." // InvoiceCreated event signature
-  );
+  try {
+    const parsedLogs = parseEventLogs({
+      abi: INVOICE_ABI,
+      logs: receipt.logs.filter((log) => log.address?.toLowerCase() === contractAddress.toLowerCase()),
+      eventName: "InvoiceCreated",
+    });
+    invoiceId = parsedLogs[0]?.args?.id;
+  } catch (error) {
+    console.error("Failed to decode InvoiceCreated event", error);
+  }
 
-  // The invoice ID is the first indexed parameter (topic[1])
-  const invoiceId = log?.topics[1] ? BigInt(log.topics[1]) : BigInt(0);
+  if (invoiceId === undefined) {
+    throw new Error("Unable to confirm the invoice ID from chain logs. Please retry after the transaction finalizes.");
+  }
 
   return {
     txHash,
