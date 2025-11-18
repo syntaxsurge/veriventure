@@ -17,18 +17,12 @@ const wagmiConfig = getDefaultConfig({
   appName: "VeriVenture",
   projectId: "455a9939d641d79b258424737e7f9205",
   chains: [moonbaseAlpha, moonbeam],
-  ssr: false,
+  ssr: true,
 });
 
 const queryClient = new QueryClient();
 
 export function RainbowKitWalletProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
@@ -42,7 +36,7 @@ export function RainbowKitWalletProvider({ children }: { children: React.ReactNo
             overlayBlur: "small",
           }) as Theme}
         >
-          {mounted && children}
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
