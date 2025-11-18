@@ -466,318 +466,76 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const paymentScopeHelper = isOpenInvoice
     ? "Any wallet with this link can settle"
     : "Only the selected wallet can pay";
-  const summaryTiles: Array<{
-    label: string;
-    value: string;
-    helper: string;
-    icon: LucideIcon;
-    valueClass?: string;
-  }> = [
-    {
-      label: "Amount Due",
-      value: `${amountDEV} DEV`,
-      helper: `Currency: ${invoice.currencyType}`,
-      icon: DollarSign,
-      valueClass: "text-3xl text-foreground",
-    },
-    {
-      label: "Due Date",
-      value: dueDate.toLocaleDateString(),
-      helper: isOverdue ? "Past due" : "On schedule",
-      icon: Calendar,
-      valueClass: isOverdue ? "text-destructive" : undefined,
-    },
-    {
-      label: "Status",
-      value: invoice.status,
-      helper: statusHelper,
-      icon: ShieldCheck,
-      valueClass:
-        invoice.status === "Paid"
-          ? "text-emerald-500"
-          : invoice.status === "Cancelled"
-          ? "text-muted-foreground"
-          : isOverdue
-          ? "text-destructive"
-          : "text-amber-500",
-    },
-    {
-      label: "Payment Scope",
-      value: paymentScopeValue,
-      helper: paymentScopeHelper,
-      icon: User,
-    },
-  ];
 
   return (
-    <>
-      {/* Header */}
-      <div className="mb-8 space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <Receipt className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Invoice Details</h1>
-              {invoice.onChainId && (
-                <p className="text-sm text-muted-foreground">
-                  Invoice #{invoice.onChainId}
-                </p>
-              )}
-            </div>
-          </div>
-          {getStatusBadge(invoice.status)}
-        </div>
-      </div>
+    <div className="space-y-8">
+      {/* Hero Section with Payment Information */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2 border-primary/20 shadow-xl">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {summaryTiles.map((tile) => {
-          const Icon = tile.icon;
-          return (
-            <div
-              key={tile.label}
-              className="rounded-2xl border bg-card/80 p-4 shadow-sm ring-1 ring-border/40"
-            >
-              <div className="flex items-center gap-3">
-                <span className="rounded-xl bg-primary/10 p-2 text-primary">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {tile.label}
-                </span>
+        <div className="relative p-8 md:p-12">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/20 ring-4 ring-primary/10">
+                <Receipt className="h-8 w-8 text-primary" />
               </div>
-              <p className={`mt-4 text-2xl font-semibold ${tile.valueClass ?? ""}`}>
-                {tile.value}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">{tile.helper}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Overdue Alert */}
-      {isOverdue && (
-      <Alert className="mb-6 border-destructive/50 bg-destructive/10">
-        <AlertCircle className="h-4 w-4 text-destructive" />
-        <AlertDescription className="text-destructive">
-          This invoice is overdue. Payment was due on {dueDate.toLocaleDateString()}.
-        </AlertDescription>
-      </Alert>
-    )}
-
-      <Card className="border mb-6">
-        <CardHeader>
-          <CardTitle>Trust Timeline</CardTitle>
-          <CardDescription>See how far this invoice has progressed through the verifiable pipeline.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            {lifecycle.map((step) => (
-              <div
-                key={step.label}
-                className={`rounded-lg border p-4 ${step.complete ? "border-emerald-500/40 bg-emerald-500/5" : "border-border"}`}
-              >
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  {step.complete ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  {step.label}
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {step.date ? new Date(step.date).toLocaleString() : "Pending"}
-                </p>
-                <p className="mt-1 text-xs">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Card */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-2 h-full">
-          <CardHeader>
-            <CardTitle>Invoice Information</CardTitle>
-            <CardDescription>
-              Created on {new Date(invoice.createdAt).toLocaleDateString()}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-          {/* Amount */}
-          <div className="rounded-lg bg-muted/50 p-6 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Amount Due</p>
-            <p className="text-4xl font-bold font-mono">{amountDEV} DEV</p>
-          </div>
-
-          <Separator />
-
-          {/* Details Grid */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                Issuer
-              </div>
-              <div className="flex items-center gap-2">
-                <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                  {invoice.issuerAddress.slice(0, 6)}...{invoice.issuerAddress.slice(-4)}
-                </code>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => copyToClipboard(invoice.issuerAddress)}
-                >
-                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                </Button>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Invoice</h1>
+                {invoice.onChainId && (
+                  <p className="text-lg text-muted-foreground mt-1">
+                    #{invoice.onChainId}
+                  </p>
+                )}
               </div>
             </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                Payer
-              </div>
-              {isOpenInvoice ? (
-                <p className="text-sm font-medium text-muted-foreground">
-                  Open payment link — any wallet with this invoice can pay
-                </p>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
-                    {invoice.payerAddress.slice(0, 6)}...{invoice.payerAddress.slice(-4)}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => copyToClipboard(invoice.payerAddress)}
-                  >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                Due Date
-              </div>
-              <p className={`font-medium ${isOverdue ? "text-destructive" : ""}`}>
-                {dueDate.toLocaleDateString()}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <DollarSign className="h-4 w-4" />
-                Currency Type
-              </div>
-              <p className="font-medium">{invoice.currencyType}</p>
+            <div className="flex items-center gap-3">
+              {getStatusBadge(invoice.status)}
             </div>
           </div>
 
-          <Separator />
-
-          {/* Description */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText className="h-4 w-4" />
-              Description
-            </div>
-            <Card className="bg-muted/30">
-              <CardContent className="pt-4">
-                <p className="text-sm whitespace-pre-wrap">{invoice.memo}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Transaction Info */}
-          {creationHash && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <ExternalLink className="h-4 w-4" />
-                  Creation Transaction
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Invoice creation recorded on Moonbase Alpha.
-                </p>
-                <a
-                  href={creationExplorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  View on Explorer
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </>
+          {/* Overdue Alert */}
+          {isOverdue && (
+            <Alert className="mb-6 border-destructive/50 bg-destructive/10">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <AlertDescription className="text-destructive font-medium">
+                This invoice is overdue. Payment was due on {dueDate.toLocaleDateString()}.
+              </AlertDescription>
+            </Alert>
           )}
 
-          {invoice.settlementTxHash && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <ExternalLink className="h-4 w-4" />
-                  Payment Transaction
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Proof that the payer settled this invoice on-chain.
-                </p>
-                <a
-                  href={settlementExplorerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  View on Explorer
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            </>
-          )}
+          {/* Amount Display - Prominent and Bold */}
+          <div className="text-center py-8 mb-8 bg-background/50 backdrop-blur-sm rounded-2xl border border-primary/10">
+            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+              Amount Due
+            </p>
+            <p className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+              {amountDEV}
+            </p>
+            <p className="text-3xl md:text-4xl font-bold text-muted-foreground mt-2">
+              DEV
+            </p>
+            <p className="text-sm text-muted-foreground mt-4">
+              Currency: {invoice.currencyType}
+            </p>
+          </div>
 
-          {/* Payment Info */}
-          {invoice.paidAt && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Paid On
-                </div>
-                <p className="font-medium">
-                  {new Date(invoice.paidAt).toLocaleString()}
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          {/* Primary Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4">
             {canPay && (
               <Button
                 onClick={handlePay}
                 disabled={isPaying}
-                className="flex-1 rounded-2xl py-6 text-lg font-semibold shadow-lg shadow-primary/30 transition hover:-translate-y-0.5"
                 size="lg"
+                className="flex-1 h-16 text-xl font-bold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-2xl shadow-primary/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isPaying ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-3 h-6 w-6 animate-spin" />
                     Processing Payment...
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    <CheckCircle2 className="mr-3 h-6 w-6" />
                     Pay Invoice ({amountDEV} DEV)
                   </>
                 )}
@@ -789,17 +547,17 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                 onClick={handleCancel}
                 disabled={isCancelling}
                 variant="destructive"
-                className="rounded-2xl border-2 border-destructive/40 py-6 text-lg font-semibold shadow-sm transition hover:-translate-y-0.5"
                 size="lg"
+                className="h-16 text-lg font-bold rounded-2xl border-2 border-destructive/40 shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isCancelling ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                     Cancelling...
                   </>
                 ) : (
                   <>
-                    <XCircle className="mr-2 h-4 w-4" />
+                    <XCircle className="mr-3 h-5 w-5" />
                     Cancel Invoice
                   </>
                 )}
@@ -810,10 +568,10 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
           {requiresWalletConnection && (
             <Alert
               variant="destructive"
-              className="mt-4 border-destructive/70 bg-destructive/15 text-destructive dark:bg-destructive/20"
+              className="mt-6 border-destructive/70 bg-destructive/15"
             >
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="text-destructive dark:text-destructive-foreground">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertDescription className="text-destructive font-medium">
                 Connect a wallet to pay this open invoice. Anyone with this link can settle as soon as a wallet is
                 connected.
               </AlertDescription>
@@ -821,8 +579,8 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
           )}
 
           {shouldShowPendingAlert && (
-            <Alert className="mt-4">
-              <AlertDescription>
+            <Alert className="mt-6">
+              <AlertDescription className="font-medium">
                 {isIssuer
                   ? "Waiting for payment from the client"
                   : !address
@@ -833,31 +591,308 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               </AlertDescription>
             </Alert>
           )}
+        </div>
+      </div>
+
+      {/* Quick Info Grid */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-2 bg-gradient-to-br from-card to-card/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-xl bg-primary/10 p-2.5">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Due Date
+              </span>
+            </div>
+            <p className={`text-2xl font-bold ${isOverdue ? "text-destructive" : ""}`}>
+              {dueDate.toLocaleDateString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {isOverdue ? "Past due" : "On schedule"}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 h-full">
-          <CardHeader>
-            <CardTitle>Proofs & Transparency</CardTitle>
-            <CardDescription>Control how this invoice surfaces on-chain verifications.</CardDescription>
+        <Card className="border-2 bg-gradient-to-br from-card to-card/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-xl bg-primary/10 p-2.5">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Status
+              </span>
+            </div>
+            <p className={`text-2xl font-bold ${
+              invoice.status === "Paid"
+                ? "text-emerald-500"
+                : invoice.status === "Cancelled"
+                ? "text-muted-foreground"
+                : isOverdue
+                ? "text-destructive"
+                : "text-amber-500"
+            }`}>
+              {invoice.status}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {statusHelper}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 bg-gradient-to-br from-card to-card/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-xl bg-primary/10 p-2.5">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Payment Scope
+              </span>
+            </div>
+            <p className="text-2xl font-bold">
+              {paymentScopeValue}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {paymentScopeHelper}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 bg-gradient-to-br from-card to-card/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-xl bg-primary/10 p-2.5">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Created
+              </span>
+            </div>
+            <p className="text-2xl font-bold">
+              {new Date(invoice.createdAt).toLocaleDateString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Invoice issued
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Trust Timeline */}
+      <Card className="border-2 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl">Trust Timeline</CardTitle>
+          <CardDescription className="text-base">
+            Track the invoice&rsquo;s journey through the verifiable payment pipeline
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {lifecycle.map((step) => (
+              <div
+                key={step.label}
+                className={`rounded-xl border-2 p-5 transition-all ${
+                  step.complete
+                    ? "border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 shadow-md shadow-emerald-500/10"
+                    : "border-border bg-card/50"
+                }`}
+              >
+                <div className="flex items-center gap-2.5 text-sm font-bold mb-3">
+                  {step.complete ? (
+                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  ) : (
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  {step.label}
+                </div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  {step.date ? new Date(step.date).toLocaleString() : "Pending"}
+                </p>
+                <p className="text-xs leading-relaxed">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Content Grid - Side by Side on Large Screens */}
+      <div className="grid gap-8 lg:grid-cols-2">
+        {/* Invoice Information Card */}
+        <Card className="border-2 shadow-lg h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl flex items-center gap-3">
+              <div className="rounded-xl bg-primary/10 p-2">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              Invoice Information
+            </CardTitle>
+            <CardDescription className="text-base">
+              Complete details about this invoice
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="space-y-6">
+            {/* Details Grid */}
+            <div className="space-y-5">
+              <div className="rounded-xl bg-muted/50 p-5 border">
+                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-3">
+                  <User className="h-4 w-4" />
+                  Issuer Address
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-sm font-mono bg-background px-3 py-2 rounded-lg border font-semibold">
+                    {invoice.issuerAddress.slice(0, 6)}...{invoice.issuerAddress.slice(-4)}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => copyToClipboard(invoice.issuerAddress)}
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-muted/50 p-5 border">
+                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-3">
+                  <User className="h-4 w-4" />
+                  Payer Address
+                </div>
+                {isOpenInvoice ? (
+                  <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+                    Open payment link — any wallet with this invoice can pay
+                  </p>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-sm font-mono bg-background px-3 py-2 rounded-lg border font-semibold">
+                      {invoice.payerAddress.slice(0, 6)}...{invoice.payerAddress.slice(-4)}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      onClick={() => copyToClipboard(invoice.payerAddress)}
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Description */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <FileText className="h-4 w-4" />
+                Description
+              </div>
+              <div className="rounded-xl bg-muted/30 border p-5">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{invoice.memo}</p>
+              </div>
+            </div>
+
+            {/* Transaction Info */}
+            {creationHash && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <ExternalLink className="h-4 w-4" />
+                    Creation Transaction
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Invoice creation recorded on Moonbase Alpha.
+                  </p>
+                  <a
+                    href={creationExplorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                  >
+                    View on Explorer
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </>
+            )}
+
+            {invoice.settlementTxHash && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <ExternalLink className="h-4 w-4" />
+                    Payment Transaction
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Proof that the payer settled this invoice on-chain.
+                  </p>
+                  <a
+                    href={settlementExplorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                  >
+                    View on Explorer
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </>
+            )}
+
+            {invoice.paidAt && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Payment Confirmed
+                  </div>
+                  <p className="text-base font-semibold">
+                    {new Date(invoice.paidAt).toLocaleString()}
+                  </p>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Proofs & Transparency Card */}
+        <Card className="border-2 shadow-lg h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl flex items-center gap-3">
+              <div className="rounded-xl bg-primary/10 p-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              Proofs & Transparency
+            </CardTitle>
+            <CardDescription className="text-base">
+              Manage on-chain verifications and DKG proofs
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
             {/* Issuance */}
-            <div className="rounded-lg border p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Issuance Commit</p>
-                  <p className="text-xs text-muted-foreground">
+            <div className="rounded-xl border-2 p-5 space-y-4 bg-gradient-to-br from-card to-card/50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className={`h-5 w-5 ${issuanceUAL ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-bold text-base">Issuance Commit</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Salted hash that proves the invoice existed without exposing details.
                   </p>
                 </div>
-                <ShieldCheck className={`h-5 w-5 ${issuanceUAL ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               {issuanceUAL ? (
-                <>
+                <div className="space-y-3">
                   {invoice.issuanceCommitHash && (
-                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis">
+                    <code className="text-xs font-mono bg-muted px-3 py-2 rounded-lg block overflow-hidden text-ellipsis border">
                       {invoice.issuanceCommitHash}
                     </code>
                   )}
@@ -865,69 +900,73 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                     href={issuanceUALViewer}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                   >
-                    View on DKG
-                    <ExternalLink className="h-3 w-3" />
+                    View on DKG Explorer
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                   <p className="text-xs text-muted-foreground">
                     Published {invoice.issuanceProofPublishedAt ? new Date(invoice.issuanceProofPublishedAt).toLocaleString() : ""}
                   </p>
-                </>
+                </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Not yet published. Recommended only if you need a privacy-preserving timestamp for compliance or grant milestones.
                 </p>
               )}
               <Button
                 variant={issuanceUAL ? "secondary" : "outline"}
-                size="sm"
+                size="default"
                 onClick={publishIssuanceCommit}
                 disabled={isPublishingIssuance || isPaying}
+                className="w-full font-semibold"
               >
                 {isPublishingIssuance ? "Publishing..." : issuanceUAL ? "Re-publish commit" : "Publish issuance commit"}
               </Button>
             </div>
 
             {/* Settlement */}
-            <div className="rounded-lg border p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Settlement Proof</p>
-                  <p className="text-xs text-muted-foreground">
+            <div className="rounded-xl border-2 p-5 space-y-4 bg-gradient-to-br from-card to-card/50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Layers className={`h-5 w-5 ${settlementUAL ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-bold text-base">Settlement Proof</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Minimal proof that links DKG to the Moonbase payment transaction.
                   </p>
                 </div>
-                <Layers className={`h-5 w-5 ${settlementUAL ? "text-primary" : "text-muted-foreground"}`} />
               </div>
               {settlementUAL ? (
-                <>
-                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis">
+                <div className="space-y-3">
+                  <code className="text-xs font-mono bg-muted px-3 py-2 rounded-lg block overflow-hidden text-ellipsis border">
                     {settlementUAL}
                   </code>
                   <a
                     href={settlementUALViewer}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                   >
-                    View on DKG
-                    <ExternalLink className="h-3 w-3" />
+                    View on DKG Explorer
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                   <p className="text-xs text-muted-foreground">
                     Published {invoice.settlementProofPublishedAt ? new Date(invoice.settlementProofPublishedAt).toLocaleString() : ""}
                   </p>
-                </>
+                </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   No settlement proof yet. This publishes automatically once payment is confirmed, but you can trigger it manually.
                 </p>
               )}
               <Button
                 variant={settlementUAL ? "secondary" : "default"}
-                size="sm"
+                size="default"
                 onClick={publishSettlementProof}
                 disabled={isPublishingSettlement || invoice.status !== "Paid"}
+                className="w-full font-semibold"
               >
                 {invoice.status !== "Paid"
                   ? "Waiting for payment"
@@ -938,83 +977,96 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                   : "Publish settlement proof"}
               </Button>
             </div>
-          </div>
 
-          {/* Revenue */}
-          <div className="mt-4 rounded-lg border p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Revenue Attestation</p>
-                <p className="text-xs text-muted-foreground">
-                  Generates a Merkle proof aggregating all paid invoices for {currentPeriodLabel ?? "this period"}.
-                </p>
-              </div>
-              <TrendingUp className={`h-5 w-5 ${revenueUAL ? "text-primary" : "text-muted-foreground"}`} />
-            </div>
-            {revenueUAL ? (
-              <>
-                <code className="text-xs font-mono bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis">
-                  {revenueUAL}
-                </code>
-                <a
-                  href={revenueUALViewer}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  View attestation on DKG
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-                {currentPeriodLabel && (
-                  <p className="text-xs text-muted-foreground">
-                    Covers {currentPeriodLabel}. Each invoice stores a Merkle inclusion proof.
+            {/* Revenue */}
+            <div className="rounded-xl border-2 p-5 space-y-4 bg-gradient-to-br from-card to-card/50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className={`h-5 w-5 ${revenueUAL ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="font-bold text-base">Revenue Attestation</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Generates a Merkle proof aggregating all paid invoices for {currentPeriodLabel ?? "this period"}.
                   </p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Publish at least once per month to hand partners a privacy-preserving revenue statement backed by DKG.
-              </p>
-            )}
-            <Button
-              variant={revenueUAL ? "secondary" : "outline"}
-              size="sm"
-              onClick={publishRevenueAttestation}
-              disabled={isPublishingRevenue || invoice.status !== "Paid"}
-            >
-              {invoice.status !== "Paid"
-                ? "Waiting for payment"
-                : isPublishingRevenue
-                ? "Publishing..."
-                : "Publish revenue attestation"}
-            </Button>
-          </div>
+                </div>
+              </div>
+              {revenueUAL ? (
+                <div className="space-y-3">
+                  <code className="text-xs font-mono bg-muted px-3 py-2 rounded-lg block overflow-hidden text-ellipsis border">
+                    {revenueUAL}
+                  </code>
+                  <a
+                    href={revenueUALViewer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                  >
+                    View attestation on DKG
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                  {currentPeriodLabel && (
+                    <p className="text-xs text-muted-foreground">
+                      Covers {currentPeriodLabel}. Each invoice stores a Merkle inclusion proof.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Publish at least once per month to hand partners a privacy-preserving revenue statement backed by DKG.
+                </p>
+              )}
+              <Button
+                variant={revenueUAL ? "secondary" : "outline"}
+                size="default"
+                onClick={publishRevenueAttestation}
+                disabled={isPublishingRevenue || invoice.status !== "Paid"}
+                className="w-full font-semibold"
+              >
+                {invoice.status !== "Paid"
+                  ? "Waiting for payment"
+                  : isPublishingRevenue
+                  ? "Publishing..."
+                  : "Publish revenue attestation"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Share Link */}
-      <Card className="border-2 bg-muted/30">
+      <Card className="border-2 shadow-lg bg-gradient-to-br from-muted/30 to-muted/10">
         <CardHeader>
-          <CardTitle className="text-base">Share Invoice</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl flex items-center gap-3">
+            <div className="rounded-xl bg-primary/10 p-2">
+              <Copy className="h-5 w-5 text-primary" />
+            </div>
+            Share Invoice
+          </CardTitle>
+          <CardDescription className="text-base">
             Send this link to the payer. If no wallet was specified, any wallet with this link can pay.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Input
               value={shareUrl}
               readOnly
               placeholder="Generating share link..."
-              className="font-mono text-sm"
+              className="font-mono text-sm h-12 text-base"
             />
-            <Button onClick={handleShareCopy} variant="outline" disabled={!shareUrl}>
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            <Button
+              onClick={handleShareCopy}
+              variant="outline"
+              disabled={!shareUrl}
+              size="lg"
+              className="h-12 px-6"
+            >
+              {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
             </Button>
           </div>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
