@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { createNativeInvoice } from "@/lib/web3/invoice-contract";
 
@@ -30,7 +30,6 @@ export function NewInvoiceClient() {
     return date.toISOString().split("T")[0];
   });
   const [memo, setMemo] = useState("");
-  const [publishToDKG, setPublishToDKG] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateInvoice = async () => {
@@ -64,36 +63,6 @@ export function NewInvoiceClient() {
     setIsCreating(true);
 
     try {
-      // Publish to DKG if enabled
-      let dkgUAL = "";
-      if (publishToDKG) {
-        try {
-          toast.info("Publishing proof to DKG...");
-          const dkgResponse = await fetch("/api/dkg/notes", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              topic: `Invoice: ${memo.slice(0, 100)}`,
-              summary: `Invoice from ${address} to ${trimmedPayer || "any wallet with the invoice link"}. Amount: ${amount} DEV. Due: ${new Date(dueDate).toLocaleDateString()}. Description: ${memo}`,
-              references: [],
-            }),
-          });
-
-          if (dkgResponse.ok) {
-            const dkgData = await dkgResponse.json();
-            dkgUAL = dkgData.ual;
-            toast.success("Proof published to DKG!", {
-              description: `UAL: ${dkgUAL.slice(0, 20)}...`,
-            });
-          } else {
-            toast.warning("Failed to publish to DKG, continuing without proof");
-          }
-        } catch (dkgError) {
-          console.error("DKG publishing error:", dkgError);
-          toast.warning("Failed to publish to DKG, continuing without proof");
-        }
-      }
-
       // Create invoice on-chain
       const result = await createNativeInvoice({
         walletClient,
@@ -101,7 +70,6 @@ export function NewInvoiceClient() {
         amountDEV: amount,
         dueDate: new Date(dueDate),
         memo,
-        dkgUAL,
       });
 
       // Save invoice to Convex
@@ -117,8 +85,7 @@ export function NewInvoiceClient() {
           dueAt: new Date(dueDate).toISOString(),
           status: "Pending",
           memo,
-          dkgUAL: dkgUAL || undefined,
-          txHash: result.txHash,
+          creationTxHash: result.txHash,
           network: result.network,
           contractAddress: result.contractAddress,
         }),
@@ -250,25 +217,15 @@ export function NewInvoiceClient() {
 
           <Separator />
 
-          {/* DKG Publishing */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="dkg" className="text-base font-medium">
-                  Publish Proof to DKG
-                </Label>
-                <Sparkles className="h-4 w-4 text-primary" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Create a verifiable proof of this invoice on OriginTrail DKG
-              </p>
-            </div>
-            <Switch
-              id="dkg"
-              checked={publishToDKG}
-              onCheckedChange={setPublishToDKG}
-            />
-          </div>
+          <Alert>
+            <Sparkles className="h-4 w-4" />
+            <AlertTitle>Verifiable settlement proofs</AlertTitle>
+            <AlertDescription>
+              Once this invoice is paid, VeriVenture automatically anchors a settlement proof to OriginTrail DKG and links the
+              Moonbase transaction so partners can verify payment without seeing the invoice details.
+              You can also add an optional issuance commit and monthly revenue attestation later from the invoice view.
+            </AlertDescription>
+          </Alert>
 
           {/* Summary Card */}
           {amount && (

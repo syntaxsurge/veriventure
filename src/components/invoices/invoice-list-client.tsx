@@ -42,6 +42,9 @@ type Invoice = {
   status: string;
   memo: string;
   txHash?: string;
+  creationTxHash?: string;
+  settlementTxHash?: string;
+  settlementUAL?: string;
   dkgUAL?: string;
   createdAt: string;
   paidAt?: string;
@@ -146,11 +149,13 @@ export function InvoiceListClient() {
     const amountDEV = formatEther(BigInt(invoice.amount));
     const dueDate = new Date(invoice.dueAt);
     const isOverdue = dueDate < new Date() && invoice.status === "Pending";
-    const explorerUrl = invoice.txHash
-      ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.txHash)
+    const chainHash = invoice.settlementTxHash ?? invoice.creationTxHash ?? invoice.txHash;
+    const explorerUrl = chainHash
+      ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", chainHash)
       : "";
-    const dkgUrl = invoice.dkgUAL
-      ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace("{ual}", encodeURIComponent(invoice.dkgUAL))
+    const proofUAL = invoice.settlementUAL ?? invoice.dkgUAL;
+    const dkgUrl = proofUAL
+      ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace("{ual}", encodeURIComponent(proofUAL))
       : "";
     const shareUrl =
       typeof window !== "undefined" ? `${window.location.origin}/invoices/${invoice.invoiceId}` : "";
@@ -263,7 +268,7 @@ export function InvoiceListClient() {
               <div className="flex flex-col items-end gap-3">
                 {getStatusBadge(invoice.status)}
                 <div className="flex flex-wrap items-center gap-2 justify-end">
-                  {invoice.txHash && (
+                  {chainHash && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -274,14 +279,14 @@ export function InvoiceListClient() {
                       <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
                   )}
-                  {invoice.dkgUAL && (
+                  {proofUAL && (
                     <Button
                       variant="secondary"
                       size="sm"
                       className="h-8 px-3 text-xs"
                       onClick={(event) => handleOpenExternal(event, dkgUrl)}
                     >
-                      DKG Proof
+                      Settlement Proof
                       <Sparkles className="ml-1 h-3 w-3" />
                     </Button>
                   )}

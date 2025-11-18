@@ -19,7 +19,9 @@ import {
   FileText,
   Copy,
   Check,
-  Sparkles,
+  ShieldCheck,
+  Layers,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -47,6 +49,16 @@ type Invoice = {
   memo: string;
   dkgUAL?: string;
   txHash?: string;
+  creationTxHash?: string;
+  settlementTxHash?: string;
+  settlementUAL?: string;
+  settlementProofPublishedAt?: string;
+  issuanceUAL?: string;
+  issuanceCommitHash?: string;
+  issuanceProofPublishedAt?: string;
+  revenueAttestationUAL?: string;
+  revenuePeriod?: string;
+  revenueProofJson?: string;
   network?: string;
   contractAddress?: string;
   createdAt: string;
@@ -60,6 +72,9 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isPublishingIssuance, setIsPublishingIssuance] = useState(false);
+  const [isPublishingSettlement, setIsPublishingSettlement] = useState(false);
+  const [isPublishingRevenue, setIsPublishingRevenue] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
 
@@ -86,6 +101,122 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     setShareUrl(`${window.location.origin}/invoices/${invoiceId}`);
   }, [invoiceId]);
 
+  const periodFromIso = (dateIso?: string | null) => {
+    if (!dateIso) return undefined;
+    const date = new Date(dateIso);
+    return `${date.getUTCFullYear()}-${`${date.getUTCMonth() + 1}`.padStart(2, "0")}`;
+  };
+
+  const formatPeriodLabel = (period?: string) => {
+    if (!period || !/^\d{4}-\d{2}$/.test(period)) return undefined;
+    const [year, month] = period.split("-").map(Number);
+    const formatter = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" });
+    return formatter.format(new Date(Date.UTC(year, month - 1, 1)));
+  };
+
+  const publishIssuanceCommit = async () => {
+    if (!invoice) return;
+    setIsPublishingIssuance(true);
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/dkg/issuance`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Unable to publish issuance commit.");
+      }
+      const data = await res.json();
+      toast.success("Issuance commit published", {
+        description: data.ual || "Anchored to DKG",
+      });
+      await loadInvoice();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to publish issuance commit", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsPublishingIssuance(false);
+    }
+  };
+
+  const publishSettlementProof = async () => {
+    if (!invoice?.paidAt) {
+      toast.warning("Payment required", {
+        description: "Pay the invoice first before publishing settlement proof.",
+      });
+      return;
+    }
+    setIsPublishingSettlement(true);
+    try {
+      const res = await fetch(`/api/invoices/${invoiceId}/dkg/settlement`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          txHash: invoice.settlementTxHash ?? invoice.txHash ?? invoice.creationTxHash,
+          paidAt: invoice.paidAt,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Unable to publish settlement proof.");
+      }
+      const data = await res.json();
+      toast.success("Settlement proof published", {
+        description: data.ual || "Anchored to DKG",
+      });
+      await loadInvoice();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to publish settlement proof", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsPublishingSettlement(false);
+    }
+  };
+
+  const publishRevenueAttestation = async () => {
+    if (!invoice?.paidAt) {
+      toast.warning("Payment required", {
+        description: "Only paid invoices can be attested.",
+      });
+      return;
+    }
+    const period = periodFromIso(invoice.paidAt);
+    if (!period) {
+      toast.error("Unable to determine period for attestation.");
+      return;
+    }
+    setIsPublishingRevenue(true);
+    try {
+      const res = await fetch("/api/invoices/attestations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issuerAddress: invoice.issuerAddress,
+          period,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Unable to publish revenue attestation.");
+      }
+      const data = await res.json();
+      toast.success("Revenue attestation published", {
+        description: data.ual || "Anchored to DKG",
+      });
+      await loadInvoice();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to publish revenue attestation", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setIsPublishingRevenue(false);
+    }
+  };
+
   const handlePay = async () => {
     if (!invoice || !walletClient || !address) {
       toast.error("Please connect your wallet");
@@ -100,6 +231,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     setIsPaying(true);
 
     try {
+      const paidTimestamp = new Date().toISOString();
       const result = await payNativeInvoice({
         walletClient,
         invoiceId: invoice.onChainId,
@@ -113,8 +245,19 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
         body: JSON.stringify({
           status: "Paid",
           txHash: result.txHash,
-          paidAt: new Date().toISOString(),
+          paidAt: paidTimestamp,
         }),
+      });
+
+      void fetch(`/api/invoices/${invoiceId}/dkg/settlement`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          txHash: result.txHash,
+          paidAt: paidTimestamp,
+        }),
+      }).catch((error) => {
+        console.warn("Settlement proof publication failed", error);
       });
 
       toast.success("Payment successful!", {
@@ -251,17 +394,61 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     invoice.status === "Pending" &&
     ((isOpenInvoice && Boolean(address)) || Boolean(isPayer));
   const canCancel = isIssuer && invoice.status === "Pending";
-  const explorerUrl = invoice.txHash
-    ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.txHash)
+  const creationHash = invoice.creationTxHash ?? (invoice.status === "Pending" ? invoice.txHash : undefined);
+  const creationExplorerUrl = creationHash
+    ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", creationHash)
     : "";
-  const txLabel = invoice.status === "Paid" ? "Payment Transaction" : "Invoice Transaction";
-  const txDescription =
-    invoice.status === "Paid"
-      ? "Proof that the payer settled this invoice on-chain."
-      : "Creation transaction recorded on Moonbase Alpha.";
-  const dkgExplorerUrl = invoice.dkgUAL
-    ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace("{ual}", encodeURIComponent(invoice.dkgUAL))
+  const settlementExplorerUrl = invoice.settlementTxHash
+    ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.settlementTxHash)
     : "";
+  const settlementUAL = invoice.settlementUAL ?? invoice.dkgUAL;
+  const settlementUALViewer = settlementUAL
+    ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace(
+        "{ual}",
+        encodeURIComponent(settlementUAL),
+      )
+    : "";
+  const issuanceUAL = invoice.issuanceUAL;
+  const issuanceUALViewer = issuanceUAL
+    ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace(
+        "{ual}",
+        encodeURIComponent(issuanceUAL),
+      )
+    : "";
+  const revenueUAL = invoice.revenueAttestationUAL;
+  const revenueUALViewer = revenueUAL
+    ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace(
+        "{ual}",
+        encodeURIComponent(revenueUAL),
+      )
+    : "";
+  const currentPeriodLabel = formatPeriodLabel(invoice.revenuePeriod ?? periodFromIso(invoice.paidAt));
+  const lifecycle = [
+    {
+      label: "Issued",
+      date: invoice.createdAt,
+      complete: true,
+      description: "Invoice minted on-chain.",
+    },
+    {
+      label: "Paid",
+      date: invoice.paidAt,
+      complete: invoice.status === "Paid",
+      description: invoice.status === "Paid" ? "Payment confirmed." : "Waiting for settlement.",
+    },
+    {
+      label: "Settlement Proof",
+      date: invoice.settlementProofPublishedAt,
+      complete: Boolean(settlementUAL),
+      description: settlementUAL ? "Anchored to DKG." : "Publish after payment.",
+    },
+    {
+      label: "Revenue Attestation",
+      date: invoice.revenuePeriod ? `${invoice.revenuePeriod}-01` : undefined,
+      complete: Boolean(revenueUAL),
+      description: revenueUAL ? "Included in attestation." : "Publish to aggregate monthly revenue.",
+    },
+  ];
 
   return (
     <>
@@ -295,13 +482,43 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
 
       {/* Overdue Alert */}
       {isOverdue && (
-        <Alert className="mb-6 border-destructive/50 bg-destructive/10">
-          <AlertCircle className="h-4 w-4 text-destructive" />
-          <AlertDescription className="text-destructive">
-            This invoice is overdue. Payment was due on {dueDate.toLocaleDateString()}.
-          </AlertDescription>
-        </Alert>
-      )}
+      <Alert className="mb-6 border-destructive/50 bg-destructive/10">
+        <AlertCircle className="h-4 w-4 text-destructive" />
+        <AlertDescription className="text-destructive">
+          This invoice is overdue. Payment was due on {dueDate.toLocaleDateString()}.
+        </AlertDescription>
+      </Alert>
+    )}
+
+      <Card className="border mb-6">
+        <CardHeader>
+          <CardTitle>Trust Timeline</CardTitle>
+          <CardDescription>See how far this invoice has progressed through the verifiable pipeline.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-4">
+            {lifecycle.map((step) => (
+              <div
+                key={step.label}
+                className={`rounded-lg border p-4 ${step.complete ? "border-emerald-500/40 bg-emerald-500/5" : "border-border"}`}
+              >
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  {step.complete ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  {step.label}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {step.date ? new Date(step.date).toLocaleString() : "Pending"}
+                </p>
+                <p className="mt-1 text-xs">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Card */}
       <Card className="border-2 mb-6">
@@ -403,17 +620,19 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
           </div>
 
           {/* Transaction Info */}
-          {invoice.txHash && (
+          {creationHash && (
             <>
               <Separator />
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ExternalLink className="h-4 w-4" />
-                  {txLabel}
+                  Creation Transaction
                 </div>
-                <p className="text-sm text-muted-foreground">{txDescription}</p>
+                <p className="text-sm text-muted-foreground">
+                  Invoice creation recorded on Moonbase Alpha.
+                </p>
                 <a
-                  href={explorerUrl}
+                  href={creationExplorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
@@ -425,39 +644,26 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
             </>
           )}
 
-          {/* DKG Proof */}
-          {invoice.dkgUAL && (
+          {invoice.settlementTxHash && (
             <>
               <Separator />
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Sparkles className="h-4 w-4" />
-                  DKG Proof
+                  <ExternalLink className="h-4 w-4" />
+                  Payment Transaction
                 </div>
-                <div className="flex items-center gap-2">
-                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded flex-1 overflow-hidden text-ellipsis">
-                    {invoice.dkgUAL}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 flex-shrink-0"
-                    onClick={() => copyToClipboard(invoice.dkgUAL!)}
-                  >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  </Button>
-                </div>
-                {invoice.dkgUAL && (
-                  <a
-                    href={dkgExplorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                  >
-                    View on DKG Explorer
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+                <p className="text-sm text-muted-foreground">
+                  Proof that the payer settled this invoice on-chain.
+                </p>
+                <a
+                  href={settlementExplorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  View on Explorer
+                  <ExternalLink className="h-3 w-3" />
+                </a>
               </div>
             </>
           )}
@@ -536,6 +742,162 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               </AlertDescription>
             </Alert>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-2 mb-6">
+        <CardHeader>
+          <CardTitle>Proofs & Transparency</CardTitle>
+          <CardDescription>Control how this invoice surfaces on-chain verifications.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Issuance */}
+            <div className="rounded-lg border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Issuance Commit</p>
+                  <p className="text-xs text-muted-foreground">
+                    Salted hash that proves the invoice existed without exposing details.
+                  </p>
+                </div>
+                <ShieldCheck className={`h-5 w-5 ${issuanceUAL ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              {issuanceUAL ? (
+                <>
+                  {invoice.issuanceCommitHash && (
+                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis">
+                      {invoice.issuanceCommitHash}
+                    </code>
+                  )}
+                  <a
+                    href={issuanceUALViewer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    View on DKG
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                  <p className="text-xs text-muted-foreground">
+                    Published {invoice.issuanceProofPublishedAt ? new Date(invoice.issuanceProofPublishedAt).toLocaleString() : ""}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Not yet published. Recommended only if you need a privacy-preserving timestamp for compliance or grant milestones.
+                </p>
+              )}
+              <Button
+                variant={issuanceUAL ? "secondary" : "outline"}
+                size="sm"
+                onClick={publishIssuanceCommit}
+                disabled={isPublishingIssuance || isPaying}
+              >
+                {isPublishingIssuance ? "Publishing..." : issuanceUAL ? "Re-publish commit" : "Publish issuance commit"}
+              </Button>
+            </div>
+
+            {/* Settlement */}
+            <div className="rounded-lg border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Settlement Proof</p>
+                  <p className="text-xs text-muted-foreground">
+                    Minimal proof that links DKG to the Moonbase payment transaction.
+                  </p>
+                </div>
+                <Layers className={`h-5 w-5 ${settlementUAL ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              {settlementUAL ? (
+                <>
+                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis">
+                    {settlementUAL}
+                  </code>
+                  <a
+                    href={settlementUALViewer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    View on DKG
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                  <p className="text-xs text-muted-foreground">
+                    Published {invoice.settlementProofPublishedAt ? new Date(invoice.settlementProofPublishedAt).toLocaleString() : ""}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No settlement proof yet. This publishes automatically once payment is confirmed, but you can trigger it manually.
+                </p>
+              )}
+              <Button
+                variant={settlementUAL ? "secondary" : "default"}
+                size="sm"
+                onClick={publishSettlementProof}
+                disabled={isPublishingSettlement || invoice.status !== "Paid"}
+              >
+                {invoice.status !== "Paid"
+                  ? "Waiting for payment"
+                  : isPublishingSettlement
+                  ? "Publishing..."
+                  : settlementUAL
+                  ? "Re-publish settlement proof"
+                  : "Publish settlement proof"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Revenue */}
+          <div className="mt-4 rounded-lg border p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Revenue Attestation</p>
+                <p className="text-xs text-muted-foreground">
+                  Generates a Merkle proof aggregating all paid invoices for {currentPeriodLabel ?? "this period"}.
+                </p>
+              </div>
+              <TrendingUp className={`h-5 w-5 ${revenueUAL ? "text-primary" : "text-muted-foreground"}`} />
+            </div>
+            {revenueUAL ? (
+              <>
+                <code className="text-xs font-mono bg-muted px-2 py-1 rounded block overflow-hidden text-ellipsis">
+                  {revenueUAL}
+                </code>
+                <a
+                  href={revenueUALViewer}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  View attestation on DKG
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+                {currentPeriodLabel && (
+                  <p className="text-xs text-muted-foreground">
+                    Covers {currentPeriodLabel}. Each invoice stores a Merkle inclusion proof.
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Publish at least once per month to hand partners a privacy-preserving revenue statement backed by DKG.
+              </p>
+            )}
+            <Button
+              variant={revenueUAL ? "secondary" : "outline"}
+              size="sm"
+              onClick={publishRevenueAttestation}
+              disabled={isPublishingRevenue || invoice.status !== "Paid"}
+            >
+              {invoice.status !== "Paid"
+                ? "Waiting for payment"
+                : isPublishingRevenue
+                ? "Publishing..."
+                : "Publish revenue attestation"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
       dueAt,
       status,
       memo,
-      dkgUAL,
       txHash,
+      creationTxHash,
       network,
       contractAddress,
     } = body;
@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
       dueAt,
       status,
       memo,
-      dkgUAL,
-      txHash,
+      txHash: txHash ?? creationTxHash,
+      creationTxHash: creationTxHash ?? txHash,
       network,
       contractAddress,
     });

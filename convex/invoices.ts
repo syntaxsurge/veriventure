@@ -16,6 +16,7 @@ export const createInvoice = mutation({
     memo: v.string(),
     dkgUAL: v.optional(v.string()),
     txHash: v.optional(v.string()),
+    creationTxHash: v.optional(v.string()),
     network: v.optional(v.string()),
     contractAddress: v.optional(v.string()),
   },
@@ -36,6 +37,7 @@ export const createInvoice = mutation({
       memo: args.memo,
       dkgUAL: args.dkgUAL,
       txHash: args.txHash,
+      creationTxHash: args.creationTxHash ?? args.txHash,
       network: args.network,
       contractAddress: args.contractAddress,
       createdAt,
@@ -66,7 +68,8 @@ export const updateInvoiceStatus = mutation({
     await ctx.db.patch(existing._id, {
       status: args.status,
       txHash: args.txHash ?? existing.txHash,
-      paidAt: args.paidAt,
+      settlementTxHash: args.txHash ?? existing.settlementTxHash,
+      paidAt: args.paidAt ?? existing.paidAt,
     });
 
     return { success: true };
@@ -227,5 +230,98 @@ export const getInvoiceStats = query({
       issued: issuedStats,
       received: receivedStats,
     };
+  },
+});
+
+export const recordIssuanceProof = mutation({
+  args: {
+    invoiceId: v.string(),
+    ual: v.string(),
+    commitHash: v.string(),
+    commitSalt: v.string(),
+    publishedAt: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("invoices")
+      .withIndex("by_invoiceId", (q) => q.eq("invoiceId", args.invoiceId))
+      .unique();
+
+    if (!existing) {
+      throw new Error("Invoice not found");
+    }
+
+    await ctx.db.patch(existing._id, {
+      issuanceUAL: args.ual,
+      issuanceCommitHash: args.commitHash,
+      issuanceCommitSalt: args.commitSalt,
+      issuanceProofPublishedAt: args.publishedAt,
+    });
+
+    return { success: true };
+  },
+});
+
+export const recordSettlementProof = mutation({
+  args: {
+    invoiceId: v.string(),
+    ual: v.string(),
+    txHash: v.optional(v.string()),
+    publishedAt: v.string(),
+    paidAt: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("invoices")
+      .withIndex("by_invoiceId", (q) => q.eq("invoiceId", args.invoiceId))
+      .unique();
+
+    if (!existing) {
+      throw new Error("Invoice not found");
+    }
+
+    await ctx.db.patch(existing._id, {
+      settlementUAL: args.ual,
+      settlementProofPublishedAt: args.publishedAt,
+      settlementTxHash: args.txHash ?? existing.settlementTxHash,
+      paidAt: args.paidAt ?? existing.paidAt,
+      dkgUAL: args.ual, // keep backwards compatibility
+      txHash: args.txHash ?? existing.txHash,
+    });
+
+    return { success: true };
+  },
+});
+
+export const recordRevenueProof = mutation({
+  args: {
+    invoiceUpdates: v.array(
+      v.object({
+        invoiceId: v.string(),
+        proofJson: v.string(),
+      }),
+    ),
+    period: v.string(),
+    ual: v.string(),
+  },
+  handler: async (ctx, args) => {
+    for (const update of args.invoiceUpdates) {
+      const existing = await ctx.db
+        .query("invoices")
+        .withIndex("by_invoiceId", (q) => q.eq("invoiceId", update.invoiceId))
+        .unique();
+
+      if (!existing) {
+        continue;
+      }
+
+      await ctx.db.patch(existing._id, {
+        revenuePeriod: args.period,
+        revenueAttestationUAL: args.ual,
+        revenueProofJson: update.proofJson,
+      });
+    }
+
+    return { success: true };
   },
 });

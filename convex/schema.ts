@@ -113,7 +113,18 @@ export default defineSchema({
     status: v.string(), // "Pending", "Paid", "Cancelled", "Overdue"
     memo: v.string(),
     dkgUAL: v.optional(v.string()),
-    txHash: v.optional(v.string()),
+    txHash: v.optional(v.string()), // legacy creation/settlement hash reference
+    creationTxHash: v.optional(v.string()),
+    settlementTxHash: v.optional(v.string()),
+    settlementUAL: v.optional(v.string()),
+    settlementProofPublishedAt: v.optional(v.string()),
+    issuanceUAL: v.optional(v.string()),
+    issuanceCommitHash: v.optional(v.string()),
+    issuanceCommitSalt: v.optional(v.string()),
+    issuanceProofPublishedAt: v.optional(v.string()),
+    revenueAttestationUAL: v.optional(v.string()),
+    revenuePeriod: v.optional(v.string()),
+    revenueProofJson: v.optional(v.string()),
     network: v.optional(v.string()),
     contractAddress: v.optional(v.string()),
     createdAt: v.string(),
@@ -145,4 +156,17 @@ export default defineSchema({
     updatedAt: v.string(),
   })
     .index("by_owner", ["ownerAddress"]),
+
+  revenueAttestations: defineTable({
+    attestationId: v.string(),
+    issuerAddress: v.string(),
+    period: v.string(), // YYYY-MM
+    merkleRoot: v.string(),
+    ual: v.string(),
+    txHash: v.optional(v.string()),
+    createdAt: v.string(),
+  })
+    .index("by_issuer", ["issuerAddress"])
+    .index("by_period", ["period"])
+    .index("by_issuer_period", ["issuerAddress", "period"]),
 });

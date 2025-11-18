@@ -17,6 +17,7 @@ import type * as handles from "../handles.js";
 import type * as invoices from "../invoices.js";
 import type * as notes from "../notes.js";
 import type * as pitchDecks from "../pitchDecks.js";
+import type * as revenueAttestations from "../revenueAttestations.js";
 import type * as userProfiles from "../userProfiles.js";
 
 import type {
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   invoices: typeof invoices;
   notes: typeof notes;
   pitchDecks: typeof pitchDecks;
+  revenueAttestations: typeof revenueAttestations;
   userProfiles: typeof userProfiles;
 }>;
 
