@@ -85,7 +85,7 @@ export function NewInvoiceClient() {
           dueAt: new Date(dueDate).toISOString(),
           status: "Pending",
           memo,
-          creationTxHash: result.txHash,
+          txHash: result.txHash,
           network: result.network,
           contractAddress: result.contractAddress,
         }),
