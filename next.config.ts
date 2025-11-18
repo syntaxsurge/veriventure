@@ -31,6 +31,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["dkg.js"],
   output: "standalone",
+  env: {
+    DEMO_VIDEO_URL: process.env.DEMO_VIDEO_URL,
+  },
   turbopack: {
     resolveAlias: {
       "thread-stream": threadStreamAlias,

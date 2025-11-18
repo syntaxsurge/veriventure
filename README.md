@@ -130,8 +130,3 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 - **DKG** – Community Notes capture structured summaries with references; issuers pick what to publish, keeping sensitive docs private while still producing verifiable proofs.
 - **Off-chain** – Convex stores documents, notes, onboarding progress, and AI artifacts. Deterministic hashes allow redaction without losing verifiability.
 - **Sessions** – Wallet signatures gate all sensitive routes; `proxy.ts` refreshes cookies for `/dashboard`, `/credentials`, `/invoices`, `/ai-assistant`, `/documents`, and `/notes`.
-
-## Documentation & support
-- `AGENTS.md` – Canonical, always-current architecture + routing playbook.
-- `docs/youtube-demo-script.md` – Scene-by-scene guide that matches the `/demo-video` walkthrough.
-- `docs/problem-research.md` – Evidence-backed problem statements used to scope the features above.

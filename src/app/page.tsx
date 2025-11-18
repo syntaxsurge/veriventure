@@ -57,6 +57,161 @@ import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
 
+const DEFAULT_DEMO_VIDEO_EMBED_URL = "https://www.youtube.com/embed/ysz5S6PUM-U";
+const YOUTUBE_EMBED_PARAM_WHITELIST = [
+  "autoplay",
+  "loop",
+  "mute",
+  "controls",
+  "rel",
+  "modestbranding",
+  "playsinline",
+  "color",
+  "fs",
+  "iv_load_policy",
+  "enablejsapi",
+  "playlist",
+];
+const demoVideoEmbedUrl = deriveDemoVideoEmbedUrl(process.env.DEMO_VIDEO_URL);
+
+function deriveDemoVideoEmbedUrl(rawUrl?: string | null) {
+  if (!rawUrl?.trim()) {
+    return DEFAULT_DEMO_VIDEO_EMBED_URL;
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+    const normalizedHost = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+    const pathSegments = parsed.pathname.split("/").filter(Boolean);
+
+    if (normalizedHost === "youtu.be") {
+      const shortId = sanitizeVideoId(pathSegments[0] ?? parsed.pathname.replace(/^\/+/, ""));
+      if (shortId) {
+        return buildYouTubeEmbedUrl(shortId, parsed.searchParams);
+      }
+      return DEFAULT_DEMO_VIDEO_EMBED_URL;
+    }
+
+    const isYouTubeHost =
+      normalizedHost === "youtube.com" ||
+      normalizedHost === "m.youtube.com" ||
+      normalizedHost.endsWith(".youtube.com") ||
+      normalizedHost === "youtube-nocookie.com" ||
+      normalizedHost.endsWith(".youtube-nocookie.com");
+
+    if (isYouTubeHost) {
+      if (pathSegments[0] === "embed" && pathSegments[1]) {
+        const embedId = sanitizeVideoId(pathSegments[1]);
+        if (embedId) {
+          return buildYouTubeEmbedUrl(embedId, parsed.searchParams);
+        }
+      }
+
+      if (pathSegments[0] === "shorts" && pathSegments[1]) {
+        const shortsId = sanitizeVideoId(pathSegments[1]);
+        if (shortsId) {
+          return buildYouTubeEmbedUrl(shortsId, parsed.searchParams);
+        }
+      }
+
+      if (pathSegments[0] === "watch" || pathSegments.length === 0) {
+        const watchId = sanitizeVideoId(parsed.searchParams.get("v"));
+        if (watchId) {
+          return buildYouTubeEmbedUrl(watchId, parsed.searchParams);
+        }
+      }
+
+      const fallbackId = sanitizeVideoId(pathSegments[pathSegments.length - 1]);
+      if (fallbackId) {
+        return buildYouTubeEmbedUrl(fallbackId, parsed.searchParams);
+      }
+    }
+
+    return parsed.toString();
+  } catch {
+    return DEFAULT_DEMO_VIDEO_EMBED_URL;
+  }
+}
+
+function buildYouTubeEmbedUrl(videoId: string, searchParams: URLSearchParams) {
+  const sanitizedId = sanitizeVideoId(videoId);
+  if (!sanitizedId) {
+    return DEFAULT_DEMO_VIDEO_EMBED_URL;
+  }
+
+  const embedParams = new URLSearchParams();
+  const start = parseStartTime(searchParams);
+  if (start !== null) {
+    embedParams.set("start", start.toString());
+  }
+
+  const end = searchParams.get("end");
+  if (end && /^\d+$/.test(end)) {
+    embedParams.set("end", end);
+  }
+
+  for (const param of YOUTUBE_EMBED_PARAM_WHITELIST) {
+    const value = searchParams.get(param);
+    if (value) {
+      embedParams.set(param, value);
+    }
+  }
+
+  if (!embedParams.has("playlist")) {
+    const playlistFromList = searchParams.get("list");
+    if (playlistFromList) {
+      embedParams.set("playlist", playlistFromList);
+    }
+  }
+
+  if (embedParams.get("loop") === "1" && !embedParams.has("playlist")) {
+    embedParams.set("playlist", sanitizedId);
+  }
+
+  const query = embedParams.toString();
+  return `https://www.youtube.com/embed/${sanitizedId}${query ? `?${query}` : ""}`;
+}
+
+function sanitizeVideoId(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const sanitized = value.replace(/[^a-zA-Z0-9_-]/g, "");
+  return sanitized.length ? sanitized : null;
+}
+
+function parseStartTime(params: URLSearchParams) {
+  const startParam = params.get("start");
+  if (startParam && /^\d+$/.test(startParam)) {
+    return Number.parseInt(startParam, 10);
+  }
+
+  const tParam = params.get("t");
+  if (!tParam) {
+    return null;
+  }
+
+  return parseTimecode(tParam);
+}
+
+function parseTimecode(value: string) {
+  if (/^\d+$/.test(value)) {
+    return Number.parseInt(value, 10);
+  }
+
+  const timeParts = value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
+  if (!timeParts) {
+    return null;
+  }
+
+  const hours = timeParts[1] ? Number.parseInt(timeParts[1], 10) : 0;
+  const minutes = timeParts[2] ? Number.parseInt(timeParts[2], 10) : 0;
+  const seconds = timeParts[3] ? Number.parseInt(timeParts[3], 10) : 0;
+  const total = hours * 3600 + minutes * 60 + seconds;
+  return total > 0 ? total : null;
+}
+
 // Features data
 const features = [
   {
@@ -661,7 +816,7 @@ export default function LandingPage() {
                   <div className="aspect-video rounded-lg overflow-hidden shadow-2xl border border-primary/10">
                     <iframe
                       className="h-full w-full"
-                      src="https://www.youtube.com/embed/ysz5S6PUM-U"
+                      src={demoVideoEmbedUrl}
                       title="VeriVenture product walkthrough"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
