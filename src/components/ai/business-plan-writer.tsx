@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Sparkles, Loader2, ArrowRight, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -200,12 +199,18 @@ export function BusinessPlanWriter() {
 
       {/* Form */}
       <form onSubmit={handleGenerate} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Company Overview - Full Width */}
-          <div className="md:col-span-2 space-y-3">
-            <Card className="border-2 hover:border-primary/50 transition-colors">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+        <Card className="border-2 shadow-lg">
+          <CardHeader className="border-b border-border/60">
+            <CardTitle className="text-2xl font-semibold">Strategy Blueprint</CardTitle>
+            <CardDescription>
+              Capture company context, markets, and proof publishing in a single workspace so the flow stays effortless.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-6">
+              {/* Company Overview */}
+              <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-5 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <Label htmlFor="plan-idea" className="text-base font-semibold">
                     {fieldConfig.idea.label}
                   </Label>
@@ -239,222 +244,204 @@ export function BusinessPlanWriter() {
                   className="resize-none"
                   required
                 />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Target Market */}
-          <Card className="border-2 hover:border-primary/50 transition-colors">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Label htmlFor="plan-market" className="text-base font-semibold">
-                  {fieldConfig.market.label}
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => handleAssist("market")}
-                  disabled={loading || aiBusy.market}
-                >
-                  {aiBusy.market ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Use AI
-                    </>
-                  )}
-                </Button>
               </div>
-              <Input
-                id="plan-market"
-                placeholder={fieldConfig.market.placeholder}
-                value={form.market}
-                onChange={(event) => updateField("market", event.target.value)}
-                required
-              />
-            </CardContent>
-          </Card>
 
-          {/* Go-to-Market */}
-          <Card className="border-2 hover:border-primary/50 transition-colors">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Label htmlFor="plan-go-to-market" className="text-base font-semibold">
-                  {fieldConfig.goToMarket.label}
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => handleAssist("goToMarket")}
-                  disabled={loading || aiBusy.goToMarket}
-                >
-                  {aiBusy.goToMarket ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Use AI
-                    </>
-                  )}
-                </Button>
+              {/* Additional Fields */}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-5 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Label htmlFor="plan-market" className="text-base font-semibold">
+                      {fieldConfig.market.label}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleAssist("market")}
+                      disabled={loading || aiBusy.market}
+                    >
+                      {aiBusy.market ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Use AI
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Input
+                    id="plan-market"
+                    placeholder={fieldConfig.market.placeholder}
+                    value={form.market}
+                    onChange={(event) => updateField("market", event.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-5 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Label htmlFor="plan-go-to-market" className="text-base font-semibold">
+                      {fieldConfig.goToMarket.label}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleAssist("goToMarket")}
+                      disabled={loading || aiBusy.goToMarket}
+                    >
+                      {aiBusy.goToMarket ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Use AI
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="plan-go-to-market"
+                    rows={fieldConfig.goToMarket.rows}
+                    placeholder={fieldConfig.goToMarket.placeholder}
+                    value={form.goToMarket}
+                    onChange={(event) => updateField("goToMarket", event.target.value)}
+                    className="resize-none"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-5 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Label htmlFor="plan-differentiation" className="text-base font-semibold">
+                      {fieldConfig.differentiation.label}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleAssist("differentiation")}
+                      disabled={loading || aiBusy.differentiation}
+                    >
+                      {aiBusy.differentiation ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Use AI
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="plan-differentiation"
+                    rows={fieldConfig.differentiation.rows}
+                    placeholder={fieldConfig.differentiation.placeholder}
+                    value={form.differentiation}
+                    onChange={(event) => updateField("differentiation", event.target.value)}
+                    className="resize-none"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/20 p-5 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Label htmlFor="plan-impact" className="text-base font-semibold">
+                      {fieldConfig.impact.label}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => handleAssist("impact")}
+                      disabled={loading || aiBusy.impact}
+                    >
+                      {aiBusy.impact ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Use AI
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="plan-impact"
+                    rows={fieldConfig.impact.rows}
+                    placeholder={fieldConfig.impact.placeholder}
+                    value={form.impact}
+                    onChange={(event) => updateField("impact", event.target.value)}
+                    className="resize-none"
+                  />
+                </div>
               </div>
-              <Textarea
-                id="plan-go-to-market"
-                rows={fieldConfig.goToMarket.rows}
-                placeholder={fieldConfig.goToMarket.placeholder}
-                value={form.goToMarket}
-                onChange={(event) => updateField("goToMarket", event.target.value)}
-                className="resize-none"
-                required
-              />
-            </CardContent>
-          </Card>
-
-          {/* Differentiation */}
-          <Card className="border-2 hover:border-primary/50 transition-colors">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Label htmlFor="plan-differentiation" className="text-base font-semibold">
-                  {fieldConfig.differentiation.label}
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => handleAssist("differentiation")}
-                  disabled={loading || aiBusy.differentiation}
-                >
-                  {aiBusy.differentiation ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Use AI
-                    </>
-                  )}
-                </Button>
-              </div>
-              <Textarea
-                id="plan-differentiation"
-                rows={fieldConfig.differentiation.rows}
-                placeholder={fieldConfig.differentiation.placeholder}
-                value={form.differentiation}
-                onChange={(event) => updateField("differentiation", event.target.value)}
-                className="resize-none"
-                required
-              />
-            </CardContent>
-          </Card>
-
-          {/* Impact */}
-          <Card className="border-2 hover:border-primary/50 transition-colors">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Label htmlFor="plan-impact" className="text-base font-semibold">
-                  {fieldConfig.impact.label}
-                </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => handleAssist("impact")}
-                  disabled={loading || aiBusy.impact}
-                >
-                  {aiBusy.impact ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Use AI
-                    </>
-                  )}
-                </Button>
-              </div>
-              <Textarea
-                id="plan-impact"
-                rows={fieldConfig.impact.rows}
-                placeholder={fieldConfig.impact.placeholder}
-                value={form.impact}
-                onChange={(event) => updateField("impact", event.target.value)}
-                className="resize-none"
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Error Display */}
-        {(aiError || error) && (
-          <Card className="border-2 border-destructive/50 bg-destructive/5">
-            <CardContent className="p-4">
-              <p className="text-sm text-destructive font-medium">
-                {aiError || error}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        <Separator />
-
-        {/* DKG Publishing Toggle */}
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="dkg-business" className="text-base font-medium">
-                Publish Business Metrics to DKG
-              </Label>
-              <Sparkles className="h-4 w-4 text-primary" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              Create a verifiable proof of your business plan metrics on OriginTrail DKG
-            </p>
-          </div>
-          <Switch
-            id="dkg-business"
-            checked={publishToDKG}
-            onCheckedChange={setPublishToDKG}
-          />
-        </div>
 
-        {/* Generate Button */}
-        <div className="flex justify-end">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={loading}
-            className="gap-2 px-8"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Generating Your Business Plan...
-              </>
-            ) : (
-              <>
-                Generate Business Plan
-                <ArrowRight className="h-5 w-5" />
-              </>
+            {(aiError || error) && (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm font-medium text-destructive">
+                {aiError || error}
+              </div>
             )}
-          </Button>
-        </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4 border-t border-border/60 pt-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="rounded-2xl bg-primary/10 p-2 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <Label htmlFor="dkg-business" className="text-base font-semibold">
+                    Publish Business Metrics to DKG
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Create a verifiable OriginTrail proof alongside the generated plan.
+                  </p>
+                </div>
+              </div>
+              <Switch
+                id="dkg-business"
+                checked={publishToDKG}
+                onCheckedChange={setPublishToDKG}
+              />
+            </div>
+            <Button
+              type="submit"
+              size="lg"
+              disabled={loading}
+              className="w-full gap-2 px-8 lg:w-auto"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Generating Your Business Plan...
+                </>
+              ) : (
+                <>
+                  Generate Business Plan
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
     </div>
   );
