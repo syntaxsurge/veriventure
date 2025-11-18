@@ -5,13 +5,13 @@ import type { ComponentProps } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { formatEther, zeroAddress } from "viem";
 import {
-  ArrowLeft,
   Receipt,
   Loader2,
   CheckCircle2,
   Clock,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   ExternalLink,
   Calendar,
   User,
@@ -394,6 +394,10 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     invoice.status === "Pending" &&
     ((isOpenInvoice && Boolean(address)) || Boolean(isPayer));
   const canCancel = isIssuer && invoice.status === "Pending";
+  const requiresWalletConnection =
+    invoice.status === "Pending" && isOpenInvoice && !address;
+  const shouldShowPendingAlert =
+    !canPay && !canCancel && invoice.status === "Pending" && !requiresWalletConnection;
   const creationHash = invoice.creationTxHash ?? (invoice.status === "Pending" ? invoice.txHash : undefined);
   const creationExplorerUrl = creationHash
     ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", creationHash)
@@ -454,14 +458,6 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     <>
       {/* Header */}
       <div className="mb-8 space-y-4">
-        <Link
-          href="/invoices"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Invoices
-        </Link>
-
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -729,13 +725,26 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
             )}
           </div>
 
-          {!canPay && !canCancel && invoice.status === "Pending" && (
-            <Alert>
+          {requiresWalletConnection && (
+            <Alert
+              variant="destructive"
+              className="mt-4 border-destructive/70 bg-destructive/15 text-destructive dark:bg-destructive/20"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-destructive dark:text-destructive-foreground">
+                Connect a wallet to pay this open invoice. Anyone with this link can settle as soon as a wallet is
+                connected.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {shouldShowPendingAlert && (
+            <Alert className="mt-4">
               <AlertDescription>
                 {isIssuer
                   ? "Waiting for payment from the client"
-                  : isOpenInvoice
-                  ? "Connect your wallet above to pay this open invoice"
+                  : !address
+                  ? "Connect your wallet above to pay this invoice"
                   : isPayer
                   ? "You can pay this invoice above"
                   : "You are not authorized to interact with this invoice"}

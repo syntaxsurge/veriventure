@@ -145,7 +145,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
       {/* Main Resume Preview */}
       <div className="space-y-6">
         {/* Resume Paper - Modern Design */}
-        <Card className="border-2 shadow-2xl overflow-hidden bg-linear-to-br from-slate-50 to-white">
+        <Card className="border-2 shadow-2xl overflow-hidden bg-linear-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
           <CardContent className="p-8">
             <div
               className="relative mx-auto w-full overflow-hidden rounded-xl border-4 border-white bg-white shadow-2xl"
@@ -257,8 +257,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
             </div>
 
             {/* Resume Quality Indicator */}
-            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <div className="mt-4 flex items-center justify-center gap-2 rounded-full bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground dark:bg-slate-900/70 dark:text-slate-100">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-300" />
               <span>Professional resume generated with AI</span>
             </div>
           </CardContent>
@@ -268,8 +268,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
       {/* Sidebar Actions */}
       <div className="space-y-6">
         {/* Photo Upload */}
-        <Card className="border-2 bg-linear-to-br from-primary/5 to-transparent">
-          <CardContent className="p-6 space-y-4">
+        <Card className="border-2 bg-linear-to-br from-primary/5 to-transparent dark:from-slate-900 dark:to-slate-950">
+          <CardContent className="p-6 space-y-4 text-slate-800 dark:text-slate-100">
             <div className="space-y-2">
               <Label htmlFor="resume-photo" className="flex items-center gap-2 text-sm font-bold">
                 <div className="p-1.5 rounded-lg bg-primary/10">
@@ -283,7 +283,7 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="relative flex aspect-square h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-primary/30 bg-muted shadow-sm">
+              <div className="relative flex aspect-square h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-primary/30 bg-muted shadow-sm dark:bg-slate-900/60">
                 {photoDataUrl ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -315,8 +315,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
         </Card>
 
         {/* Actions */}
-        <Card className="border-2 bg-linear-to-br from-slate-50 to-white">
-          <CardContent className="p-6 space-y-4">
+        <Card className="border-2 bg-linear-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
+          <CardContent className="p-6 space-y-4 text-slate-800 dark:text-slate-100">
             <h3 className="text-sm font-bold flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
               Export & Share
@@ -430,8 +430,8 @@ export function ResumeViewer({ document }: ResumeViewerProps) {
         )}
 
         {/* Metadata */}
-        <Card className="border-2 bg-muted/30">
-          <CardContent className="p-6 space-y-3">
+        <Card className="border-2 bg-muted/30 dark:bg-slate-900/60">
+          <CardContent className="p-6 space-y-3 text-slate-800 dark:text-slate-100">
             <h3 className="text-sm font-semibold">Document Info</h3>
 
             <div className="space-y-2 text-xs">
