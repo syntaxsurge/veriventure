@@ -61,6 +61,7 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   const [isPaying, setIsPaying] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
 
   const loadInvoice = useCallback(async () => {
     try {
@@ -79,6 +80,11 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
   useEffect(() => {
     void loadInvoice();
   }, [loadInvoice]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setShareUrl(`${window.location.origin}/invoices/${invoiceId}`);
+  }, [invoiceId]);
 
   const handlePay = async () => {
     if (!invoice || !walletClient || !address) {
@@ -166,11 +172,28 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success("Copied to clipboard");
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async (text: string, message = "Copied to clipboard") => {
+    if (typeof navigator === "undefined" || !navigator.clipboard) {
+      toast.error("Clipboard access is unavailable in this browser.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(message);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
+  };
+
+  const handleShareCopy = () => {
+    if (!shareUrl) {
+      toast.warning("Share link is still loading. Please try again.");
+      return;
+    }
+    void copyToClipboard(shareUrl, "Invoice link copied");
   };
 
   type BadgeVariant = ComponentProps<typeof Badge>["variant"];
@@ -228,6 +251,17 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
     invoice.status === "Pending" &&
     ((isOpenInvoice && Boolean(address)) || Boolean(isPayer));
   const canCancel = isIssuer && invoice.status === "Pending";
+  const explorerUrl = invoice.txHash
+    ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.txHash)
+    : "";
+  const txLabel = invoice.status === "Paid" ? "Payment Transaction" : "Invoice Transaction";
+  const txDescription =
+    invoice.status === "Paid"
+      ? "Proof that the payer settled this invoice on-chain."
+      : "Creation transaction recorded on Moonbase Alpha.";
+  const dkgExplorerUrl = invoice.dkgUAL
+    ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace("{ual}", encodeURIComponent(invoice.dkgUAL))
+    : "";
 
   return (
     <>
@@ -375,10 +409,11 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ExternalLink className="h-4 w-4" />
-                  Transaction
+                  {txLabel}
                 </div>
+                <p className="text-sm text-muted-foreground">{txDescription}</p>
                 <a
-                  href={clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.txHash)}
+                  href={explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
@@ -412,15 +447,17 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
                     {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
                 </div>
-                <a
-                  href={`https://dkg.origintrail.io/explore?ual=${invoice.dkgUAL}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                >
-                  View on DKG Explorer
-                  <ExternalLink className="h-3 w-3" />
-                </a>
+                {invoice.dkgUAL && (
+                  <a
+                    href={dkgExplorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    View on DKG Explorer
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
               </div>
             </>
           )}
@@ -513,14 +550,12 @@ export function InvoiceDetailClient({ invoiceId }: { invoiceId: string }) {
         <CardContent>
           <div className="flex gap-2">
             <Input
-              value={`${window.location.origin}/invoices/${invoice.invoiceId}`}
+              value={shareUrl}
               readOnly
+              placeholder="Generating share link..."
               className="font-mono text-sm"
             />
-            <Button
-              onClick={() => copyToClipboard(`${window.location.origin}/invoices/${invoice.invoiceId}`)}
-              variant="outline"
-            >
+            <Button onClick={handleShareCopy} variant="outline" disabled={!shareUrl}>
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>
           </div>

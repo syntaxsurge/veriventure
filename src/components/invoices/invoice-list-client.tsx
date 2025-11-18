@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent, KeyboardEvent } from "react";
 import { useAccount } from "wagmi";
 import { formatEther, zeroAddress } from "viem";
 import {
@@ -14,9 +14,12 @@ import {
   ExternalLink,
   ArrowUpRight,
   ArrowDownLeft,
+  Sparkles,
+  Copy,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +42,7 @@ type Invoice = {
   status: string;
   memo: string;
   txHash?: string;
+  dkgUAL?: string;
   createdAt: string;
   paidAt?: string;
 };
@@ -64,6 +68,7 @@ type InvoiceStats = {
 
 export function InvoiceListClient() {
   const { address } = useAccount();
+  const router = useRouter();
   const [issuedInvoices, setIssuedInvoices] = useState<Invoice[]>([]);
   const [receivedInvoices, setReceivedInvoices] = useState<Invoice[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
@@ -141,12 +146,65 @@ export function InvoiceListClient() {
     const amountDEV = formatEther(BigInt(invoice.amount));
     const dueDate = new Date(invoice.dueAt);
     const isOverdue = dueDate < new Date() && invoice.status === "Pending";
+    const explorerUrl = invoice.txHash
+      ? clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.txHash)
+      : "";
+    const dkgUrl = invoice.dkgUAL
+      ? clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE.replace("{ual}", encodeURIComponent(invoice.dkgUAL))
+      : "";
+    const shareUrl =
+      typeof window !== "undefined" ? `${window.location.origin}/invoices/${invoice.invoiceId}` : "";
+
+    const handleOpenExternal = (event: MouseEvent, url: string) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!url) return;
+      window.open(url, "_blank", "noopener,noreferrer");
+    };
+
+    const handleShare = async (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!shareUrl) {
+        toast.warning("Share link unavailable until the page fully loads");
+        return;
+      }
+      if (typeof navigator === "undefined" || !navigator.clipboard) {
+        toast.error("Clipboard access is unavailable in this browser.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Invoice link copied");
+      } catch {
+        toast.error("Unable to copy link. Please copy it manually.", {
+          description: shareUrl,
+        });
+      }
+    };
+
+    const handleNavigate = () => {
+      router.push(`/invoices/${invoice.invoiceId}`);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleNavigate();
+      }
+    };
 
     return (
-      <Link href={`/invoices/${invoice.invoiceId}`}>
-        <Card className="group hover:border-primary/50 transition-all hover:shadow-md">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between gap-4">
+      <Card
+        role="button"
+        tabIndex={0}
+        aria-label={`View invoice ${invoice.invoiceId}`}
+        onClick={handleNavigate}
+        onKeyDown={handleKeyDown}
+        className="group hover:border-primary/50 transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      >
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-3">
                 {/* Header */}
                 <div className="flex items-center gap-3">
@@ -204,23 +262,43 @@ export function InvoiceListClient() {
               {/* Status & Action */}
               <div className="flex flex-col items-end gap-3">
                 {getStatusBadge(invoice.status)}
-                {invoice.txHash && (
-                  <a
-                    href={clientEnv.NEXT_PUBLIC_EXPLORER_TX_TEMPLATE.replace("{tx}", invoice.txHash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                <div className="flex flex-wrap items-center gap-2 justify-end">
+                  {invoice.txHash && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={(event) => handleOpenExternal(event, explorerUrl)}
+                    >
+                      View TX
+                      <ExternalLink className="ml-1 h-3 w-3" />
+                    </Button>
+                  )}
+                  {invoice.dkgUAL && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={(event) => handleOpenExternal(event, dkgUrl)}
+                    >
+                      DKG Proof
+                      <Sparkles className="ml-1 h-3 w-3" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={handleShare}
                   >
-                    View TX
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+                    Share
+                    <Copy className="ml-1 h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
-        </Card>
-      </Link>
+      </Card>
     );
   };
 
