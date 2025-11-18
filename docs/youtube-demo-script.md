@@ -39,7 +39,7 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 1. **On-screen:** From the AI Assistant hub, open the Resume page at `/ai-assistant/resume`.
 2. **On-screen:** In the Full Name field, type `Jade Empleo`, and in the Target Role field type `Tech Lead`. Leave the other fields mostly blank, then click a `Use AI` button on the summary (and optionally on experience or skills) so the assistant generates the remaining content from that name and role.
 3. **On-screen:** Click `Generate Resume` (or the equivalent action) and wait to be redirected to the resume detail page (for example `/ai-assistant/resume/[documentId]`), then show the rendered resume preview.
-   - **Voice-over 6:** “The Resume Builder works the same way. I enter my name and target role—in this case Jade Empleo, Tech Lead—then use the `Use AI` buttons to let the assistant write the summary and sections for me, and the finished resume opens on its own page and is saved for later export.”
+   - **Voice-over 6:** “The Resume Builder works the same way. I enter my name and target role then use the `Use AI` buttons to let the assistant write the summary and sections for me, and the finished resume opens on its own page and is saved for later export.”
 
 ## Segment 7 – Create Invoice
 
