@@ -132,15 +132,13 @@ export function TrustPanel({ profile }: TrustPanelProps) {
         <div>
           <h2 className="text-2xl font-semibold">Signed achievements</h2>
           <p className="text-sm text-muted-foreground">
-            Each card includes the BLAKE2b hash, metrics, and a recompute
-            button. Verifiers can cross-check the contract plus OriginTrail
+            Each card includes the BLAKE2b hash and metrics.
+            Verifiers can cross-check the contract plus OriginTrail
             references without leaving this page.
           </p>
         </div>
         <AchievementList
           achievements={profile.achievements}
-          verifiable={true}
-          ownerAddress={profile.address}
         />
       </section>
 

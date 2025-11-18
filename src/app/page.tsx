@@ -438,57 +438,50 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Floating Cards */}
-          <motion.div
-            className="absolute -left-20 top-20 hidden lg:block"
-            animate={{
-              y: [0, -20, 0],
-              rotate: [-5, 5, -5]
-            }}
-            transition={{ duration: 6, repeat: Infinity }}
-          >
-            <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/80 border-purple-500/20">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-sm font-medium">Achievement Verified</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">+1,250 trust points</p>
-            </Card>
-          </motion.div>
+          {/* Achievement Notifications - Repositioned to sidebar */}
+          <div className="fixed right-4 top-32 hidden xl:flex flex-col gap-4 z-40 max-w-xs">
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
+              <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/95 border-purple-500/20">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <span className="text-sm font-medium">Achievement Verified</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">+1,250 trust points</p>
+              </Card>
+            </motion.div>
 
-          <motion.div
-            className="absolute -right-20 top-40 hidden lg:block"
-            animate={{
-              y: [0, 20, 0],
-              rotate: [5, -5, 5]
-            }}
-            transition={{ duration: 7, repeat: Infinity }}
-          >
-            <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/80 border-green-500/20">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-green-500" />
-                <span className="text-sm font-medium">Payment Received</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">$5,000 USDC</p>
-            </Card>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+            >
+              <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/95 border-green-500/20">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-green-500" />
+                  <span className="text-sm font-medium">Payment Received</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">$5,000 USDC</p>
+              </Card>
+            </motion.div>
 
-          <motion.div
-            className="absolute left-10 bottom-20 hidden lg:block"
-            animate={{
-              y: [0, -15, 0],
-              x: [0, 10, 0]
-            }}
-            transition={{ duration: 8, repeat: Infinity }}
-          >
-            <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/80 border-blue-500/20">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-blue-500" />
-                <span className="text-sm font-medium">Pitch Deck Ready</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">AI-Generated in 2 min</p>
-            </Card>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.9, duration: 0.5 }}
+            >
+              <Card className="p-4 shadow-2xl backdrop-blur-sm bg-background/95 border-blue-500/20">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-500" />
+                  <span className="text-sm font-medium">Pitch Deck Ready</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">AI-Generated in 2 min</p>
+              </Card>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -575,9 +568,9 @@ export default function LandingPage() {
                 <Card className="group relative h-full overflow-hidden transition-all hover:shadow-2xl hover:scale-105 hover:-translate-y-2">
                   <div className={cn("absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity group-hover:opacity-10", feature.bg)} />
 
-                  {/* Stats Badge */}
+                  {/* Stats Badge - Fixed contrast */}
                   <div className="absolute top-4 right-4">
-                    <Badge className="bg-background/80 backdrop-blur-sm">
+                    <Badge className="bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 font-semibold">
                       {Object.values(feature.stats)[0]}
                     </Badge>
                   </div>
@@ -600,24 +593,28 @@ export default function LandingPage() {
                       ))}
                     </ul>
 
-                    {/* Feature Stats */}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                    {/* Feature Stats - Fixed contrast */}
+                    <div className="flex items-center justify-between text-xs mb-4">
                       {Object.entries(feature.stats).map(([key, value]) => (
-                        <span key={key}>
-                          <span className="font-semibold text-foreground">{value}</span> {key}
+                        <span key={key} className="flex items-center gap-1">
+                          <Badge variant="secondary" className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800">
+                            <span className="font-semibold">{value}</span>
+                          </Badge>
+                          <span className="text-muted-foreground">{key}</span>
                         </span>
                       ))}
                     </div>
 
-                    <Link href={feature.link}>
-                      <Button
-                        variant="ghost"
-                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                      >
+                    <Button
+                      asChild
+                      variant="ghost"
+                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                    >
+                      <Link href={feature.link}>
                         Learn More
                         <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -938,28 +935,17 @@ export default function LandingPage() {
             {techStack.map((tech, idx) => (
               <motion.div
                 key={tech.name}
-                initial={{ opacity: 0, scale: 0.9, rotate: -10 }}
-                whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
               >
-                <Card className="group h-full text-center transition-all hover:shadow-2xl cursor-pointer overflow-hidden">
-                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity", tech.color)} />
+                <Card className="group h-full text-center transition-all hover:shadow-2xl cursor-pointer overflow-hidden hover:-translate-y-1">
+                  <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300", tech.color)} />
                   <CardContent className="relative p-6">
-                    <motion.div
-                      className="mb-2 text-4xl"
-                      animate={{
-                        rotateY: [0, 360]
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        repeatDelay: idx * 0.5
-                      }}
-                    >
+                    <div className="mb-2 text-4xl transform transition-transform group-hover:scale-110">
                       {tech.icon}
-                    </motion.div>
+                    </div>
                     <h3 className="font-semibold">{tech.name}</h3>
                     <p className="mt-1 text-xs text-muted-foreground">{tech.description}</p>
                   </CardContent>

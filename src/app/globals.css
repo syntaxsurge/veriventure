@@ -215,4 +215,39 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* Fix button contrast issues in dark mode */
+  .dark button[class*="bg-gradient"] {
+    @apply text-white !important;
+  }
+
+  /* Ensure gradient buttons have proper text contrast */
+  button[class*="from-purple"] {
+    @apply text-white !important;
+  }
+
+  button[class*="from-indigo"] {
+    @apply text-white !important;
+  }
+
+  /* Fix badge contrast in light/dark modes */
+  .dark .badge-contrast {
+    @apply bg-slate-700 text-white !important;
+  }
+
+  .badge-contrast {
+    @apply bg-slate-800 text-white !important;
+  }
+
+  /* Ensure floating elements don't overlap content */
+  .floating-achievements {
+    @apply fixed right-4 top-24 z-40 max-w-sm !important;
+  }
+
+  /* Prevent hover flickering */
+  .no-flicker {
+    @apply transform-gpu will-change-transform !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
 }

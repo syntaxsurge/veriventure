@@ -270,36 +270,46 @@ export default function DashboardPage() {
     },
   ];
 
+  // Calculate real stats based on actual data
+  const currentMonth = new Date().getMonth();
+  const lastMonthAchievements = achievementsList.filter(a => {
+    const achievementMonth = new Date(a.createdAt).getMonth();
+    return achievementMonth === currentMonth - 1;
+  }).length;
+  const achievementGrowth = lastMonthAchievements > 0
+    ? Math.round(((achievementsList.length - lastMonthAchievements) / lastMonthAchievements) * 100)
+    : 0;
+
   const stats = [
     {
       title: "Total Achievements",
       value: achievementsList.length,
-      change: "+12%",
-      trend: "up" as const,
+      change: achievementGrowth > 0 ? `+${achievementGrowth}%` : null,
+      trend: achievementGrowth > 0 ? "up" as const : "neutral" as const,
       icon: Award,
       color: "from-purple-600 to-indigo-600"
     },
     {
       title: "Active Invoices",
-      value: "3",
-      change: "+2",
-      trend: "up" as const,
+      value: "0",
+      change: null,
+      trend: "neutral" as const,
       icon: DollarSign,
       color: "from-emerald-600 to-teal-600"
     },
     {
       title: "DKG Publications",
-      value: "7",
-      change: "+25%",
-      trend: "up" as const,
+      value: "0",
+      change: null,
+      trend: "neutral" as const,
       icon: Link2,
       color: "from-blue-600 to-cyan-600"
     },
     {
       title: "Trust Score",
-      value: "92",
-      change: "+5",
-      trend: "up" as const,
+      value: achievementsList.length > 0 ? Math.min(50 + (achievementsList.length * 10), 100) : 0,
+      change: null,
+      trend: "neutral" as const,
       icon: ShieldCheck,
       color: "from-amber-600 to-orange-600"
     },
@@ -450,9 +460,11 @@ export default function DashboardPage() {
                     )}
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full" variant="outline">
-                      View Recommendations
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                    <Button className="w-full" variant="outline" asChild>
+                      <Link href="/credentials">
+                        {achievementsList.length === 0 ? "Start Now" : "View Achievements"}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
                     </Button>
                   </CardFooter>
                 </Card>

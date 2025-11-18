@@ -1,30 +1,25 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { clientEnv } from "@/env/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Award, Clock, ExternalLink, Hash, Shield, Sparkles, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Award, Clock, ExternalLink, Hash, Sparkles, TrendingUp, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AchievementRecord } from "@/types/achievement";
-import { computeAchievementHash } from "@/lib/achievement-hash";
 
 type AchievementListProps = {
   achievements: AchievementRecord[];
   loading?: boolean;
   onRefresh?: () => void;
-  verifiable?: boolean;
-  ownerAddress?: string;
 };
 
 export function AchievementList({
   achievements,
   loading,
   onRefresh,
-  verifiable = false,
-  ownerAddress,
 }: AchievementListProps) {
   const sorted = useMemo(
     () =>
@@ -33,83 +28,6 @@ export function AchievementList({
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ),
     [achievements],
-  );
-  const [verifyingId, setVerifyingId] = useState<string | null>(null);
-  const [verificationStatus, setVerificationStatus] = useState<
-    Record<
-      string,
-      {
-        state: "valid" | "invalid" | "error";
-        message: string;
-      }
-    >
-  >({});
-
-  const handleVerify = useCallback(
-    async (record: AchievementRecord) => {
-      if (!ownerAddress) return;
-      const recordId = record.id || record.achievementId || record._id;
-      setVerifyingId(recordId);
-      try {
-        const localHash = computeAchievementHash({
-          title: record.title,
-          summary: record.summary,
-          metrics: record.metrics,
-          evidenceUrl: record.evidenceUrl,
-          impactArea: record.impactArea,
-        });
-        const localMatch =
-          localHash.toLowerCase() === record.hash.toLowerCase();
-
-        const response = await fetch("/api/achievements/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            address: ownerAddress,
-            hash: record.hash,
-          }),
-        });
-        const payload = (await response.json()) as {
-          onChainMatch?: boolean;
-          onChainCount?: number;
-          error?: string;
-        };
-        if (!response.ok) {
-          throw new Error(payload.error ?? "Unable to verify hash.");
-        }
-
-        const onChainMatch = payload.onChainMatch === true;
-        const parts = [
-          localMatch
-            ? "Local hash matches the displayed content."
-            : "Local hash mismatch — content differs from the signed record.",
-          onChainMatch
-            ? "Hash found on-chain."
-            : "Hash missing from on-chain contract.",
-        ];
-
-        setVerificationStatus((prev) => ({
-          ...prev,
-          [recordId]: {
-            state: localMatch && onChainMatch ? "valid" : "invalid",
-            message: parts.join(" "),
-          },
-        }));
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Verification failed.";
-        setVerificationStatus((prev) => ({
-          ...prev,
-          [recordId]: {
-            state: "error",
-            message,
-          },
-        }));
-      } finally {
-        setVerifyingId(null);
-      }
-    },
-    [ownerAddress],
   );
 
   if (loading) {
@@ -246,39 +164,6 @@ export function AchievementList({
               )}
             </div>
 
-            {verifiable && ownerAddress && (() => {
-              const achievementId = achievement.id || achievement.achievementId || achievement._id;
-              return (
-                <div className="space-y-3 pt-4 border-t">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="w-full"
-                    disabled={verifyingId === achievementId}
-                    onClick={() => handleVerify(achievement)}
-                  >
-                    <Shield className="mr-2 h-5 w-5" />
-                    {verifyingId === achievementId
-                      ? "Verifying…"
-                      : "Recompute & Verify Hash"}
-                  </Button>
-                  {verificationStatus[achievementId] && (
-                    <div
-                      className={cn(
-                        "rounded-lg p-3 text-sm font-medium",
-                        verificationStatus[achievementId].state === "valid"
-                          ? "bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/20 dark:text-green-300 dark:border-green-900"
-                          : verificationStatus[achievementId].state === "invalid"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-900"
-                            : "bg-destructive/10 text-destructive border border-destructive/20"
-                      )}
-                    >
-                      {verificationStatus[achievementId].message}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
           </CardContent>
         </Card>
       ))}
