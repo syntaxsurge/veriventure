@@ -1,15 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Target, Rocket, Award, Clock, Hash, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Rocket, Award, Clock, Hash, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AchievementList } from "@/components/credentials/achievement-list";
-import { DashboardMission } from "@/features/mission-control/dashboard-mission";
 import { InvoiceDashboardWidget } from "@/components/invoices/invoice-dashboard-widget";
 import { AppShellClient } from "@/components/layout/app-shell.client";
-import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { QuickStartChecklist } from "@/components/dashboard/quick-start-checklist";
 import { useAccount } from "wagmi";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
@@ -53,7 +52,6 @@ export default function DashboardPage() {
 
   const isLoading = achievementsRaw === undefined && address;
   const latest = achievementsList[0];
-  const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   if (!address) {
     return (
@@ -72,6 +70,8 @@ export default function DashboardPage() {
       </AppShellClient>
     );
   }
+
+  const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   return (
     <AppShellClient sidebar maxWidth="7xl">
@@ -105,14 +105,11 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Guide rails, mission, and invoices */}
+        {/* Guide rails and invoicing */}
         <motion.section variants={item}>
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.1fr)]">
-            <DashboardClient />
-            <div className="space-y-6">
-              <DashboardMission address={address} />
-              <InvoiceDashboardWidget />
-            </div>
+          <div className="grid gap-6 items-start lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+            <QuickStartChecklist />
+            <InvoiceDashboardWidget />
           </div>
         </motion.section>
 
@@ -226,53 +223,43 @@ export default function DashboardPage() {
                       <Skeleton className="h-20 w-full" />
                     </CardContent>
                   </Card>
-                ) : latest ? (
-                  <Card className="overflow-hidden border-2 border-primary/30 shadow-xl bg-gradient-to-br from-background to-primary/5">
-                    <div className="h-2 bg-gradient-to-r from-primary via-purple-500 to-primary animate-gradient" />
-                    <CardHeader className="flex flex-row items-start justify-between">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="gap-1.5 px-3 py-1">
-                            <Sparkles className="h-3 w-3" aria-hidden="true" />
-                            Latest Achievement
-                          </Badge>
-                          <Badge variant="outline" className="gap-1.5">
-                            <Clock className="h-3 w-3" />
-                            Recent
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-3xl font-bold">{latest.title}</CardTitle>
-                      </div>
-                      <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 p-4 shadow-lg">
-                        <Award className="h-10 w-10 text-primary" aria-hidden="true" />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-muted-foreground leading-relaxed text-base">
-                        {latest.summary}
-                      </p>
-                      <div className="flex items-center gap-3 rounded-xl border-2 border-primary/20 bg-muted/50 p-4 backdrop-blur-sm">
-                        <div className="rounded-lg bg-primary/10 p-2">
-                          <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
-                        </div>
-                        <code className="text-sm font-mono text-primary flex-1 break-all">
-                          {latest.hash.slice(0, 32)}...
-                        </code>
-                      </div>
-                    </CardContent>
-                  </Card>
                 ) : (
-                  <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-br from-muted/30 to-background hover:border-primary/50 transition-all">
-                    <CardHeader>
-                      <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
-                        <Target className="h-7 w-7 text-primary" aria-hidden="true" />
-                      </div>
-                      <CardTitle className="text-2xl">Get Started</CardTitle>
-                      <CardDescription className="text-base">
-                        Head to Credentials to mint your first badge and start building your verifiable profile.
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
+                  latest && (
+                    <Card className="overflow-hidden border-2 border-primary/30 shadow-xl bg-gradient-to-br from-background to-primary/5">
+                      <div className="h-2 bg-gradient-to-r from-primary via-purple-500 to-primary animate-gradient" />
+                      <CardHeader className="flex flex-row items-start justify-between">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="gap-1.5 px-3 py-1">
+                              <Sparkles className="h-3 w-3" aria-hidden="true" />
+                              Latest Achievement
+                            </Badge>
+                            <Badge variant="outline" className="gap-1.5">
+                              <Clock className="h-3 w-3" />
+                              Recent
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-3xl font-bold">{latest.title}</CardTitle>
+                        </div>
+                        <div className="rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 p-4 shadow-lg">
+                          <Award className="h-10 w-10 text-primary" aria-hidden="true" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-muted-foreground leading-relaxed text-base">
+                          {latest.summary}
+                        </p>
+                        <div className="flex items-center gap-3 rounded-xl border-2 border-primary/20 bg-muted/50 p-4 backdrop-blur-sm">
+                          <div className="rounded-lg bg-primary/10 p-2">
+                            <Hash className="h-5 w-5 text-primary" aria-hidden="true" />
+                          </div>
+                          <code className="text-sm font-mono text-primary flex-1 break-all">
+                            {latest.hash.slice(0, 32)}...
+                          </code>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
                 )}
               </motion.div>
 

@@ -12,32 +12,48 @@ export default function DashboardLoading() {
           <Skeleton className="h-5 w-96" />
         </div>
 
-        {/* Mission Control Skeleton */}
-        <Card className="border-2">
-          <CardHeader>
-            <Skeleton className="h-6 w-48 mb-2" />
-            <Skeleton className="h-4 w-72" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </CardContent>
-        </Card>
+        {/* Quick Start + Invoice Widgets */}
+        <div className="grid gap-6 items-start lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <Card className="border-2">
+            <CardHeader className="pb-4 space-y-2">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-64" />
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between text-xs">
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-3 w-12" />
+                </div>
+                <Skeleton className="h-2 w-full rounded-full" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-56" />
+                  </div>
+                  <Skeleton className="h-8 w-16 rounded-full" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-        {/* Invoice Widget Skeleton */}
-        <Card className="border-2">
-          <CardHeader>
-            <Skeleton className="h-6 w-32 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="border-2">
+            <CardHeader>
+              <Skeleton className="h-6 w-32 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full md:col-span-2" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Stats Overview Skeleton */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

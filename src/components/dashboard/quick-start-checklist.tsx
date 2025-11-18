@@ -33,6 +33,11 @@ export function QuickStartChecklist() {
     address ? { ownerAddress: address } : "skip"
   );
 
+  const achievements = useQuery(
+    api.achievements.getByOwner,
+    address ? { ownerAddress: address } : "skip"
+  );
+
   const invoices = useQuery(
     api.invoices.getByIssuer,
     address ? { issuerAddress: address } : "skip"
@@ -56,6 +61,13 @@ export function QuickStartChecklist() {
   const completeChecklistItem = useMutation(api.userProfiles.completeChecklistItem);
 
   const checklistItems: ChecklistItem[] = [
+    {
+      id: "mint-badge",
+      label: "Mint your first badge",
+      description: "Create a verifiable credential in Credentials Studio",
+      href: "/credentials",
+      checkComplete: () => (achievements?.length ?? 0) > 0,
+    },
     {
       id: "create-invoice",
       label: "Create your first invoice",
