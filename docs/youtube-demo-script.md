@@ -50,8 +50,8 @@ This script outlines a 7–8 minute walkthrough of VeriVenture. Each voice-over 
 ## Segment 8 – Client Pays Invoice
 
 1. **On-screen:** Open an incognito window or a different browser with a separate wallet. Paste the invoice link into the address bar and load the public invoice page.
-2. **On-screen:** On the public invoice view, click `Pay invoice` and complete the payment using a test wallet, or, if payment rails are mocked in your environment, click a `Mark as Paid` button that simulates payment.
-   - **Voice-over 8:** “This is what my client sees when they open the invoice link—a clear summary and a single action to pay. They don’t have to create an account; they can simply pay with their wallet or through whatever payment option I’ve configured, and the status will update on my side.”
+2. **On-screen:** On the public invoice view, click `Pay invoice` and complete the payment using the second wallet in this browser, or, if payment rails are mocked in your environment, click a `Mark as Paid` button that simulates payment.
+   - **Voice-over 8:** “In this second browser I’ve connected a different wallet acting as the buyer. This is what my client sees when they open the invoice link—a clear summary and a single action to pay. They don’t have to create an account; they can simply pay with their wallet or through whatever payment option I’ve configured, and the status will update on my side.”
 
 ## Segment 9 – Publish Payment Proof
 
