@@ -50,6 +50,10 @@ type AssetCreateResult = {
   [key: string]: unknown;
 };
 
+const SERVERLESS_RETRY_CAP = 120;
+const DEFAULT_PUBLISH_EPOCHS = serverEnv.DKG_PUBLISH_EPOCHS;
+const DEFAULT_FINALITY_CONFIRMATIONS = serverEnv.DKG_MIN_FINALITY_CONFIRMATIONS;
+
 let cachedClient: DkgClientInstance | null = null;
 let cachedConfig: DkgConfig | null = null;
 
@@ -57,6 +61,8 @@ function buildConfig(): DkgConfig {
   if (cachedConfig) {
     return cachedConfig;
   }
+
+  const maxNumberOfRetries = Math.min(serverEnv.DKG_MAX_RETRIES, SERVERLESS_RETRY_CAP);
 
   cachedConfig = {
     endpoint: serverEnv.DKG_NODE_ENDPOINT,
@@ -67,7 +73,7 @@ function buildConfig(): DkgConfig {
       rpc: serverEnv.DKG_BLOCKCHAIN_RPC,
       privateKey: serverEnv.DKG_BLOCKCHAIN_PRIVATE_KEY,
     },
-    maxNumberOfRetries: serverEnv.DKG_MAX_RETRIES,
+    maxNumberOfRetries,
     frequency: serverEnv.DKG_POLL_FREQUENCY,
     communicationType: "Http",
     auth: serverEnv.DKG_NODE_AUTH_TOKEN
@@ -109,9 +115,9 @@ function normalizeOptions(
   options?: PublishOptions,
 ): Required<PublishOptions> {
   return {
-    epochsNum: options?.epochsNum ?? 6,
+    epochsNum: options?.epochsNum ?? DEFAULT_PUBLISH_EPOCHS,
     minimumNumberOfFinalizationConfirmations:
-      options?.minimumNumberOfFinalizationConfirmations ?? 2,
+      options?.minimumNumberOfFinalizationConfirmations ?? DEFAULT_FINALITY_CONFIRMATIONS,
     minimumNumberOfNodeReplications:
       options?.minimumNumberOfNodeReplications ?? 1,
     minimumBlockConfirmations: options?.minimumBlockConfirmations ?? 1,
