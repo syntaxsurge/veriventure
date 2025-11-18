@@ -55,16 +55,7 @@ import {
 } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useRouter } from "next/navigation";
-import CountUp from "react-countup";
 import { cn } from "@/lib/utils";
-
-// Stats data
-const stats = [
-  { label: "Active Founders", value: 12500, suffix: "+", icon: Users },
-  { label: "Verified Achievements", value: 45000, suffix: "+", icon: Award },
-  { label: "Invoices Processed", value: 8500000, prefix: "$", suffix: "+", icon: DollarSign },
-  { label: "DKG Publications", value: 95000, suffix: "+", icon: Database }
-];
 
 // Features data
 const features = [
@@ -76,7 +67,7 @@ const features = [
     bg: "from-purple-500/10 to-indigo-500/10",
     link: "/credentials",
     benefits: ["Soulbound NFTs", "Tamper-proof", "Instant verification"],
-    stats: { users: "5K+", satisfaction: "98%" }
+    tagline: "Production credential rail"
   },
   {
     title: "AI Pitch Deck Studio",
@@ -86,7 +77,7 @@ const features = [
     bg: "from-blue-500/10 to-cyan-500/10",
     link: "/ai-assistant/pitch-deck",
     benefits: ["Industry templates", "Export to PPTX/PDF", "AI enhancements"],
-    stats: { decks: "10K+", funded: "$2M+" }
+    tagline: "Investor storytelling autopilot"
   },
   {
     title: "Smart Invoicing",
@@ -96,7 +87,7 @@ const features = [
     bg: "from-green-500/10 to-emerald-500/10",
     link: "/invoices",
     benefits: ["Multi-currency", "Settlement proofs", "Revenue attestations"],
-    stats: { processed: "$8.5M", time: "< 1min" }
+    tagline: "On-chain payouts, zero ops overhead"
   },
   {
     title: "Truth Alignment",
@@ -106,7 +97,7 @@ const features = [
     bg: "from-amber-500/10 to-orange-500/10",
     link: "/ai-assistant/truth",
     benefits: ["AI verification", "DKG publishing", "Permanent records"],
-    stats: { verified: "95K+", accuracy: "99.9%" }
+    tagline: "Proof-of-truth workflow"
   },
   {
     title: "Business Plan AI",
@@ -116,7 +107,7 @@ const features = [
     bg: "from-pink-500/10 to-rose-500/10",
     link: "/ai-assistant/business-plan",
     benefits: ["Market research", "Financial projections", "Export ready"],
-    stats: { plans: "3K+", quality: "A+" }
+    tagline: "Narratives grounded in live research"
   },
   {
     title: "Public Verify Pages",
@@ -126,8 +117,31 @@ const features = [
     bg: "from-slate-500/10 to-slate-700/10",
     link: "/verify",
     benefits: ["Custom handle", "Real-time updates", "Investor ready"],
-    stats: { pages: "12K+", views: "500K+" }
+    tagline: "Share once, trust everywhere"
   }
+];
+
+const trustHighlights = [
+  {
+    title: "Wallet-native security",
+    description: "RainbowKit + wagmi handle every session so dashboards, studios, and verify links stay gated by design.",
+    icon: Shield,
+  },
+  {
+    title: "DKG provenance",
+    description: "Convex storage and OriginTrail DKG publishing give every artifact a tamper-evident history without extra ops.",
+    icon: Globe,
+  },
+  {
+    title: "Privacy-respecting onboarding",
+    description: "Quick Start flows use local storage until founders choose to mint, keeping experimentation off-chain and safe.",
+    icon: Lock,
+  },
+  {
+    title: "AI copilots with guardrails",
+    description: "Field-level prompts log evidence, hash every output, and publish only when you opt in—no surprise leakage.",
+    icon: Sparkles,
+  },
 ];
 
 // Testimonials
@@ -447,7 +461,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section - Enhanced with Animation */}
+      {/* Trust & Architecture Section */}
       <section className="relative py-20 px-4 bg-linear-to-b from-transparent via-muted/50 to-transparent">
         <div className="mx-auto max-w-7xl">
           <motion.div
@@ -455,45 +469,57 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
+            className="mb-12 text-center"
           >
-            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-              {stats.map((stat, idx) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div
-                    key={idx}
-                    className="text-center"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  >
-                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-purple-500/20 to-indigo-500/20 mb-4">
-                      <Icon className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <div className="text-3xl font-bold sm:text-4xl lg:text-5xl">
-                      <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                        {stat.prefix}
-                        <CountUp
-                          end={stat.value}
-                          duration={2.5}
-                          separator=","
-                          enableScrollSpy
-                          scrollSpyOnce
-                        />
-                        {stat.suffix}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-sm text-muted-foreground font-medium">{stat.label}</div>
-                  </motion.div>
-                );
-              })}
-            </div>
+            <Badge className="mb-4" variant="outline">
+              <Shield className="mr-1 h-3 w-3" />
+              Production-Ready Architecture
+            </Badge>
+            <h2 className="text-4xl font-bold sm:text-5xl lg:text-6xl">
+              Built for teams who ship{" "}
+              <span className="bg-linear-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                without vanity metrics
+              </span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-3xl text-lg text-muted-foreground">
+              Instead of public counters, we highlight the systems that keep every workflow secure, private, and auditable.
+            </p>
           </motion.div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {trustHighlights.map((item, idx) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: idx * 0.1 }}
+              >
+                <Card className="h-full border-2 border-primary/10 bg-linear-to-br from-background to-primary/5">
+                  <CardHeader className="flex flex-row items-start gap-4">
+                    <div className="rounded-2xl bg-primary/10 p-3">
+                      <item.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">{item.title}</CardTitle>
+                      <CardDescription className="mt-2 leading-relaxed">
+                        {item.description}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground">
+                      Every surface inherits the same guardrails, so the homepage never needs live counters to prove trust.
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Features Grid - Enhanced with Stats */}
+      {/* Features Grid */}
       <section className="relative py-20 px-4">
         <div className="mx-auto max-w-7xl">
           <motion.div
@@ -530,10 +556,10 @@ export default function LandingPage() {
                 <Card className="group relative h-full overflow-hidden transition-all hover:shadow-2xl hover:scale-105 hover:-translate-y-2">
                   <div className={cn("absolute inset-0 bg-linear-to-br opacity-5 transition-opacity group-hover:opacity-10", feature.bg)} />
 
-                  {/* Stats Badge - Fixed contrast */}
+                  {/* Feature Tagline */}
                   <div className="absolute top-4 right-4">
                     <Badge className="bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 font-semibold">
-                      {Object.values(feature.stats)[0]}
+                      {feature.tagline}
                     </Badge>
                   </div>
 
@@ -554,18 +580,6 @@ export default function LandingPage() {
                         </li>
                       ))}
                     </ul>
-
-                    {/* Feature Stats - Fixed contrast */}
-                    <div className="flex items-center justify-between text-xs mb-4">
-                      {Object.entries(feature.stats).map(([key, value]) => (
-                        <span key={key} className="flex items-center gap-1">
-                          <Badge variant="secondary" className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800">
-                            <span className="font-semibold">{value}</span>
-                          </Badge>
-                          <span className="text-muted-foreground">{key}</span>
-                        </span>
-                      ))}
-                    </div>
 
                     <Button
                       asChild
