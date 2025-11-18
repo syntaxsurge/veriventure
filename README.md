@@ -1,5 +1,7 @@
 # VeriVenture — Get Paid, Get Trusted, Get Funded
 
+[![VeriVenture Demo](public/images/veriventure-demo.png)](https://veriventure.vercel.app/demo-video)
+
 VeriVenture is the founder operating system that fuses wallet-only authentication, Moonbase Alpha smart contracts, OriginTrail DKG proofs, and applied AI copilots so entrepreneurs can get paid faster, defend every claim, and ship investor-grade collateral from a single workspace.
 
 ## Who we serve & why it matters
@@ -53,6 +55,36 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 7. **Share everything** – Distribute `/verify/[handle]`, `/demo-video`, and `/pitch-deck`; reviewers can click through blockchain transactions and DKG UALs without extra calls.
 
 ## Architecture & trust layer
+
+```text
+                +-----------------------------+
+                |   Founder / Reviewer UI    |
+                |  (Browser, RainbowKit UI)  |
+                +-------------+---------------+
+                              |
+                              v
+                    Next.js App Router
+                 (React 19, shadcn/ui, API)
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+          v                   v                   v
+   Convex Backend       Smart Contracts        AI Services
+ (achievements, docs,   (Moonbase Alpha       (OpenAI via
+ notes, invoices,       ValidityRegistry,      src/lib/
+ pitchDecks, etc.)      InvoiceRegistry)     server/openai)
+          |                   |                   |
+          v                   v                   |
+   DKG Assets & Notes   Tx Hashes & Events       |
+      (OriginTrail      (explorer templates)     |
+      via dkg.js)              |                 |
+          |                    +--------+--------+
+          v                             |
+   DKG Explorer / Subscan               v
+ (UALs, Subscan proofs)        Verify / Trust Surfaces
+                               (/verify, DKG Activity)
+```
+
 - **Frontend** – Next.js App Router, shadcn/ui, TanStack Query/Table, React 19, Tailwind pipelines, deterministic theming.
 - **Authentication** – RainbowKit + wagmi for wallet connect, `/api/auth/*` for nonce/signature, cookie-backed session refreshed via `proxy.ts`, and session broadcasts (`veriventure:session-updated`).
 - **Data** – Convex tables for achievements, documents, notes, communityNotes, dkgAssets, pitchDecks, invoices, revenueAttestations. Deterministic hashing via `src/lib/achievement-hash.ts` and `createDocumentRecord` keeps proofs stable.
@@ -103,6 +135,3 @@ The recorded walkthrough (mirrored via `/demo-video`) touches each of these rout
 - `AGENTS.md` – Canonical, always-current architecture + routing playbook.
 - `docs/youtube-demo-script.md` – Scene-by-scene guide that matches the `/demo-video` walkthrough.
 - `docs/problem-research.md` – Evidence-backed problem statements used to scope the features above.
-
-## License
-MIT – see [LICENSE](LICENSE).
