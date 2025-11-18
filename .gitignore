@@ -23,8 +23,11 @@
 # misc
 .DS_Store
 *.pem
-AGENTS.md
-CLAUDE.md
+
+# Ignore markdown files in the project root except README.md
+/*.md
+!/README.md
+
 blockchain/.idea/
 blockchain/node_modules
 blockchain/artifacts
