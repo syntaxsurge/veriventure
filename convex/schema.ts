@@ -152,6 +152,7 @@ export default defineSchema({
     ownerAddress: v.string(),
     featuredProofs: v.array(v.string()), // array of proof IDs (UALs or invoice IDs)
     checklistComplete: v.array(v.string()), // array of completed checklist items
+    firstRunComplete: v.optional(v.boolean()),
     createdAt: v.string(),
     updatedAt: v.string(),
   })
