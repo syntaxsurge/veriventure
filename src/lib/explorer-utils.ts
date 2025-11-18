@@ -4,12 +4,23 @@
 
 export type NetworkType = "moonbase" | "neuroweb" | "polkadot";
 
+import { clientEnv } from "@/env/client";
+
 /**
  * Generate DKG Explorer URL for a UAL (Uniform Asset Locator)
  */
 export function getDKGExplorerUrl(ual: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_DKG_EXPLORER_BASE || "https://dkg.origintrail.io";
-  return `${baseUrl}/explore?ual=${encodeURIComponent(ual)}`;
+  const template =
+    clientEnv.NEXT_PUBLIC_DKG_VIEWER_TEMPLATE ||
+    "https://dkg-testnet.origintrail.io/explore?ual={ual}";
+
+  if (template.includes("{ual}")) {
+    return template.replace("{ual}", encodeURIComponent(ual));
+  }
+
+  const url = new URL(template);
+  url.searchParams.set("ual", ual);
+  return url.toString();
 }
 
 /**
